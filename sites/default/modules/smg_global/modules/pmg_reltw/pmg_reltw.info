@@ -1,0 +1,7 @@
+name = PMG Related Nodes by Term
+description = Relatedness by vocabulary and term weight
+package = Other
+core = 7.x
+files[] = pmg_reltw.field.inc
+files[] = pmg_reltw.admin.inc
+dependencies[] = pathauto

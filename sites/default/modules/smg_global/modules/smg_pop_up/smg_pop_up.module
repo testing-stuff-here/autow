@@ -1,0 +1,2129 @@
+<?php
+
+module_load_include('inc', 'playbook_fields', 'includes/constants');
+module_load_include('inc', 'smg_pop_up', 'includes/purf_cache');
+module_load_include('inc', 'smg_pop_up', 'includes/layout_admin');
+
+/**
+ * Implements hook_menu()
+ */
+function smg_pop_up_menu(){
+  $items = array();
+  $items['node/%smg_pop_up_menu/layout'] = array(
+    'title' => 'Layout',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('smg_pop_up_layout', 1),
+    'access callback' => 'node_access',
+    'access arguments' => array('update', 1),
+    'file' => 'includes/layout_admin.inc',
+    'weight' => 1,
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+  );
+  $items['node/%smg_pop_up_menu/layout/choose-layout'] = array(
+    'title' => 'Layout',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('smg_pop_up_layout', 1),
+    'access callback' => 'node_access',
+    'access arguments' => array('update', 1),
+    'file' => 'includes/layout_admin.inc',
+    'weight' => 1,
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  $items['node/%smg_pop_up_menu/layout/one-column'] = array(
+    'title' => 'One Column Layout',
+    'page callback' => 'smg_pop_up_layout_template_build',
+    'page arguments' => array(1,3),
+    'access callback' => 'node_access',
+    'access arguments' => array('update', 1),
+    'file' => 'includes/layout_admin.inc',
+    'weight' => 2,
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['node/%smg_pop_up_menu/layout/two-column'] = array(
+    'title' => 'Two Column Layout',
+    'page callback' => 'smg_pop_up_layout_template_build',
+    'page arguments' => array(1,3),
+    'access callback' => 'node_access',
+    'access arguments' => array('update', 1),
+    'file' => 'includes/layout_admin.inc',
+    'weight' => 2,
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['smg-register/%ctools_js/%/%/%'] = array(
+    'page callback' => 'smg_pop_up_modal_callback',
+    'page arguments' => array(1,2,3,4),
+    'access callback' => TRUE,
+  );
+  $items['smg-pop-up/%/user-status'] = array(
+    'page callback' => 'smg_register_user_status_menu_callback',
+    'page arguments' => array(1),
+    'access callback' => TRUE,
+  );
+  $items['smg-pop-up/auto-submit/%/%/%/%/%'] = array(
+    'page callback' => 'smg_pop_up_auto_submit',
+    'page arguments' => array(2,3,4,5,6),
+    'access callback' => TRUE,
+  );
+  $items['smg-pop-up/silverpop-submit/%/%/%'] = array(
+    'page callback' => 'smg_pop_up_silverpop_submit',
+    'page arguments' => array(2,3,4),
+    'access callback' => TRUE,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_admin_paths()
+ * Forces our custom menu paths to use the administration theme
+ */
+function smg_pop_up_admin_paths() {
+  $paths = array(
+    'node/*/layout' => TRUE,
+    'node/*/layout/choose-layout' => TRUE,
+    'node/*/layout/one-column' => TRUE,
+    'node/*/layout/two-column' => TRUE,
+  );
+  return $paths;
+}
+
+/**
+ * Menu loader callback. Load a webform node if the given nid is a pop-up registration webform.
+ *
+ * @param int $nid
+ *
+ * @return object
+ */
+function smg_pop_up_menu_load($nid) {
+  if (!is_numeric($nid)) {
+    return FALSE;
+  }
+  $nid = (string)$nid;
+  $node = node_load($nid);
+  if (!isset($node->type) || !($node->type == 'pop_up_registration' || $node->type == 'form_template')) {
+    return FALSE;
+  }
+  return $node;
+}
+
+/**
+ * Implements hook_webform_component_update().
+ *
+ * @param array $component
+ */
+function smg_pop_up_webform_component_update($component){
+  _smg_purf_clear_cache($component['nid']);
+}
+
+/**
+ * Implements hook_webform_component_insert()
+ *
+ * @param array $component
+ */
+function smg_pop_up_webform_component_insert($component){
+  _smg_purf_clear_cache($component['nid']);
+}
+
+/**
+ * Implements hook_webform_component_delete()
+ *
+ * @param array $component
+ */
+function smg_pop_up_webform_component_delete($component){
+  _smg_purf_clear_cache($component['nid']);
+}
+
+/**
+ * Implements hook_node_insert
+ *
+ * @param object $node
+ */
+function smg_pop_up_node_insert($node){
+  if ($node->type == 'pop_up_registration'){
+    if (isset($_SESSION['smg_pop_up_webform_template'])){
+
+      $template = node_load($_SESSION['smg_pop_up_webform_template']);
+      $template_json = smg_pop_up_layout_template_query($template->nid, 'two_column');
+
+      smg_pop_up_layout_template_insert($node->nid, 'two_column', $template_json);
+
+      db_merge('smg_pop_up_layouts')
+        ->key(array('entity_id' => $node->nid))
+        ->fields(array(
+          'layout_in_use' => 'two_column',
+        ))
+        ->execute();
+
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_presave().
+ *
+ * @param object $entity
+ * @param string $type
+ */
+function smg_pop_up_entity_presave($entity, $type) {
+  $site_id = variable_get("smg_global_site");
+  if ($type == 'node' && property_exists($entity, 'field_pop_up_registration') && $site_id == 'opx') {
+    // If a PURF field collection doesn't have a pop-type, then unset that field collection
+    if (isset($entity->field_pop_up_registration['und']) && !empty($entity->field_pop_up_registration['und'])) {
+      if (!isset($entity->field_pop_up_registration['und'][0]['field_smg_pop_type']['und'][0]['value'])) {
+        unset($entity->field_pop_up_registration['und']);
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_theme()
+ */
+function smg_pop_up_theme(){
+  return array(
+    'smg_pop_up_one_column' => array(
+      'variables' => array('node' => NULL, 'components' => NULL),
+      'template' => 'templates/smg-pop-up-one-column',
+    ),
+    'smg_pop_up_two_column' => array(
+      'variables' => array('node' => NULL, 'components' => NULL),
+      'template' => 'templates/smg-pop-up-two-column',
+    ),
+    'smg_webform_two_column' => array(
+      'render element' => 'form',
+      'template' => 'templates/smg-webform-two-column',
+    ),
+    'smg_webform_one_column' => array(
+      'render element' => 'form',
+      'template' => 'templates/smg-webform-one-column',
+    ),
+  );
+}
+
+/**
+ * Menu callback for SMG Registration forms.
+ *
+ * @param $js
+ *  js or nojs, provided automatically by Ctools
+ * @param $nid
+ *  The nid of the webform for the pop-up registration form
+ * @param $leadworks_id
+ *  The Master Leadworks ID
+ * @param int|boolean $referer_nid
+ *  The node id of the referer
+ * @param int|boolean $ad_id
+ *  The field id of the ad value in the LW campaign
+ * @param string|boolean $purf_link_unique_id
+ *  The unique string for the PURF enabled link
+ */
+function smg_pop_up_modal_callback($js = NULL, $nid, $leadworks_id = false, $referer_nid = false, $ad_id = false, $purf_link_unique_id = false){
+  return smg_pop_up_modal_build($js, $nid, $leadworks_id, $referer_nid, $ad_id, $purf_link_unique_id);
+}
+
+/**
+ * Handles the CTOOLS modal generation for SMG Registration Forms.
+ * The following function is built based on the example found at the
+ * following url: https://drupal.org/node/1196150
+ *
+ * @param $js
+ *  - js or nojs
+ * @param $webform_nid
+ *  - The webform node id
+ * @param $leadworks_id
+ *  - The Master Leadworks ID
+ * @param string/int $referer_nid
+ *  - The node id of the node that the pop-up form is attached to
+ * @param string $ad_id
+ *  - The Leadworks ad id.  This will only be passed in by link/video PURFs, not page-load PURFs
+ * @param string $purf_link_unique_id
+ *  - If the PURF type is link/video (not page_load), then we pass in its unique id (which is added to the link's css classes and looks
+ *    like "purf-unique-*" where * is the unique id)
+ */
+function smg_pop_up_modal_build($js, $webform_nid, $leadworks_id, $referer_nid, $ad_id, $purf_link_unique_id){
+  $node = node_load((string)$webform_nid);
+  $submission = (object) array(); // empty object required by webform
+
+  if (isset($_SESSION['webform_client_form_'.$webform_nid]) && $_SESSION['webform_client_form_'.$webform_nid] == 'submitted') {
+    $submission->is_draft = FALSE;
+  }
+  else {
+    $submission->is_draft = TRUE;
+  }
+
+  // We are dynamically passing the leadworks id into the webform node (since a pop-up can be reused
+  // for multiple campaigns).  We pass it in in the array form that nodes expect.
+  if ($leadworks_id) {
+    $leadworks_id_array = array(0=>array('value'=>$leadworks_id));
+    $node->field_master_leadworks_id['und'] = $leadworks_id_array;
+  }
+
+  // We're also dynamically passing extra leadworks ids into the node, if they're provided
+  if (isset($_GET['additionalLwIds'])) {
+    $additional_lw_ids = explode(",", $_GET['additionalLwIds']);
+    $node->field_additional_leadworks_ids['und'] = array();
+    foreach ($additional_lw_ids as $additional_id) {
+      $node->field_additional_leadworks_ids['und'][] = array('value' => $additional_id);
+    }
+  }
+
+  // Add CTOOLS modal components
+  ctools_include('modal');
+  ctools_include('ajax');
+  ctools_modal_add_js();
+
+  $form_state = array(
+    'title' => 'Almost there!',
+    'ajax' => TRUE,
+    're_render' => FALSE,
+    'no_redirect' => FALSE,
+  );
+  $args = array($node, $submission);
+  $form_state['build_info']['args'] = $args;
+  // Add a key to $form_state array called smg_modal_registration and set it to TRUE.  So later on (in hook_form_alter for example), we can easily
+  // identify the form as a modal pop-up registration form
+  $form_state['smg_modal_registration'] = TRUE;
+
+  // Get the ad id from the referer node, then add it to node->webform['components'], because
+  // hook_webform_submission_insert looks for the leadworks id there
+  // Load the referer node, so that we can get info from the pop-up registration field collection
+  // Look for URL query parameters identifying this PURF as an "extra" PURF
+  $extra = (isset($_GET['extra'])) ? $_GET['extra'] : false;
+  $extra_key = (isset($_GET['key'])) ? $_GET['key'] : false;
+  $referer_info = smg_pop_up_extract_referer_info($referer_nid, $extra, $extra_key);
+  // What is the leadworks id for the "ad"
+  $ad = $referer_info['leadworks_id'];
+
+  // If the $ad_id field is NOT FALSE, then it was passed into the callback function, which means that the pop up is being generated by a link/video click
+  // instead of on page load.  So we override the value of $ad.
+  if ($ad_id) {
+    $ad = $ad_id;
+  }
+
+  // Add a couple fields to the referer_info array
+  $referer_info['ad_id'] = $ad_id;
+  $referer_info['purf_link_unique_id'] = $purf_link_unique_id;
+  $referer_info['leadworks_id'] = $ad;  // In case it was overridden above
+  $referer_info['referer_node'] = ($referer_nid) ? node_load($referer_nid) : FALSE;
+  $form_state['referer'] = $referer_info;
+
+  foreach ($node->webform['components'] as $component_id => &$component) {
+    if ($component['form_key'] == 'ad'){
+      $component['extra']['leadworks_id'] = $ad;
+    }
+  }
+
+  // Fetch webform form
+  $output = drupal_build_form('webform_client_form_'.$webform_nid, $form_state);
+  // Add clearfix suffix
+  $output['#suffix'] = '<div class="clearfix"></div>';
+
+  // While the form is still an array, get the js-validation and dependency code.  These values are generated in the
+  // playbook_fields_form_webform_client_form_alter function in the playbook_fields module, and they're stored in the $form array
+  $js = $output['#js_functions'];
+  $js1 = '';
+  $js2 = '';
+  $js3 = '';
+  if ($js && is_array($js)) {
+    $js1 = $js['js1'];
+    $js2 = $js['js2'];
+    if (isset($js['js3'])) {
+      $js3 = $js['js3'];
+    }
+  }
+  $output = ctools_modal_form_render($form_state, $output);
+
+  //$output = ctools_modal_form_wrapper('webform_client_form_'.$webform_nid, $form_state);
+
+  // Now we have the js validation/dependency code stored in $js1 and $js2.  We need this to run after the modal is built, otherwise it won't
+  // bind to the modal, so drupal_add_js() will not work!  We execute this javascript by applying a custom function (runValidationDependencyJS)
+  // which is defined in smg-pop-up.js.  To understand how/why the code below works, refer to:
+  // http://www.jaypan.com/tutorial/calling-function-after-ajax-event-drupal-7
+  $output[] = array(
+    'command' => 'runValidationDependencyJS',
+    'js' => $js1,
+  );
+  $output[] = array(
+    'command' => 'runValidationDependencyJS',
+    'js' => $js2,
+  );
+  $output[] = array(
+    'command' => 'runPurfSilverpopEventJS',
+    'js' => $js3,
+  );
+  // Now we add the code that moves the widgets into the modal window
+  $output[] = array(
+    'command' => 'moveMultiWidgets',
+  );
+  // Add code that modifies the width/height dimensions of modal elements
+  $output[] = array(
+    'command' => 'modifyModalDimensions',
+  );
+
+  // Handle the successful submission through a session flag - see _smg_pop_up_modal_registration_submit below
+  if (isset($_SESSION['webform_client_form_'.$webform_nid]) && $_SESSION['webform_client_form_'.$webform_nid] == 'submitted') {
+    // Delete session flag
+    unset($_SESSION['webform_client_form_'.$webform_nid]);
+    $output = array(); // Recreate output
+    $output[] = ctools_modal_command_dismiss();
+    $output[] = array(
+      'command' => 'smgCloseModal',
+    );
+    // If the purf_link_unique_id key is not false, then the form was generated by a link, not on page load
+    if ($form_state['referer']['purf_link_unique_id']) {
+      $output[] = array(
+        'command' => 'smgPopRedirect',
+        'purfLinkUniqueId' => $form_state['referer']['purf_link_unique_id'],
+      );
+    }
+    print ajax_render($output);
+    exit;
+  }
+
+  // Render output in modal window
+  print ajax_render($output);
+  exit;
+}
+
+/**
+ * Additional submit function for the webform that is displayed in the modal CTools window
+ * @see https://drupal.org/node/1196150
+ *
+ * @param array $form
+ * @param array $form_state
+ */
+function _smg_pop_up_modal_registration_submit(&$form, &$form_state){
+  $webform_nid = $form['#node']->nid;
+  $_SESSION['webform_client_form_'.$webform_nid] = 'submitted';
+}
+
+/**
+ * Implements hook_node_view()
+ *
+ * @param object $node
+ * @param string $view_mode
+ */
+function smg_pop_up_node_view($node, $view_mode){
+
+  // Add smg-pop-up-node-view.css to every page
+  drupal_add_css(
+    drupal_get_path('module', 'smg_pop_up') . '/css/smg-pop-up-node-view.css',
+    array('type'=>'file', 'every_page'=> true, 'preprocess'=>true)
+  );
+
+  // Load the template query file
+  module_load_include('inc', 'smg_pop_up', 'includes/layout_admin');
+
+  // #57 A PURF "No-Popup" can appear on any page
+  if ($standard_purf = variable_get('smg_global_standard_purf')) {
+    drupal_add_js(
+      array('standard_purf' => $standard_purf),
+      array('type'=>'setting')
+    );
+  }
+  drupal_add_js(
+    drupal_get_path('module','smg_pop_up').'/js/purf-no-popup.js',
+    array('type'=>'file','preprocess'=>TRUE, 'every_page'=>TRUE)
+  );
+
+  $altered_info = false;
+
+  foreach (module_implements('smg_pop_up_add') as $module) {
+    $function = $module . '_smg_pop_up_add';
+    $altered_info = $function($node);
+  }
+
+  $view_mode_test = ($view_mode != 'teaser' || $node->type == 'download') ? TRUE : FALSE; // If view mode is teaser don't show, unless it's a download node
+
+  // Check if the object has the pop_up_registration field
+  if (
+    (property_exists($node, 'field_pop_up_registration') || $altered_info) &&
+    $view_mode_test &&
+    !path_is_admin(current_path())
+  ) {
+
+    // Check if the pop_up_registration field is set
+    if (isset($node->field_pop_up_registration['und'][0]['value']) || $altered_info) {
+
+      // #251
+      $not_expired = TRUE;
+
+      /** @var object|NULL $fc */
+      $fc = NULL;
+
+      if (!$altered_info) {
+        // Load the field_pop_up_registration field collection entity.  First get the field collection item id
+        $fc_item_id = $node->field_pop_up_registration['und'][0]['value'];
+        // entity_load returns an array for field collection items.  Each key of the array is an object representing one of the field collections attached to the node
+        $fc_array = entity_load('field_collection_item', array($fc_item_id));
+        // We only want the object represented by the $fc_item_id
+        $fc = $fc_array[$fc_item_id];
+
+        // The field collection contains a field called field_registration_form which is an entity reference that points to the pop-up
+        // registration form that we want to use as an overlay for the current page being rendered.  Get the nid of this pop-up registration form.
+        $reg_nid = isset($fc->field_smg_pop_registration_form['und']) ? $fc->field_smg_pop_registration_form['und'][0]['nid'] : FALSE;
+
+        // Get the "Type" of pop-up, if it is set.  If it isn't set, automatically set it to 'page_load'
+        if (property_exists($fc, 'field_smg_pop_type') && isset($fc->field_smg_pop_type['und'])) {
+          $pop_type = $fc->field_smg_pop_type['und'][0]['value'];
+        } else {
+          $pop_type = 'page_load';
+        }
+
+        // Override pop type if we're in teaser mode, b/c we obviously don't want the PURF on page load
+        if ($view_mode == 'teaser') {
+          $pop_type = 'link_click';
+        }
+
+        if ($pop_type == 'video_click') {
+          // <script src="https://static.cdn-ec.viddler.com/js/vapi.js" type="text/javascript"><!--mce:0--></script>
+          drupal_add_js('https://static.cdn-ec.viddler.com/js/vapi.js', 'external');
+        }
+
+        if (!empty($fc->field_smg_pop_exp_date)) {
+          $expiration_date = strtotime($fc->field_smg_pop_exp_date['und'][0]['value']);
+          if (time() >= $expiration_date) {
+            $not_expired = FALSE;
+          }
+        }
+      } else {
+        $reg_nid = $altered_info['pop_up_nid'];
+        $pop_type = isset($altered_info['pop_type']) ? $altered_info['pop_type'] : 'page_load';
+      }
+
+      if ($reg_nid && $not_expired) {
+        _smg_purf_add_css_js();
+
+        // Load the registration webform node
+        $reg_node = node_load((string)$reg_nid);
+        // Check the users status (cookie, and custom questions in leadworks)
+        //$user_status = _smg_pop_up_check_user_status(smg_pop_up_get_custom_questions($reg_node->webform['components']));
+
+        // Get the custom questions for the pop-up webform, we will pass this along into our js settings object
+        $custom_questions = smg_pop_up_get_custom_questions($reg_node->webform['components']);
+
+        // We populate various fields that will be used in the modal differently based on the user status, as
+        // well as whether the node being viewed has a source type of lead gen or custom
+        $contentBottom = 70;
+        $disclaimer = false;
+
+        // We invoke our custom hook, which expects an array with the structure:
+        // ( 'custom' => [custom_tid], 'lead' => [lead_tid])
+        $source_taxonomies = module_invoke_all('smg_pop_up_source_tids');
+        if (sizeof($source_taxonomies) > 0) {
+          $custom_tid = array_key_exists('custom', $source_taxonomies) ? $source_taxonomies['custom'] : false;
+          $lead_tid = array_key_exists('lead', $source_taxonomies) ? $source_taxonomies['lead'] : false;
+          if ($custom_tid && $lead_tid) {
+            // Does the current page/node being loaded have a source_type field.  Is that field set?
+            if (property_exists($node, 'field_term_source_type') && isset($node->field_term_source_type['und'])) {
+              $tid = $node->field_term_source_type['und'][0]['tid'];
+              if ($tid == $custom_tid || $tid == $lead_tid) {
+                $disclaimer = true;
+                $contentBottom = 120;
+              }
+            }
+          }
+        }
+
+        // The callback for smg-pop-up-forms expects several arguments, including the nid of the PURF form (required),
+        // the Leadworks ID (required), the referer nid (required) ,and optionally the ad-id.  We'll create a variable
+        // that will store these arguments as a string.
+        // The $arguments should eventually look like /PURF-nid/Leadworks-Id/Referee-nid/[Ad-Id]
+        $arguments = $reg_nid;
+        $argument_query = array();
+
+        // Get the Master Leadworks ID from the field collection or the altered info array
+        if (!$altered_info) {
+          $leadworks_id = isset($fc->field_smg_pop_leadworks_id['und']) ?
+            $fc->field_smg_pop_leadworks_id['und'][0]['value'] :
+            false;
+        } else {
+          $leadworks_id = $altered_info['leadworks_id'];
+        }
+
+        // If the Leadworks ID was provided, add it to the arguments
+        if ($leadworks_id) {
+          $arguments = $arguments . '/' . $leadworks_id;
+        }
+        // Add the referer nid to the arguments
+        $arguments .= '/' . $node->nid;
+
+        // Add any additional leadworks IDs
+        if (!empty($fc->field_additional_leadworks_ids)) {
+          $additional_lw_ids = array();
+          foreach ($fc->field_additional_leadworks_ids['und'] as $item) {
+            $additional_lw_ids[] = $item['value'];
+          }
+          $argument_query['additionalLwIds'] = implode(",", $additional_lw_ids);
+        }
+
+        $hide_purf_on_silverpop_mailings = FALSE;
+        if (!empty($fc->field_purf_hide_spop_mailing) && $fc->field_purf_hide_spop_mailing['und'][0]['value']) {
+          $hide_purf_on_silverpop_mailings = TRUE;
+        }
+
+        if (!$altered_info) {
+          $header_new_user = (!empty($fc->field_smg_pop_headline_new_usr)) ? $fc->field_smg_pop_headline_new_usr['und'][0]['value'] : false;
+          $header_exist_user = (!empty($fc->field_smg_pop_headline_exist_usr)) ? $fc->field_smg_pop_headline_exist_usr['und'][0]['value'] : false;
+        } else {
+          $header_new_user = $altered_info['header_new_user'];
+          $header_exist_user = $altered_info['header_exist_user'];
+        }
+
+        $pop_data = (isset($fc->field_smg_pop_data['und'])) ? json_decode($fc->field_smg_pop_data['und'][0]['value'], true) : false;
+
+        // #2288
+        // For Download nodes (content type Download), the "Download Now" button will be the link that generates the PURF popup.
+        // Since this is an inline link, we replicate the $pop_data array and input the appropriate values
+
+        // #172 Adding same functionality to the Download button on Whitepaper nodes
+        $node_type = $node->type;
+        $button_purf = FALSE;
+        if (in_array($node_type, array('download', 'whitepaper', 'white_paper'))) {
+          $site = variable_get('smg_global_site');
+
+          if ($site == 'pw' && !in_array($node_type, array('download')))
+            $button_purf = FALSE;
+          elseif ($site == 'aw' && ($node_type == 'whitepaper' || $node_type == 'download'))
+            $button_purf = FALSE;
+          elseif ($site == 'hcp' && $button_purf == FALSE)
+            $button_purf = FALSE;
+          else
+            $button_purf = TRUE;
+
+          $download_type = 'field_download_document';
+          // Change download type if node_type different from download
+          switch ($node_type) {
+            case 'download':
+              $download_type = 'field_download_document';
+              break;
+            case 'white_paper':
+            case 'whitepaper':
+              $download_type = ($site == 'pw') ? 'field_wp_link' : 'field_whitepaper';
+              break;
+            case 'white_paper':
+              $download_type = 'field_files';
+              break;
+          }
+          // Get the URL of the document, then remove http or https
+          if ($site == 'aw') {
+            $doc = file_create_url($node->{$download_type}['und'][0]['uri']);
+            $doc = preg_replace('|^https?://|','',$doc);
+
+            // If $pop_data isn't an object, then there are no other PURF links on the page
+            // #TODO account for case when $pop_data is an object
+            $doc_data = array(
+              'adId' => (isset($fc->field_smg_pop_ad_id['und'])) ? $fc->field_smg_pop_ad_id['und'][0]['value'] : false,
+              'protocol' => 'http://',
+              'url' => $doc,
+            );
+
+            $pop_data = (array)$pop_data;
+            $pop_data['inlineLinks']['dwnpf'] = $doc_data;
+            $pop_data = (object)$pop_data;
+          }
+          if ($site == 'pw' && $download_type == 'field_wp_link') {
+            $link = $node->field_wp_link[LANGUAGE_NONE][0]['url'];
+            $link = preg_replace('|^https?://|','',$link);
+
+            $link_data = array(
+              'adId' => (isset($fc->field_smg_pop_ad_id['und'])) ? $fc->field_smg_pop_ad_id['und'][0]['value'] : false,
+              'protocol' => 'http://',
+              'url' => $link
+            );
+
+            $pop_data = $pop_data ? array ($pop_data) : array();
+            $pop_data['inlineLinks']['dwnpf'] = $link_data;
+            $pop_data = (object) $pop_data;
+
+          }
+
+          // If download node, then override the pop_type to be link
+          if ($node_type == 'download')
+            $pop_type = 'link_click';
+        }
+
+        // #936
+        $silverpop_event_data = FALSE;
+        if (property_exists($reg_node, 'field_purf_silverpop_event') && !empty($reg_node->field_purf_silverpop_event)) {
+          $silverpop_event = $reg_node->field_purf_silverpop_event['und'][0]['value'];
+          $purf_title = $node->title;
+          $form_nid = $reg_node->nid;
+          $silverpop_event_data = array(
+            'event' => $silverpop_event,
+            'node_title' => $purf_title,
+            'form_nid' => $form_nid,
+          );
+        }
+
+        if ($view_mode == 'full' && !$button_purf) {
+          // Add general settings to Drupal's javascript settings object
+          $smg_pop_up_settings = array(
+            'smg-pop-up-settings' => array(
+              'header_new_user' => $header_new_user,
+              'header_exist_user' => $header_exist_user,
+              'disclaimer' => $disclaimer,
+              'custom_questions' => $custom_questions,
+              'webform_nid' => $reg_nid,
+              'leadworks_id' => $leadworks_id,
+              'referer_nid' => $node->nid,
+              'pop_type' => $pop_type, // either page_load, video_click, or link_click
+              'pop_data' => $pop_data,
+              'layout_type' => smg_pop_up_layout_template_type_query($reg_nid),
+              'hide_purf_spop_mailings' => $hide_purf_on_silverpop_mailings,
+            ),
+          );
+
+          // If pop_type is video_click, add some settings
+          if ($pop_type == 'video_click') {
+            $viddler_id = isset($node->field_viddler_id['und']) ? $node->field_viddler_id['und'][0]['value'] : false;
+            $smg_pop_up_settings['smg-pop-up-settings']['viddler_id'] = $viddler_id;
+          }
+
+          if ($silverpop_event_data) {
+            $smg_pop_up_settings['smg-pop-up-settings']['silverpop_event'] = $silverpop_event_data;
+          }
+
+          drupal_add_js($smg_pop_up_settings, 'setting');
+
+
+          // Now we add to the content array, which will render a region on the page.  In our css we define this region as hidden.
+          // We then trigger the click event on the link in js code in smg-pop-up.js
+          _smg_pop_up_generate_hidden_links($arguments, $argument_query);
+
+        }
+        elseif ($view_mode == 'teaser' || $button_purf) {
+          // Determine a unique id for this purf
+          $unique = isset($node->uuid) ? str_replace("-", "_", $node->uuid) : $node->created;
+
+          // Add to the "Extra" settings object
+          $purf_settings_extra = array(
+            "smg-pop-up-settings-extra" => array(
+              $unique => array(
+                'header_new_user' => $header_new_user,
+                'header_exist_user' => $header_exist_user,
+                'disclaimer' => $disclaimer,
+                'custom_questions' => $custom_questions,
+                'webform_nid' => $reg_nid,
+                'leadworks_id' => $leadworks_id,
+                'referer_nid' => $node->nid,
+                'pop_type' => 'link_click',
+                'pop_data' => array(
+                  'inlineLinks' => array(
+                    $unique => array(
+                      'adId' => (!empty($fc->field_smg_pop_ad_id)) ? $fc->field_smg_pop_ad_id['und'][0]['value'] : 1,
+                      'protocol' => '',
+                      'url' => FALSE,
+                    ),
+                  ),
+                ),
+                'additional_leadworks_ids' => (isset($argument_query['additionalLwIds'])) ? explode(",", $argument_query['additionalLwIds']) : FALSE,
+                'hide_purf_spop_mailings' => $hide_purf_on_silverpop_mailings,
+              ),
+            ),
+          );
+          if ($silverpop_event_data) {
+            $purf_settings_extra['smg-pop-up-settings-extra'][$unique]['silverpop_event'] = $silverpop_event_data;
+          }
+          drupal_alter('smg_purf_settings', $node, $purf_settings_extra);
+          drupal_add_js($purf_settings_extra, array('type' => 'setting'));
+        }
+
+        // Add our own javascript that will be used to theme the modal.  Following the example at:
+        // http://drupion.com/blog/10-steps-creating-ctools-modal-window-drupal-7
+        $smg_pop_up_style = array(
+          'smg-pop-up-style-two-column' => array(
+            'modalSize' => array(
+              'type' => 'scale',
+              'width' => .64,
+              'height' => .85,
+              'addHeight' => 30,
+              'contentBottom' => $contentBottom,
+            ),
+            'modalOptions' => array(
+              'opacity' => .7,
+              'background-color' => 'black',
+            ),
+            'modalTheme' => 'smg_pop_up_modal',
+          ),
+          'smg-pop-up-640' => array(
+            'modalSize' => array(
+              'type' => 'scale',
+              'width' => .9,
+              'height' => .9,
+              'addHeight' => 30,
+              'contentBottom' => $contentBottom + 40,
+            ),
+            'modalOptions' => array(
+              'opacity' => .7,
+              'background-color' => 'black',
+            ),
+            'modalTheme' => 'smg_pop_up_modal',
+          ),
+          'smg-pop-up-style-one-column' => array(
+            'modalSize' => array(
+              'type' => 'scale',
+              'width' => .38,
+              'height' => .7,
+              'addHeight' => 30,
+              'contentBottom' => $contentBottom,
+            ),
+            'modalOptions' => array(
+              'opacity' => .7,
+              'background-color' => 'black',
+            ),
+            'modalTheme' => 'smg_pop_up_modal',
+          ),
+          'smg-pop-up-one-640' => array(
+            'modalSize' => array(
+              'type' => 'scale',
+              'width' => .9,
+              'height' => .8,
+              'addHeight' => 30,
+              'contentBottom' => $contentBottom + 40,
+            ),
+            'modalOptions' => array(
+              'opacity' => .7,
+              'background-color' => 'black',
+            ),
+            'modalTheme' => 'smg_pop_up_modal',
+          ),
+        );
+        drupal_add_js($smg_pop_up_style, 'setting');
+      }
+
+    }
+  }
+
+
+}
+
+/**
+ * Generates a render array of CTools Modal enabled links.
+ *
+ * @param array|boolean $arguments
+ * @param array|boolean $argument_query
+ *
+ * @return array
+ */
+function _smg_pop_up_generate_hidden_links($arguments = FALSE, $argument_query = FALSE) {
+  $hidden_links = &drupal_static(__FUNCTION__);
+
+  if (!$hidden_links && $arguments) {
+    // Create a link pointing to the menu callback for the smg-pop-up forms, obviously with the nid of the registration form as the
+    // main argument.  This link needs to have a class of .ctools-use-modal so that the ctools javascript code knows that this link
+    // should render in a modal display.  The other class (.ctools-modal-smg-pop-up-style) tells ctools to apply the styling options
+    // that we define below in $smg_pop_up_style['smg-pop-up-style']
+    $modal_type_options = array(
+      'two_col_options' => array('attributes' => array('class' => 'ctools-use-modal ctools-modal-smg-pop-up-style-two-column')),
+      'one_col_options' => array('attributes' => array('class' => 'ctools-use-modal ctools-modal-smg-pop-up-style-one-column')),
+      'two_col_640_options' => array('attributes' => array('class' => 'ctools-use-modal ctools-modal-smg-pop-up-640')),
+      'one_col_640_options' => array('attributes' => array('class' => 'ctools-use-modal ctools-modal-smg-pop-up-one-640')),
+    );
+
+    if ($argument_query) {
+      foreach ($modal_type_options as $option_type => &$option) {
+        $option += array('query' => $argument_query);
+      }
+    }
+
+    $modal_link = '<div id="two-column" class="modal-link-wrapper">' . l('','smg-register/nojs/' . $arguments, $modal_type_options['two_col_options']) . '</div>';
+    $modal_link .= '<div id="one-column" class="modal-link-wrapper">' . l('','smg-register/nojs/' . $arguments, $modal_type_options['one_col_options']) . '</div>';
+    $modal_link .= '<div id="two-column-640" class="modal-link-wrapper">' . l('','smg-register/nojs/' . $arguments, $modal_type_options['two_col_640_options']) . '</div>';
+    $modal_link .= '<div id="one-column-640" class="modal-link-wrapper">' . l('','smg-register/nojs/' . $arguments, $modal_type_options['one_col_640_options']) . '</div>';
+
+    $hidden_links = array(
+      '#markup' => $modal_link,
+      '#prefix' => '<div id="smg-pop-up-hidden-links" class="smg-pop-up-hidden-links">',
+      '#suffix' => '</div>',
+    );
+  }
+
+  return $hidden_links;
+}
+
+/**
+ * Adds necessary css and js to a page for modal to render
+ */
+function _smg_purf_add_css_js(){
+
+  $js_extension = (variable_get('smg_global_is_production', false)) ? '.min.js' : '.js';
+  $playbook_fields_path = drupal_get_path('module', 'playbook_fields');
+  $purf_path = drupal_get_path('module', 'smg_pop_up');
+
+  drupal_add_js(drupal_get_path('module', 'webform') . "/js/webform.js");
+
+  // Add the smg-pop-up.css file
+  drupal_add_css(drupal_get_path('module', 'smg_pop_up') . '/css/smg-pop-up.css', array('type' => 'file', 'every_page' => false, 'preprocess' => TRUE, 'group' => CSS_THEME, 'weight' => 20));
+  // Add the ctools libraries
+  ctools_include('modal');
+  ctools_include('ajax');
+  ctools_modal_add_js();
+  // Add the jQuery UI Multiselect libraries
+  drupal_add_css($playbook_fields_path . '/includes/jquery-ui.css');
+  ctools_add_css('jquery.multiselect','smg_pop_up');
+  drupal_add_js($playbook_fields_path . '/includes/jquery-ui.min.js', array('type'=>'file', 'every_page'=>FALSE, 'preprocess'=>FALSE, 'group' => JS_LIBRARY, 'weight' => 10));
+  drupal_add_js($playbook_fields_path . '/includes/jquery.multiselect.js', array('type'=>'file', 'every_page'=>FALSE, 'preprocess'=>FALSE,'group'=>JS_LIBRARY, 'weight'=>20));
+  drupal_add_js($purf_path . '/js/vendor/js.cookie.js', array('type' => 'file', 'every_page' => TRUE, 'preprocess' => TRUE));
+  // Add the smg-pop-up.js file
+  drupal_add_js($purf_path . "/js/smg-pop-up{$js_extension}", array('type' => 'file', 'every_page' => FALSE, 'preprocess' => FALSE, 'group'=>JS_DEFAULT, 'weight'=>101));
+}
+
+/**
+ * Adds the basic PURF style settings
+ */
+function _smg_purf_add_style_settings(){
+  $js = drupal_add_js();
+  $purf_style_settings_found = FALSE;
+  if (isset($js['settings']['data'])) {
+    foreach ($js['settings']['data'] as $data) {
+      if (array_key_exists('smg-pop-up-style-two-column', $data))
+        $purf_style_settings_found = TRUE;
+    }
+  }
+  // Add PURF style settings
+  if (!$purf_style_settings_found) {
+    $smg_pop_up_style = array(
+      'smg-pop-up-style-two-column' => array(
+        'modalSize' => array(
+          'type' => 'scale',
+          'width' => .64,
+          'height' => .85,
+          'addHeight' => 30,
+          'contentBottom' => 70,
+        ),
+        'modalOptions' => array(
+          'opacity' => .7,
+          'background-color' => 'black',
+        ),
+        'modalTheme' => 'smg_pop_up_modal',
+      ),
+      'smg-pop-up-640' => array(
+        'modalSize' => array(
+          'type' => 'scale',
+          'width' => .9,
+          'height' => .9,
+          'addHeight' => 30,
+          'contentBottom' => 110,
+        ),
+        'modalOptions' => array(
+          'opacity' => .7,
+          'background-color' => 'black',
+        ),
+        'modalTheme' => 'smg_pop_up_modal',
+      ),
+      'smg-pop-up-style-one-column' => array(
+        'modalSize' => array(
+          'type' => 'scale',
+          'width' => .38,
+          'height' => .7,
+          'addHeight' => 30,
+          'contentBottom' => 70,
+        ),
+        'modalOptions' => array(
+          'opacity' => .7,
+          'background-color' => 'black',
+        ),
+        'modalTheme' => 'smg_pop_up_modal',
+      ),
+      'smg-pop-up-one-640' => array(
+        'modalSize' => array(
+          'type' => 'scale',
+          'width' => .9,
+          'height' => .8,
+          'addHeight' => 30,
+          'contentBottom' => 110,
+        ),
+        'modalOptions' => array(
+          'opacity' => .7,
+          'background-color' => 'black',
+        ),
+        'modalTheme' => 'smg_pop_up_modal',
+      ),
+    );
+    drupal_add_js($smg_pop_up_style, 'setting');
+  }
+}
+
+/**
+ * Implements hook_page_alter()
+ *
+ * @param array $page
+ */
+function smg_pop_up_page_alter(&$page){
+  $hidden_links = _smg_pop_up_generate_hidden_links();
+  if ($hidden_links) {
+    $page['content']['hidden_links'] = $hidden_links;
+  }
+}
+
+/**
+ * Implements hook_entity_view_alter()
+ *
+ * @param array  $build
+ * @param string $type
+ */
+function smg_pop_up_entity_view_alter(&$build, $type){
+
+  if ($type == 'node' && $build['#view_mode']){
+    $node = $build['#node'];
+    if (isset($build['field_viddler_id'])){
+      // Make sure that the field_pop_up_registration is set
+      if(isset($node->field_pop_up_registration['und'])){
+        // Load the field_pop_up_registration field collection entity.  First get the field collection item id
+        $fc_item_id = $node->field_pop_up_registration['und'][0]['value'];
+        // entity_load returns an array for field collection items.  Each key of the array is an object representing one of the field collections attached to the node
+        $fc_array = entity_load('field_collection_item', array($fc_item_id));
+        // We only want the object represented by the $fc_item_id
+        $fc = $fc_array[$fc_item_id];
+        // The field collection contains a field called field_registration_form which is an entity reference that points to the pop-up
+        // registration form that we want to use as an overlay for the current page being rendered.  Get the nid of this pop-up registration form.
+        $reg_nid = isset($fc->field_smg_pop_registration_form['und']) ? $fc->field_smg_pop_registration_form['und'][0]['nid'] : FALSE;
+
+        if($reg_nid){
+          $viddler_id = $node->field_viddler_id['und'][0]['value'];
+
+          $viddler_iframe = '<div id="smg-pop-viddler-iframe">';
+          $viddler_iframe .= '<iframe id="viddler-' . $viddler_id . '" src="//www.viddler.com/embed/' . $viddler_id . '/?f=1&player=player&secret=34213636&enablejsapi=1" frameborder="0" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>';
+          $viddler_iframe .= '</div>';
+
+          // width="247" height="159"
+          /*
+          $viddler_html = '<div id="smg-pop-viddler-html">';
+          $viddler_html .= '<!--[if IE]><object id="viddlerOuter-' . $viddler_id . '" classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000"><param name="movie" value="//www.viddler.com/player/' . $viddler_id . '/"><param name="allowScriptAccess" value="always"><param name="allowNetworking" value="all"><param name="allowFullScreen" value="true"><param name="flashVars" value="f=1&openURL=74429811&autoplay=f&loop=0&nologo=0&hd=0&enablecallbacks=1&enablejsapi=1"><object id="viddlerInner-' . $viddler_id . '"><video id="viddlerVideo-' . $viddler_id . '" src="//www.viddler.com/file/' . $viddler_id . '/html5mobile?openURL=74429811" type="video/mp4" poster="//www.viddler.com/thumbnail/' . $viddler_id . '/" controls="controls" x-webkit-airplay="allow"></video></object></object><![endif]--> <!--[if !IE]> <!--> <object width="247" height="159" id="viddlerOuter-' . $viddler_id . '" type="application/x-shockwave-flash" data="//www.viddler.com/player/' . $viddler_id . '/"> <param name="movie" value="//www.viddler.com/player/' . $viddler_id . '/"> <param name="allowScriptAccess" value="always"><param name="allowNetworking" value="all"><param name="allowFullScreen" value="true"><param name="flashVars" value="f=1&openURL=74429811&autoplay=f&loop=0&nologo=0&hd=0&enablecallbacks=1&enablejsapi=1&playerapiid=viddlerOuter-' . $viddler_id . '"><object id="viddlerInner-' . $viddler_id . '"> <video id="viddlerVideo-' . $viddler_id . '" src="//www.viddler.com/file/' . $viddler_id . '/html5mobile?openURL=74429811" type="video/mp4" width="247" height="139" poster="//www.viddler.com/thumbnail/' . $viddler_id . '/" controls="controls" x-webkit-airplay="allow"></video> </object></object> <!--<![endif]-->';
+          $viddler_html .= '<p class="hide"><input type="button" value="playVideo" /><input type="button" value="pauseVideo" /><input type="button" value="stopVideo" /></p>';
+          $viddler_html .= '</div>';*/
+
+          /*
+          $viddler_html = <<<EOL
+  <div id="smg-pop-viddler-html">
+    <!--[if IE]><object id="viddlerOuter-$viddler_id" classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000"><param name="movie" value="//www.viddler.com/player/$viddler_id/"><param name="allowScriptAccess" value="always"><param name="allowNetworking" value="all"><param name="allowFullScreen" value="true"><param name="flashVars" value="f=1&openURL=74429811&autoplay=f&loop=0&nologo=0&hd=0&enablecallbacks=1&enablejsapi=1"><object id="viddlerInner-$viddler_id"><video id="viddlerVideo-$viddler_id" src="//www.viddler.com/file/$viddler_id/html5mobile?openURL=74429811" type="video/mp4" poster="//www.viddler.com/thumbnail/$viddler_id/" controls="controls" x-webkit-airplay="allow"></video></object></object><![endif]--> <!--[if !IE]> <!--> <object width="247" height="159" id="viddlerOuter-$viddler_id" type="application/x-shockwave-flash" data="//www.viddler.com/player/$viddler_id/"> <param name="movie" value="//www.viddler.com/player/$viddler_id/"> <param name="allowScriptAccess" value="always"><param name="allowNetworking" value="all"><param name="allowFullScreen" value="true"><param name="flashVars" value="f=1&openURL=74429811&autoplay=f&loop=0&nologo=0&hd=0&enablecallbacks=1&enablejsapi=1&playerapiid=viddlerOuter-$viddler_id"><object id="viddlerInner-$viddler_id"> <video id="viddlerVideo-$viddler_id" src="//www.viddler.com/file/$viddler_id/html5mobile?openURL=74429811" type="video/mp4" width="247" height="139" poster="//www.viddler.com/thumbnail/$viddler_id/" controls="controls" x-webkit-airplay="allow"></video> </object></object> <!--<![endif]-->
+    <p class="hide"><input type="button" value="playVideo" /><input type="button" value="pauseVideo" /><input type="button" value="stopVideo" /></p>
+  </div>
+EOL;*/
+
+          $embed_code = $build['field_viddler_id'][0]['#markup'];
+
+          $pattern = '|<param name="flashVars" value="([^"]+)"|';
+          $replacement = '<param name="flashVars" value="${1}&autoplay=f&loop=0&nologo=0&hd=0&enablecallbacks=1&enablejsapi=1"';
+          $embed_code = preg_replace($pattern, $replacement, $embed_code);
+
+          // Add the HTML to the page
+          $build['field_viddler_id'][0]['#markup'] = $embed_code;
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_form_alter
+ *
+ * @param array  $form
+ * @param array  $form_state
+ * @param string $form_id
+ */
+function smg_pop_up_form_alter(&$form, &$form_state, &$form_id){
+
+  module_load_include('inc', 'smg_pop_up', 'includes/purf_cache');
+
+  // When we generate the pop-up registration form in a modal, in the smg_register_modal_build function, we added a key to the $form_state array
+  // called smg_modal_registration and gave it a value of TRUE.  Now we look for that key so that we know that the form is a modal pop-up registration form.
+  // We perform some modifications to the $form array to help with rendering and processing.
+  if (array_key_exists('smg_modal_registration', $form_state) && ($form_state['smg_modal_registration'])) {
+
+    // Go through the $form['submitted'] array, and add a post_render function to each element
+    foreach ($form['submitted'] as $form_key => &$form_element) {
+      if (strpos($form_key, '#') === false) {
+        $form_element['#post_render'] = array('smg_pop_up_element_post_render');
+      }
+      if (is_array($form_element) && array_key_exists('#type', $form_element) && $form_element['#type'] == 'radios') {
+        if ($form_element['#required']) {
+          $form_element['#attributes']['class'] = array('required');
+          $form_element['#webform_component']['extra']['css_classes'] = 'required';
+        }
+      }
+    }
+
+    // Inject values for hidden fields
+    smg_pop_up_inject_hidden_field_values($form, $form_state['referer']);
+
+    // Add a custom submit function to the webform.  This submit function will run after the other
+    // submit functions, so that it is called only when everything goes fine.
+    $form['#submit'][] = '_smg_pop_up_modal_registration_submit';
+
+    $nid = $form['#node']->nid; // The webform nid
+
+    // Check to see if the user is cookied and if they have answered any of the custom questions
+    $user_status = _smg_pop_up_check_user_status(smg_pop_up_get_custom_questions($form['submitted']), false, $form);
+
+    // Checks within the $user_status to see if there are any missing "required" questions
+    $missing_required = false;
+    $all_required_strd_unanswered = false;
+    if (isset($user_status['missing_required']) && is_array($user_status['missing_required']) && sizeof($user_status['missing_required']) > 0) {
+      $missing_required = true;
+      if (isset($user_status["standardQuestionsTotal"]) && !isset($user_status["standardQuestionsVisibleDependentsTotal"])) {
+        if ($user_status["standardQuestionsTotal"] === sizeof($user_status["missing_required"])) {
+          $all_required_strd_unanswered = TRUE;
+        }
+      }
+    }
+
+    // Check $user_status to see if there are any missing "custom" questions
+    $missing_custom = FALSE;
+    $missing_required_count = 0;
+    if (
+      isset($user_status['missing_required_custom']) &&
+      is_array($user_status['missing_required_custom']) &&
+      ($missing_required_count = sizeof($user_status['missing_required_custom'])) > 0
+    ) {
+      $missing_custom = TRUE;
+    }
+
+    $is_form_submitted = (isset($_SESSION['webform_client_form_'.$nid]) && $_SESSION['webform_client_form_'.$nid] == 'submitted') ? true : false;
+
+    //$unanswered_lw_more_than_five = (is_array($user_status['custom']['unanswered']) && (count($user_status['custom']['unanswered']) > 5)) ? true : false;
+    $unanswered_lw_more_than_five = false; // #TODO possibly delete this
+
+    // SET SOME BOOLEAN VALUES BELOW
+    //
+    // In the smg-pop-up.js file, we optionally add an override url query parameter to force a full PURF form, check for this
+    $is_override_set = (isset($_GET['override']) && $_GET['override'] == 'true') ? true : false;
+
+    // True if reader_token is set & no missing standard questions
+    $answered_required_reader_token = ($user_status['reader_token'] && !$missing_required);
+
+    // True if spuid is set & no missing standard q's
+    $answered_required_sp_id = (isset($_COOKIE['spUserID']) && !isset($_COOKIE['smg_pop_up_missing_required']));
+
+    if (
+      ($answered_required_reader_token || $answered_required_sp_id) &&
+      !$is_form_submitted  &&
+      !$is_override_set &&
+      !$all_required_strd_unanswered
+    ) {
+
+      // Define a layout array because the template file expects it
+      $layout_array = array(
+        'layout_type' => 'one_column',
+        'column1' => array(),
+      );
+
+      // If the user is cookied, then we go through and hide all standard-question fields which
+      // are fields that aren't specified as "custom"
+      foreach ($form['submitted'] as $key => &$component) {
+        if (is_array($component) && isset($component['#webform_component'])) {
+          $extra = $component['#webform_component']['extra'];
+
+          if (!array_key_exists('custom_question', $extra)) {
+            $component['#access'] = FALSE;
+          }
+          elseif (array_key_exists('custom_question', $extra) && !$extra['custom_question']) {
+            $component['#access'] = FALSE;
+          }
+          else {
+            $layout_array['column1'][] = array(
+              array('id' => $key, 'width' => 100,),
+            );
+          }
+        }
+      }
+
+      // Remove questions from PURF @see http://dev.summitpublish.com/ticket/2134#comment:17
+      smg_pop_up_remove_questions($form);
+    }
+    elseif (
+      $missing_required &&
+      !$is_form_submitted &&
+      !$is_override_set &&
+      !$all_required_strd_unanswered
+    ) {
+
+      // Define a layout array because the template file expects it
+      $layout_array = array(
+        'layout_type' => 'one_column',
+        'column1' => array(),
+      );
+
+      foreach ($form['submitted'] as $key => &$component) {
+        if (is_array($component) && isset($component['#webform_component'])) {
+          $extra = $component['#webform_component']['extra'];
+
+          // Make sure unanswered custom questions are shown in PURF
+          if ($extra['custom_question'] && $missing_custom) {
+            if (!in_array($extra['leadworks_id'], $user_status['missing_required_custom'])) {
+              $component['#access'] = FALSE;
+            }
+          }
+          // Make sure unanswered standard questions are shown in PURF
+          else if (!in_array($extra['silverpop_field'], $user_status['missing_required'])) {
+            $component['#access'] = FALSE;
+          }
+          else {
+            $layout_array['column1'][] = array(
+              array('id' => $key, 'width' => '100')
+            );
+            //$form['submitted'][$key]['#percent_width'] = 80;
+          }
+
+        }
+      }
+
+      //_smg_pop_up_layout_apply_default_layout_to_form($form);
+      //$layout_array = _smg_pop_up_layout_get_layout_array($nid);
+
+    }
+    else {
+
+      _smg_pop_up_layout_apply_default_layout_to_form($form);
+      $layout_array = _smg_pop_up_layout_get_layout_array($nid);
+
+    }
+
+    // Add the $layout_array to the form so that we can use it in the template files
+    $form['#layout_array'] = $layout_array;
+
+    drupal_add_css(drupal_get_path('module','smg_pop_up'). '/css/smg-pop-up-two-column.css', array('type' => 'file', 'every_page'=>true, 'group' =>CSS_THEME, 'weight' => 25, 'preprocess'=>true));
+    drupal_add_css(drupal_get_path('module', 'smg_pop_up').'/css/smg-pop-up-one-column.css', array('type' => 'file', 'every_page'=>true, 'group'=>CSS_THEME, 'weight' => 25, 'preprocess'=>true));
+    // Set the form theme to be one of our two template files
+    if ($layout_array['layout_type'] == 'one_column') {
+      $form['#theme'] = array('smg_webform_one_column');
+    }
+    else {
+      $form['#theme'] = array('smg_webform_two_column');
+      // If two_column, also add appropriate css file
+      //drupal_add_css(drupal_get_path('module','smg_pop_up'). '/css/smg-pop-up-two-column.css', array('type' => 'file', 'every_page'=>false, 'group'=>CSS_THEME, 'weight' => 25));
+      drupal_add_css(drupal_get_path('module','smg_pop_up'). '/css/smg-pop-up-ie.css', array( 'browsers' => array( 'IE' => 'lt IE 9', '!IE' => FALSE, )));
+    }
+
+    // Add stylesheet for mobile
+    drupal_add_css(drupal_get_path('module', 'smg_pop_up') . '/css/smg-pop-up-640.css', array('group'=> CSS_THEME, 'every_page' => FALSE, 'weight' => 35, 'media' => 'only screen and (max-width: 640px)'));
+
+  }
+
+  if (isset($form['#bundle']) && $form['#bundle'] == 'pop_up_registration') {
+    if (isset($form['nid']) && !(isset($form['nid']['#value']))) {
+      array_unshift($form['#submit'], 'smg_pop_up_template_submit'); // see webform_template.module
+    }
+  }
+
+  if (array_key_exists('field_pop_up_registration', $form) && isset($form['field_pop_up_registration']['und'])) {
+    // remove n/a as option for smg_pop_type field
+    if (isset($form['field_pop_up_registration']['und'][0]['field_smg_pop_type'])) {
+      unset($form['field_pop_up_registration']['und'][0]['field_smg_pop_type']['und']['#options']['_none']);
+
+      //$form['field_pop_up_registration']['und'][0]['field_smg_pop_data']['#access'] = false;
+      $form['field_pop_up_registration']['und'][0]['field_smg_pop_data']['#prefix'] = '<div style="display:none;">';
+      $form['field_pop_up_registration']['und'][0]['field_smg_pop_data']['#suffix'] = '</div>';
+    }
+
+    // If the field_smg_pop_viddler is present, make sure that it appears right after viddler_id field
+    if (array_key_exists('field_smg_pop_viddler', $form)) {
+      smg_pop_up_modify_form_order($form, 'field_smg_pop_viddler');
+    }
+  }
+
+  if (in_array($form_id, array('webform_components_form', 'webform_component_edit_form', 'webform_component_delete_form', 'pop_up_registration_node_form'))) {
+    $form['#submit'][] = '_smg_purf_update_cache_on_submit';
+  }
+
+  // #936
+  if (isset($form['#node']) && property_exists($form['#node'], 'field_purf_silverpop_event') && !empty($form['#node']->field_purf_silverpop_event)) {
+    $silverpop_event = $form['#node']->field_purf_silverpop_event['und'][0]['value'];
+    $purf_title = (isset($form_state['referer']['node'])) ? $form_state['referer']['node']->title : '';
+    $form_nid = $form['#node']->nid;
+    $silverpop_event_jquery = <<<EOL
+  jQuery(document).ready(function($){
+    $("input[type='submit']")
+      .on('pmgFormSubmit', function(e) {
+        if ('detail' in e.originalEvent) {
+          if (e.originalEvent.detail == $form_nid) {
+            try {
+              ewt.trackLink({name:"$purf_title",type:"$silverpop_event"});
+            }
+            catch (e) {
+              console.log(e.message);
+            }
+          }
+        }
+      });
+  });
+EOL;
+    $form['#attached']['js'][$silverpop_event_jquery] = array(
+      'type' => 'inline',
+      'group' => JS_THEME,
+      'scope' => 'header',
+    );
+    $form['#js_functions']['js3'] = $silverpop_event_jquery;
+
+  }
+
+}
+
+function smg_pop_up_remove_questions(&$form){
+
+  foreach ($form['submitted'] as $key => &$value) {
+    if (is_array($value) && array_key_exists('#webform_component', $value)) {
+      $extra = $value['#webform_component']['extra'];
+      if (array_key_exists('smg_pop_no_autosubmit', $extra) && $extra['smg_pop_no_autosubmit'] == 1) {
+        $value['#value'] = 'SMG_PURF_IGNORE_QUESTION';
+      }
+    }
+  }
+}
+
+/**
+ * Helper function.  Goes through $form and modifies field #weight values to ensure that fields are in desired
+ * order
+ */
+function smg_pop_up_modify_form_order(&$form, $field){
+  $field_weight = $form[$field]['#weight'];
+  foreach ($form as $key => &$value) {
+    if (is_array($value) && array_key_exists('#weight', $value)) {
+      if ($value['#weight'] == $field_weight && $key !== $field) {
+        $new_weight = (int)$field_weight + 1;
+        $value['#weight'] = (string)$new_weight;
+      }
+    }
+  }
+}
+
+function smg_pop_up_template_submit($form, &$form_state){
+  // below is copied from webform_template.module
+  // this approach
+  if (isset($form_state['complete form']['webform_template']['source']['#value'])) {
+    $template = $form_state['complete form']['webform_template']['source']['#value'];
+    if (!empty($template)) {
+      // @todo SECURE THIS!!
+      $_SESSION['smg_pop_up_webform_template'] = $template;
+    }
+  }
+
+}
+
+/**
+ * This function checks whether the user has the reader_token cookie.  It also identifies which questions in the
+ * form are custom questions, and then queries Leadworks.
+ *
+ * @param array $custom_questions
+ *  An array containing the custom questions for this webform
+ * @param bool|string $webform_nid
+ *  The PURF node ID
+ * @param array|bool $webform
+ *  The loaded webform
+ * @param array|bool $extra
+ *  If more than 1 PURF, extra info
+ * @param boolean|string $readerTokenCookie
+ *  Reader token cookie if it was passed as a URL parameter
+ *
+ * @return array $user_status
+ *  Array containing which questions user has answered
+ */
+function _smg_pop_up_check_user_status($custom_questions, $webform_nid = false, $webform = false, $extra = false, $readerTokenCookie = false){
+
+  $user_status = array(
+    'reader_token' => TRUE,
+    'spuid' => FALSE,
+    'custom' => array(
+      'complete' => TRUE,
+      'unanswered' => array(),
+      'answered' => array(),
+    )
+  );
+
+  $email = ''; // Set the email below
+  if (isset($_COOKIE['reader_token']) || isset($_COOKIE['spUserID']) || $readerTokenCookie) {
+
+    if (isset($_COOKIE['reader_token']) || $readerTokenCookie) {
+      $readerCookieValue = (isset($_COOKIE['reader_token'])) ? $_COOKIE['reader_token'] : $readerTokenCookie;
+      $user_status['reader_token'] = TRUE;
+      $user_status['reader_token_value'] = $readerCookieValue;
+      // Query the cookie_email table to get this user's email address
+      $query = db_select('cookie_email', 'c');
+      $query->fields('c', array('email'));
+      $query->condition('c.token', $_COOKIE['reader_token']);
+      $res = $query->execute()->fetchAssoc();
+      $email = $res['email'];
+    } elseif (isset($_COOKIE['spUserID'])) {
+      $user_status['reader_token'] = FALSE;
+      $user_status['spuid'] = TRUE;
+      $user_status['spuid_value'] = $_COOKIE['spUserID'];
+      $silverpop_contact = playbook_fields_get_silverpop_contact_by_reader_id($_COOKIE['spUserID']);
+      $email = isset($silverpop_contact['Email']) ? $silverpop_contact['Email'] : false;
+      $full_name = isset($silverpop_contact['Full Name']) ? $silverpop_contact['Full Name'] : false;
+      $user_status['sp_full_name'] = $full_name;
+    }
+
+    $nid = false;
+    if ($webform_nid) {
+      $nid = $webform_nid;
+    } elseif ($webform) {
+      $nid = $webform['#node']->nid;
+    }
+
+    if ($nid && ($cache = cache_get($nid, 'cache_purf'))) {
+
+      // Create an array to submit to _smg_purf_unanswered_questions_from_cache
+      $cached_data = array(
+        'main_purf'=>array(
+          'data' => $cache->data,
+          'nid' => $webform_nid,
+        ),
+      );
+
+      if ($extra) {
+        foreach ($extra as $key => $value) {
+          if ($ext_cache = cache_get($key, 'cache_purf')) {
+            $cached_data[$value['key']] = array('data'=>$ext_cache->data, 'nid'=>$value['nid']);
+          } else {
+            _smg_purf_update_cache($value['nid']);
+            $new_cache = cache_get($key, 'cache_purf');
+            $cached_data[$value['key']] = array('data'=>$new_cache->data, 'nid'=>$value['nid']);
+          }
+        }
+      }
+
+      _smg_purf_unanswered_standard_from_cache($user_status, $cached_data, $email);
+      _smg_purf_unanswered_custom_from_cache($user_status, $cached_data, $email);
+
+    }
+    else {
+
+      // If the webform nid was supplied, then create the webform
+      if ($webform_nid) {
+        $webform = _smg_pop_up_build_purf_and_prepopulate($webform_nid, $email);
+      }
+      if ($webform) {
+        // Check for missing standard lead gen fields
+        _smg_pop_up_get_unanswered_standard_lead_gen_questions($user_status, $webform);
+
+        // If there are custom questions in this PURF, query leadworks to see if the user
+        // has already answered the questions
+        if (count($custom_questions) > 0) {
+          // Combine email and custom questions into a format that leadworks expects
+          $leadworks_fields = array(
+            'email' => $email,
+            'ids' => $custom_questions,
+          );
+
+          $leadworks_fields_values = _smg_pop_up_leadworks_get_fields($leadworks_fields);
+
+          // Go through the array and see if any of the values are null
+          foreach ($leadworks_fields_values as $field_id => $field_value) {
+            if ($field_value == NULL) {
+              $user_status['custom']['complete'] = FALSE;
+              $user_status['custom']['unanswered'][] = $field_id;
+            } else {
+              $user_status['custom']['answered'][$field_id] = $field_value;
+            }
+          }
+          // We need to check to see if the unanswered LW questions are "required" or if they're "visible"
+          _smg_pop_up_check_unanswered_leadworks_custom_questions($user_status, $leadworks_fields_values, $webform);
+        }
+      }
+
+      if ($extra) {
+        _smg_purf_check_answers_extra($user_status, $extra, $email);
+      }
+
+    }
+
+  }
+  else {
+    $user_status['reader_token'] = FALSE;
+  }
+
+  return $user_status;
+}
+
+/**
+ * For any "extra" PURFs, this function builds the form(s) and determines
+ * which questions are unanswered
+ *
+ * @param array  $user_status
+ *  Array containing user status info, passed back to AJAX function
+ * @param array  $extra
+ *  Array containing info about "extra" PURFs
+ * @param string $email
+ *  The user's email
+ */
+function _smg_purf_check_answers_extra(&$user_status, $extra, $email) {
+
+  foreach ($extra as $key => $value) {
+    $webform_nid = $value['nid'];
+    $user_status['extra'][$value['key']] = array(
+      'reader_token' => TRUE,
+      'spuid' => FALSE,
+      'custom' => array(
+        'complete' => TRUE,
+        'unanswered' => array(),
+        'answered' => array(),
+      )
+    );
+    $webform = _smg_pop_up_build_purf_and_prepopulate($webform_nid, $email);
+    _smg_pop_up_get_unanswered_standard_lead_gen_questions($user_status, $webform, $value);
+
+    // Now check for custom questions
+    if (isset($value['cust']) && sizeof($value['cust']) >0) {
+      $leadworks_fields = array('email'=>$email, 'ids'=>$value['cust']);
+      $leadworks_fields_values = _smg_pop_up_leadworks_get_fields($leadworks_fields);
+      foreach ($leadworks_fields_values as $field_id => $field_value) {
+        if ($field_value == NULL) {
+          $user_status['extra'][$value['key']]['custom']['complete'] = FALSE;
+          $user_status['extra'][$value['key']]['custom']['unanswered'][] = $field_id;
+        }
+        else {
+          $user_status['extra'][$value['key']]['custom']['answered'][$field_id] = $field_value;
+        }
+      }
+      // Check to see if unanswered custom questions are "required" and/or "visible"
+      _smg_pop_up_check_unanswered_leadworks_custom_questions($user_status, $leadworks_fields_values, $webform, $value);
+    }
+  }
+
+}
+
+/**
+ * Constructs a webform (PURF) and prepopulates using playbook_fields_prepopulate function
+ *
+ * @param string $webform_nid
+ *  - Webform nid
+ * @param string boolean $email
+ *  - User Email
+ *
+ * @return array $webform
+ *  - A webform form
+ */
+function _smg_pop_up_build_purf_and_prepopulate($webform_nid, $email = false){
+  $webform = &drupal_static(__FUNCTION__);
+
+  if (!isset($webform)) {
+    $node = node_load((string) $webform_nid);
+    $submission = (object) array();
+    $submission->is_draft = FALSE;
+    $args = array($node,$submission);
+    $form_state = array();
+    $form_state['build_info']['args'] = $args;
+    $webform = drupal_build_form('webform_client_form_'.$webform_nid, $form_state);
+
+    if ($email)
+      playbook_fields_prepopulate($webform, $email);
+  }
+
+  return $webform;
+}
+
+/**
+ * For a given user, we prepopulate the form's standard-lead-gen questions (ignoring the "custom" questions).
+ * We then determine what questions haven't been answered by the user, if any.  We return the $user_status
+ * array that was passed in by reference, optionally with an added nested-array called missing_required
+ *
+ * @param array      $user_status
+ *  - The $user_status array from the _smg_pop_up_check_user_status function
+ * @param array      $webform
+ *  - A webform
+ * @param bool|array $extra_purf
+ *  - Info for "extra" PURFs
+ */
+function _smg_pop_up_get_unanswered_standard_lead_gen_questions(&$user_status, &$webform, $extra_purf = FALSE){
+
+  // set the form_build_id
+  $user_status['form_build_id'] = $webform['#build_id'];
+
+  // Given which answers have already been prepopulated by the playbook_fields_prepopulate function,
+  // we can go through the form and determine whether or not the user has sufficiently answered all of
+  // the "required" questions.  So, we check if they've answered all of the "standard" questions and
+  // all of the "custom" questions.  The logic below also accounts for dependencies.
+
+  // To account for dependencies, we use the playbook_fields_is_visible function.  This function was meant to be used
+  // during the webform submission phase, so it expects an array of key=>value pairs.  This fct is ideal for our purposes
+  // so we create such an array: $submitted.
+  $submitted = array();
+  // The $missing_required array will hold all required fields that aren't yet answered (ie haven't been prepopulated)
+  $missing_required = array();
+  $visible_dependents = array(); // All dependent fields that are visible
+
+  // Create an array that we will store in cache
+  $missing_required_cache = array(
+    'standard' => array(
+      'non_dependency' => array(),
+      'dependency' => array(),
+    ),
+  );
+
+  foreach ($webform['submitted'] as $key => &$form_element) {
+    if (!(is_array($form_element) && isset($form_element['#webform_component']))) continue;
+
+    $component = $form_element['#webform_component'];
+
+    if (isset($component['type']) && $component['type'] == 'smg_hidden') continue;
+
+    $extra = $form_element['#webform_component']['extra'];
+    $is_dependency = (isset($extra['dependency']) && $extra['dependency']);
+    if (array_key_exists('#required', $form_element) && $form_element['#required'] && !$is_dependency) {
+      if (!(array_key_exists('custom_question', $extra)) || ((array_key_exists('custom_question', $extra)) && !$extra['custom_question'])) {
+
+        $has_default = isset($form_element['#default_value']) &&
+          (
+            (is_string($form_element['#default_value']) && strlen($form_element['#default_value']) > 0) ||
+            (is_array($form_element['#default_value']) && sizeof($form_element['#default_value']) > 0)
+          );
+
+        if ($has_default) {
+          $submitted[$key] = $form_element['#default_value'];
+        } else {
+          $missing_required[] = $extra['silverpop_field'];
+        }
+
+        $missing_required_cache['standard']['non_dependency'][$extra['silverpop_field']] = array(
+          'key' => $key,
+          'type' => $form_element['#webform_component']['type'],
+          'silverpop_field' => $extra['silverpop_field'],
+          'items' => ($form_element['#webform_component']['type'] == 'smg_select') ? $extra['items'] : FALSE,
+          'multiple' => (isset($extra['multiple']) && $extra['multiple']),
+        );
+
+      }
+    }
+
+  }
+  foreach ($webform['submitted'] as $key => &$form_element) {
+
+    // Make sure form element is not a hidden element
+    if (!(is_array($form_element) && isset($form_element['#webform_component']))) continue;
+    $component = $form_element['#webform_component'];
+    if (isset($component['type']) && $component['type'] == 'smg_hidden') continue;
+
+    $extra = $form_element['#webform_component']['extra'];
+    $is_dependency = (isset($extra['dependency']) && $extra['dependency']);
+    if ($is_dependency) {
+      if (!(array_key_exists('custom_question', $extra)) || ((array_key_exists('custom_question', $extra)) && !$extra['custom_question'])) {
+        $deps = playbook_fields_extract_dependencies($extra['dependency'], $dependees);
+        $is_visible = playbook_fields_is_visible($submitted, $deps);
+        if ($is_visible) {
+          if (isset($form_element['#default_value'])) {
+            $visible_dependents[$key] = $form_element['#default_value'];
+          } else {
+            $missing_required[] = $extra['silverpop_field'];
+          }
+        }
+        $missing_required_cache['standard']['dependency'][$extra['silverpop_field']] = array(
+          'key' => $key,
+          'type' => $form_element['#webform_component']['type'],
+          'dependency' => $deps,
+          'silverpop_field' => $extra['silverpop_field'],
+          'items' => ($form_element['#webform_component']['type'] == 'smg_select') ? $extra['items'] : FALSE,
+          'multiple' => (isset($extra['multiple']) && $extra['multiple']),
+        );
+      }
+    }
+
+  }
+
+  // Store the $missing_required_cache array in cache, but convert
+  // to json string first
+  $missing_required_cache = json_encode($missing_required_cache);
+  cache_set($webform['#node']->nid, $missing_required_cache, 'cache_purf');
+
+  if (sizeof($missing_required) > 0) {
+    if (!$extra_purf) {
+      $user_status['missing_required'] = $missing_required;
+    }
+    else {
+      $user_status['extra'][$extra_purf['key']]['missing_required'] = $missing_required;
+    }
+  }
+
+}
+
+/**
+ * For a given user, we check to see whether or not any of their unanswered LW questions are "required" and/or "visible".
+ * This is necessary because for example: for a given PURF and its associated campaign, a user may have unanswered "custom"
+ * questions, but some of these questions might not be required, and some may be dependent on other questions and therefore
+ * not visible.  We check to see whether or not a user's unanswered questions are actually required.
+ *
+ * @param array        $user_status
+ * @param array|object $leadworks_fields_values
+ * @param array        $webform
+ * @param bool         $extra_purf
+ */
+function _smg_pop_up_check_unanswered_leadworks_custom_questions(&$user_status, $leadworks_fields_values, &$webform, $extra_purf = FALSE) {
+
+  $submitted = array();
+  // The $missing_required array will hold all required fields that aren't yet answered (ie haven't been prepopulated)
+  $missing_required_custom = array();
+  $visible_dependents = array(); // All dependent fields that are visible
+
+  // Convert leadworks_fields_values to array
+  $leadworks_fields_values_array = array();
+  foreach ($leadworks_fields_values as $key => $value) {
+    $leadworks_fields_values_array[$key] = $value;
+  }
+
+  // Store values for the database cache
+  $custom_cache = array(
+    'custom' => array(
+      'non_dependency' => array(),
+      'dependency' => array(),
+    ),
+  );
+
+  foreach ($webform['submitted'] as $key => &$form_element) {
+    if (is_array($form_element) && isset($form_element['#webform_component']) && isset($form_element['#type']) && $form_element['#type'] != 'value') {
+      $extra = $form_element['#webform_component']['extra'];
+      if (array_key_exists('#required', $form_element) && $form_element['#required'] && !isset($extra['dependency'])) {
+        if (array_key_exists('custom_question', $extra) && $extra['custom_question']) {
+
+          // Set the default value
+          $form_element['#default_value'] = $leadworks_fields_values_array[$extra['leadworks_id']];
+
+          if ($form_element['#default_value']) {
+            $submitted[$key] = $form_element['#default_value'];
+          }
+          else {
+            $missing_required_custom[] = $extra['leadworks_id'];
+          }
+
+          $custom_cache['custom']['non_dependency'][$extra['leadworks_id']] = array(
+            'key' => $key,
+            'type' => $form_element['#webform_component']['type'],
+            'leadworks_id' => $extra['leadworks_id'],
+            'items' => ($form_element['#webform_component']['type'] == 'smg_select') ? $extra['items'] : FALSE,
+            'multiple' => (isset($extra['multiple']) && $extra['multiple']),
+          );
+
+        }
+      }
+    }
+  }
+  foreach ($webform['submitted'] as $key => &$form_element) {
+
+    if (!(is_array($form_element) && isset($form_element['#webform_component']))) continue;
+
+    $component = $form_element['#webform_component'];
+
+    if (isset($component['type']) && $component['type'] == 'smg_hidden') continue;
+
+    $extra = $form_element['#webform_component']['extra'];
+    if (isset($extra['dependency'])) {
+      if (array_key_exists('custom_question', $extra) && $extra['custom_question']) {
+        $deps = playbook_fields_extract_dependencies($extra['dependency'], $dependees);
+        $is_visible = playbook_fields_is_visible($submitted, $deps);
+        if ($is_visible) {
+          // Set default
+          $form_element['#default_value'] = $leadworks_fields_values_array[$extra['leadworks_id']];
+          if (isset($form_element['#default_value'])) {
+            $visible_dependents[$key] = $form_element['#default_value'];
+          }
+          else {
+            $missing_required_custom[] = $key;
+          }
+        }
+
+        $custom_cache['custom']['dependency'][$extra['leadworks_id']] = array(
+          'key' => $key,
+          'type' => $form_element['#webform_component']['type'],
+          'dependency' => $deps,
+          'leadworks_id' => $extra['leadworks_id'],
+          'items' => ($form_element['#webform_component']['type'] == 'smg_select') ? $extra['items'] : FALSE,
+          'multiple' => (isset($extra['multiple']) && $extra['multiple']),
+        );
+
+      }
+    }
+
+  }
+  if (sizeof($missing_required_custom) > 0) {
+    if (!$extra_purf) {
+      $user_status['missing_required_custom'] = $missing_required_custom;
+    }
+    else {
+      $user_status['extra'][$extra_purf['key']]['missing_required_custom'] = $missing_required_custom;
+    }
+  }
+
+  // Check to see if this PURF already has a record in the database cache, if
+  // so, add to it.
+  if ($cache = cache_get($webform['#node']->nid, 'cache_purf')) {
+    $missing_cache = json_decode($cache->data, true);
+    $missing_cache_merge = array_merge($missing_cache, $custom_cache);
+    $missing_cache_merge = json_encode($missing_cache_merge);
+    cache_set($webform['#node']->nid, $missing_cache_merge, 'cache_purf');
+  }
+
+}
+
+/**
+ * A menu callback that can be used to check which (if any) custom questions were
+ * answered in Leadworks.  The field ids of the custom questions are passed in
+ * a URL parameter
+ *
+ * @param string $webform_nid The node id of the PURF
+ * @param array (URL Parameter) customQuestions
+ */
+function smg_register_user_status_menu_callback($webform_nid){
+
+  $custom_questions = (isset($_GET['custQ'])) ? $_GET['custQ'] : array();
+  $extra = (isset($_GET['ext'])) ? $_GET['ext'] : FALSE;
+  if ($webform_nid == 'false'){
+    $webform_nid = FALSE;
+  }
+  $readerTokenCookie = (isset($_GET['rCookie'])) ? $_GET['rCookie'] : false;
+  $user_status = _smg_pop_up_check_user_status($custom_questions, $webform_nid, false ,$extra, $readerTokenCookie);
+  drupal_json_output($user_status);
+  drupal_exit();
+
+}
+
+/**
+ * Callback function for auto-submitting leads
+ *
+ * @param string $token
+ *  - The 'reader_token' cookie value, or the Silverpop user Id
+ * @param string/int $webform_nid
+ *  - The webform nid
+ * @param string $leadworks_id
+ *  - Leadworks ID
+ * @param string $referer_nid
+ *  - The node id of the referer node
+ * @param string $token_type
+ *  - Either 'reader-token' or 'silverpop'
+ *
+ *** Optional URL Query String Parameters ***
+ * @param string adId
+ *  - A Leadworks ad-id.  This will override the ad-id provided in the node field-collection
+ * @param boolean extra
+ *  - Specifies if this is an "extra" PURF
+ */
+function smg_pop_up_auto_submit($token, $webform_nid, $leadworks_id, $referer_nid, $token_type){
+  $purf_auto_submit = &drupal_static(__FUNCTION__);
+  $purf_auto_submit = TRUE;
+  // Below, we close the connection with the browser, but continue
+  // processing.  This is necessary to prevent the processing from failing
+  // if the user closes the page, or on redirects.
+  // Erase the output buffer @see http://andrewensley.com/2009/06/php-redirect-and-continue-without-abort/
+  ob_end_clean();
+  // Tell the browser that the connection's closed
+  header("Connection: close");
+  // Ignore user aborts
+  ignore_user_abort(true);
+  // Start output buffering again
+  ob_start();
+  session_write_close(); // close session file on server side to avoid blocking other requests
+  header("Content-Encoding: none");
+  header("Content-Length: 0");
+  // Send the output buffer and turn output buffering off
+  ob_end_flush();
+  flush();
+
+  $node = node_load((string)$webform_nid);
+  if ($leadworks_id) {
+    $leadworks_id_array = array(0=>array('value'=>$leadworks_id));
+    $node->field_master_leadworks_id['und'] = $leadworks_id_array;
+  }
+  $submission = (object) array();
+  $submission->is_draft = FALSE;
+  $args = array($node,$submission);
+  $form_state = array();
+  $form_state['build_info']['args'] = $args;
+  $form_id = 'webform_client_form_' . $webform_nid;
+  $form = drupal_build_form('webform_client_form_'.$webform_nid, $form_state);
+
+  if ($token_type == 'reader_token') {
+    // Query the cookie_email table to get this user's email address
+    $query = db_select('cookie_email', 'c');
+    $query->fields('c', array('email'));
+    $query->condition('c.token', $token);
+    $res = $query->execute()->fetchAssoc();
+    $user_email = $res['email'];
+    playbook_fields_prepopulate($form, $user_email);
+  } else {
+    playbook_fields_prepopulate($form, $token, 'reader_id');
+    $silverpop_contact = playbook_fields_get_silverpop_contact_by_reader_id($token);
+    $user_email = isset($silverpop_contact['Email']) ? $silverpop_contact['Email'] : false;
+  }
+
+  $extra = (isset($_GET['extra'])) ? $_GET['extra'] : false;
+  $extra_key = (isset($_GET['key'])) ? $_GET['key'] : false;
+  // #57 no-popup nodes don't carry an extra data, so extract referer info only in case
+  // this submission isn't from a no-popup purf
+  if (!(isset($_GET['noPopup']) && $_GET['noPopup'])) {
+    $referer_info = smg_pop_up_extract_referer_info($referer_nid, $extra, $extra_key); // Get info from the refering node
+    smg_pop_up_inject_hidden_field_values($form, $referer_info); // Inject values into hidden fields
+  }
+
+  smg_pop_up_remove_questions($form); // Remove certain hidden questions
+
+  // If the adId url query string is set then use it, otherwise use the one provided in the field collection
+  $ad = (isset($_GET['adId'])) ? $_GET['adId'] : $referer_info['leadworks_id'];
+
+  // We're also dynamically passing extra leadworks ids into the node, if they're provided
+  if (isset($_GET['additionalLwIds'])) {
+    $additional_lw_ids = explode(",", $_GET['additionalLwIds']);
+    $node->field_additional_leadworks_ids['und'] = array();
+    foreach ($additional_lw_ids as $additional_id) {
+      $node->field_additional_leadworks_ids['und'][] = array('value' => $additional_id);
+    }
+  }
+
+  // If there is an ad id, set it's value to true in the webform
+  if ($ad) {
+    $form['submitted']['ad']['#value'] = 'TRUE';
+  }
+
+  foreach ($node->webform['components'] as $component_id => &$component) {
+    if ($component['form_key'] == 'ad') {
+      $component['extra']['leadworks_id'] = $ad;
+      $component['value'] = array(TRUE);
+    }
+  }
+
+  // get custom questions
+  $custom_questions = smg_pop_up_get_custom_questions($node->webform['components']);
+  // query leadworks, first set up array
+  $leadworks_fields = array(
+    'email' => $user_email,
+    'ids' => $custom_questions,
+  );
+  $leadworks_values = _smg_pop_up_leadworks_get_fields($leadworks_fields);
+  foreach ($leadworks_values as $field_id => $field_value) {
+    foreach ($form['submitted'] as $id => &$component) {
+      if (is_array($component) && array_key_exists('#webform_component', $component)) {
+        $extra = $component['#webform_component']['extra'];
+        if (array_key_exists('custom_question', $extra) && $extra['custom_question']) {
+          if ($extra['leadworks_id'] == $field_id) {
+            $component['#default_value'] = $field_value;
+          }
+        }
+      }
+    }
+  }
+
+  $data = array();
+  foreach ($node->webform['components'] as $key => $comp) {
+    $component_value = isset($form['submitted'][$comp['form_key']]['#default_value']) ? $form['submitted'][$comp['form_key']]['#default_value'] : $form['submitted'][$comp['form_key']]['#value'];
+    if (!is_array($component_value)) {
+      $data[$key] = array('value' => array($component_value));
+    }
+    else {
+      $data[$key] = array('value' => $component_value);
+    }
+  }
+  $submission = (object) array(
+    'nid' => $webform_nid,
+    'uid' => 0,
+    'submitted' => REQUEST_TIME,
+    'remote_addr' => ip_address(),
+    'is_draft' => FALSE,
+    'data' => $data,
+  );
+
+  module_load_include('inc', 'webform', 'includes/webform.submissions');
+  webform_submission_insert($node, $submission);
+
+  drupal_exit();
+}
+
+/**
+ * Helper function for extracting smg_pop_up_registration field collection values from
+ * a referer node.  There are at least two functions that will need this function,
+ * smg_pop_up_modal_build and smg_pop_up_auto_submit.
+ *
+ * @param $referer_nid
+ *  - The node id of the refering node
+ * @param $extra
+ *  - Boolean value, is this an "extra" PURF
+ * @param $key
+ *  - String.  Only if an "extra" PURF, this is the unique link id
+ *
+ * @return array $referer_info
+ *  - An array with relevant referer info.
+ */
+function smg_pop_up_extract_referer_info($referer_nid, $extra = false, $key = false){
+
+  // Load the referer node, so that we can get info from the pop-up registration field collection
+  $referer = node_load((string)$referer_nid);
+
+  if ($extra && !$referer_nid){
+    if (sizeof(module_implements('smg_purf_extra_purf')) > 0) {
+      $referer_info = module_invoke_all('smg_purf_extra_purf', $referer);
+    }
+
+    if (isset($key) && sizeof(module_implements('smg_purf_extra_purf_by_key')) > 0) {
+      $extra_purfs = array();
+      foreach (module_implements('smg_purf_extra_purf_by_key') as $module) {
+        $extra_purfs = $extra_purfs + module_invoke($module, 'smg_purf_extra_purf_by_key');
+      }
+
+      if (array_key_exists($key, $extra_purfs)){
+        $referer_info = $extra_purfs[$key];
+      }
+
+    }
+
+    if (!isset($referer_info)) {
+      $referer_info = array('leadworks_id' => 1);
+    }
+
+    return $referer_info;
+  }
+
+  // Load the field_pop_up_registration field collection entity.  First get the field collection item id
+  $fc_item_id = $referer->field_pop_up_registration['und'][0]['value'];
+  // entity_load returns an array for field collection items.  Each key of the array is an object representing one of the field collections attached to the node
+  $fc_array = entity_load('field_collection_item', array($fc_item_id));
+  $fc = $fc_array[$fc_item_id]; // We only want the object represented by the $fc_item_id
+
+  $referer_info = array(
+    'nid' => $referer_nid,
+    'leadworks_id' => (isset($fc->field_smg_pop_ad_id['und'])) ? $fc->field_smg_pop_ad_id['und'][0]['value'] : false,
+    'submit_text' => (isset($fc->field_smg_pop_submit_text['und'])) ? $fc->field_smg_pop_submit_text['und'][0]['value'] : false,
+    'node' => $referer,
+    'field_collection_object' => $fc,
+    'source_code' => (isset($fc->field_smg_pop_source_code['und'])) ? $fc->field_smg_pop_source_code['und'][0]['value'] : false,
+  );
+
+  return $referer_info;
+}
+
+/**
+ * Helper function.  This function will go through a $form and inject values that are passed into
+ * hidden fields in the PURF form (i.e. the ad-id, submit text, source code, etc).
+ *
+ * @param array $form
+ *  - A FAPI form
+ * @param array $referer_info
+ *  - An array containing information gathered from the refering node.  Ideally, this array should
+ *    be generated by the smg_pop_up_extract_referer_info function
+ */
+function smg_pop_up_inject_hidden_field_values(&$form, $referer_info){
+  // Add the leadworks id to the extra array
+  $form['submitted']['ad']['#webform_component']['extra']['leadworks_id'] = $referer_info['leadworks_id'];
+  // Get the default value of the crm_lead_source field
+  $crm_lead_source = $form['submitted']['crm_lead_source']['#value'];
+  foreach(array('#value','#default_value') as $value){
+    $form['submitted']['ad'][$value] = true;
+    $form['submitted']['crm_lead_source'][$value] = $crm_lead_source . $referer_info['source_code'];
+    $form['submitted']['history_slug'][$value] = $referer_info['source_code'];
+  }
+
+  if($referer_info['submit_text']){
+    $form['actions']['submit']['#value'] = $referer_info['submit_text'];
+  }
+
+}
+
+
+/**
+ * Helper function for identifying any "custom" questions in a pop-up-registration form
+ *
+ * @param array $components
+ *  An array of webform components, such as the $form['submitted'] array for a webform, but we
+ *  will also check if the passed in array is $node->webform['components']
+ *
+ * @return array $custom_questions
+ */
+function smg_pop_up_get_custom_questions($components){
+  // Create an array that will contain the custom questions
+  $custom_questions = array();
+  foreach ($components as $key => $component) {
+    // Get the 'extra' array from within the webform component
+    if (is_array($component) && (array_key_exists('#webform_component', $component) || array_key_exists('extra', $component) )) {
+      if (array_key_exists('#webform_component', $component)) {
+        $extra = $component['#webform_component']['extra'];
+      }
+      elseif(array_key_exists('extra', $component)){
+        $extra = $component['extra'];
+      }
+      // Is the custom_question field set, and is it set to TRUE?
+      if (isset($extra['custom_question']) && $extra['custom_question']) {
+        // Is the leadworks_id set?  If not, then we can't add this to the $custom_questions array.
+        if (isset($extra['leadworks_id'])) {
+          $custom_questions[] = $extra['leadworks_id'];
+        }
+      }
+    }
+  }
+
+  return $custom_questions;
+}
+
+/**
+ * This function queries leadworks to get the submitted values for custom fields that
+ * belong to a registration form
+ *
+ * @param array $leadworks_fields
+ *  Contains an email address and a set of leadworks fields to be used for the query
+ *
+ * @return An array with the submitted answers to the custom questions
+ */
+function _smg_pop_up_leadworks_get_fields($leadworks_fields){
+
+  if (count($leadworks_fields['ids']) < 1) {
+    return array();
+  }
+
+  $fields_query = '?' . http_build_query($leadworks_fields);
+
+  $fields_query_url = LEADWORKS_FIELDS_QUERY . $fields_query;
+  $ch = curl_init();
+  curl_setopt($ch, CURLOPT_URL, $fields_query_url);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+  $response = curl_exec($ch);
+  curl_close($ch);
+
+  // $response is a JSON string so decode it
+  $decoded_response = json_decode($response);
+
+  return $decoded_response;
+
+}
+
+/**
+ * A #post_render function to add a wrapping div around each form element
+ *
+ * @param string $markup
+ *  The HTML markup for the form element
+ * @param array $element
+ *  The original form element render array
+ *
+ * @return string $markup
+ */
+function smg_pop_up_element_post_render($markup, $element){
+  // Generate classes to add to our wrapping div
+  $percent_width = (isset($element['#percent_width'])) ? $element['#percent_width'] : '100';
+  $classes = 'smg-pop-up-element ' . $element['#type'];
+  $markup = '<div class="' . $classes . '" style="width:' . $percent_width . '%;">' . $markup . '</div>';
+  return $markup;
+}
+
+/**
+ * Implementation of hook_ckeditor_plugin().
+ */
+function smg_pop_up_ckeditor_plugin(){
+  return array(
+    'smg_pop_up_plugin' => array(
+      'name' => 'smgPopUpPlugin',
+      'desc' => 'Specify that a link should use a Pop Up Registration Form',
+      'path' => drupal_get_path('module', 'smg_pop_up') . '/plugins/smg_pop_up/',
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_wysiwyg_plugin()
+ */
+function smg_pop_up_wysiwyg_plugin($editor, $version){
+  if ($editor == 'ckeditor') {
+    return array(
+      'smgPopUpPlugin' => array(
+        'path' => drupal_get_path('module', 'smg_pop_up') . '/plugins/smg_pop_up',
+        'load' => true,
+        'extensions' => array('Link' => t('SMG PURF Link')),
+      ),
+    );
+  }
+  else {
+    return false;
+  }
+}

@@ -1,0 +1,5 @@
+;$Id$
+name = company_profile_view_alteration
+description = company profile views alteration (for AW)
+package = "custom"
+core = 7.x

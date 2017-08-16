@@ -1,0 +1,5 @@
+name = Quantcast
+description = Module for Quantcast Service
+package = Statistics
+core = 7.x
+configure = admin/config/system/quantcast

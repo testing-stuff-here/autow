@@ -1,0 +1,6 @@
+name = Viddler
+description = "Viddler field"
+core = 7.x
+package = Viddler
+dependencies[] = media_internet
+files[] = library/phpviddler.php

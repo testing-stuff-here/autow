@@ -1,0 +1,4 @@
+name = AW Personalities
+description = Adds functionality to the AW personality tab
+core = 7.x
+package = SMG

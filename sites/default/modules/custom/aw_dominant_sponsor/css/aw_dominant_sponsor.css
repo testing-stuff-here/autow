@@ -1,0 +1,16 @@
+.block-aw-dominant-sponsor {padding-bottom:10px;}
+.aw-dom-title{padding-top:0px;color: #0A87B4; font-weight:bold; font-size: 25px;padding-left: 25px;float:left;margin-bottom:2px;}
+.aw-dom-company-image{padding-top:0px;padding-left:5px;}
+.aw-dom-sponsor-message{float:right; padding:15px 10px 0px 160px;color: #7c796f;margin-top:-85px;}
+.aw-dom-sub-category{padding-top:0px;color: #0A87B4; font-weight:bold; font-size: 25px;padding-left: 25px;clear:both;padding-top:10px;}
+.aw-dom-image{float: left; margin-right: 10px;}
+.aw-dom-image img{border:1px solid #000;}
+.aw-dom-bottom{background-color: #e2e3e3;overflow: hidden;}
+.aw-dom-left{width:48%;float:left;border-right: 2px dotted #c1c1c1;background-color: #e2e3e3;}
+.aw-dom-right{width:48%; float:left;background-color: #e2e3e3;}
+.aw-dom-company-name{font-size: 15px;font-weight:bold; margin-left: 10px;padding-left:2px;color:#666;padding-bottom:5px;}
+.aw-dom-category-sponsor{float: right;font-weight:normal;font-size: 12px;padding-right: 15px;padding-top: 4px;font-style: italic; color:#666;}
+.aw-dom-top{height:111px;background: url(images/background.jpg)repeat-x;}
+.aw-dom-company-nid1{border-top: 1px solid #c1c1c1; padding: 5px 0 10px 0; margin: 0 10px 0 10px;}
+.aw-dom-text{font-size:12px;font-weight:bold;padding-top:22px;}
+.aw-dom-type{text-transform: uppercase;color: #0A87B4;}

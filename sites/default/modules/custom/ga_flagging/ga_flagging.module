@@ -1,0 +1,97 @@
+<?php
+/**
+ * @file
+ *  Adds Google Events based on taxonomies and content types. (#1422)
+ */
+
+/**
+ * Implements hook_page_alter().
+ */
+function ga_flagging_page_alter(&$page) {
+  // Don't run if not anonymous user.
+  if (!user_is_anonymous()) {
+    return FALSE;
+  }
+
+  $node = menu_get_object();
+
+  // Only display on node pages.
+  if ($node && arg(2) != 'edit') {
+    $type = $node->type;
+    if ($type != 'page' && $type != 'magazine_covers' && $type != 'webform' && $type != 'company') {
+      $title = $node->title;
+
+      //Subtype
+      if (isset($node->field_term_subtype['und'][0]['tid']) && $type == 'article') {
+        $term = taxonomy_term_load($node->field_term_subtype['und'][0]['tid']);
+        $subtype = 'Subtype: ' . $term->name;
+      }
+      else {
+        $subtype = 'n/a';
+      }
+
+      // Legacy items.
+      if (isset($node->field_legacy['und'][0]['value'])) {
+        if ($node->field_legacy['und'][0]['value'] == 0) {
+          $legacy = 'Legacy=False';
+        }
+        else {
+          $legacy = 'Legacy=True';
+        }
+      }
+      else {
+        $legacy = 'Legacy=False';
+      }
+
+      $script = "ga('send', 'event', 'Type: " . _ga_flagging_filter_text($type)  . "', '" . _ga_flagging_filter_text($subtype). "', 'Name: " . _ga_flagging_filter_text($title) . "', 0, {'nonInteraction': 1});\n";
+      $script .= "ga('send', 'event', '" . $legacy . "', 'n/a', '', 0, {'nonInteraction': 1});\n";
+
+      //Get all terms
+      $terms = array();
+      $vids = array();
+      $count = 1;
+      if (isset($node->field_allterms['und'])) {
+        foreach ($node->field_allterms['und'] as $termdata) {
+          // Limiting to only 8
+          if ($count <= 8) {
+            $term = taxonomy_term_load($termdata['tid']);
+
+            $vocab = taxonomy_vocabulary_load($term->vid);
+
+            if (!taxonomy_get_parents($termdata['tid'])) {
+              if (!in_array($term->name, $terms)) {
+                $count++;
+                $terms[] = $term->name;
+                $script .= "ga('send', 'event', 'Vocab: " .  _ga_flagging_filter_text($vocab->name) . "', 'L1: " . _ga_flagging_filter_text($term->name) . "', 'n/a', 0, {'nonInteraction': 1});\n";
+
+              }
+            }
+          }
+        }
+      }
+      drupal_add_js($script, array('scope' => 'header', 'type' => 'inline', 'weight' => 1));
+    }
+    $content_age_type = array(
+      '360_package_spin_rotate',
+      'article',
+      'blog',
+      'video',
+      'podcast'
+    );
+    if (in_array($type, $content_age_type)) {
+      $year = date("Y", $node->created);
+      $script_age= "ga('send', 'event', 'Content Age 2', '{$year}' , '{$type}', { nonInteraction: true});";
+      drupal_add_js($script_age, array('scope' => 'header', 'type' => 'inline', 'weight' => 2));
+    }
+  }
+}
+
+/**
+ * Function for taking out quotes so it does not mess up the javascript
+ */
+function _ga_flagging_filter_text($text) {
+
+	$text = preg_replace( "/'/", '', $text );
+	$text = preg_replace( '/"/', "", $text );
+	return $text;
+}

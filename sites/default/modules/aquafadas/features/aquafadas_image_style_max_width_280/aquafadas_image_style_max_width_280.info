@@ -1,0 +1,6 @@
+name = Aquafadas Image Style Max Width 280
+core = 7.x
+package = Features
+dependencies[] = image
+features[features_api][] = api:1
+features[image][] = aquafadas_width_280

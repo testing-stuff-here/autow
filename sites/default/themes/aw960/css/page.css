@@ -1,0 +1,137 @@
+ /*Basic Page */
+.content-type-page #container { padding:0px;}/*removes sponsered links */
+ 
+ /* Basic Page 2 Using the Context Module */
+.basic-page-context #page-wrapper #container #container-inner #main #main-inner {width:100%;}
+.basic-page-context #main h1#page-title {display:none !important;}
+
+ /* Basic Page */
+.content-type-page #container { padding:0px;}/*removes sponsered links */
+
+/* Multiple Page Styles */
+.page-subscribe .node, .page-contractpackagingmagazine .node {border-top:none;}
+.section-newsletters-signup h1.title {display: none !important;}
+
+/* Magazine Page */
+.page-magazine .node, .page-magazine .node{border-top:none;}
+#mag-container {font-family: Arial, Helvetica, sans-serif; color: #000000; font-size:1.000em; line-height:1.400em;}
+#mag-container img {border:none;}
+#mag-container a,#mag-container a:link,#mag-container a:visited,#mag-container a:active {text-decoration: none; font-weight:700; color:#000000;}
+#mag-container a:hover {text-decoration:underline;}
+#content .node .content #mag-container h1 {font-size: 34px; line-height: 1.78em; padding:0px; margin:0px;}
+#mag-container #mag-contact-containter p {font-weight:bold; font-size: 1.125em; line-height: 1.000em; padding:10px 0px 5px 0px; margin:0px 40px 0px 0px; border-bottom:1px dotted #1A1A1A;}
+#mag-container p {padding:0px; margin:0px;}
+#mag-container .mag-mainimage {float:left; padding-right:40px; padding-left:30px;}
+#mag-container .mag-mainimage .mag-coverimage {margin-left:40px; border:1px solid #CCCCCC; margin-bottom:-10px;}
+#mag-container .mag-button-container {padding:10px 10px 30px 10px;}
+#mag-container .mag-button-left {float:left; padding-right:15px;}
+#mag-contact-containter img {margin-bottom:15px; border:1px solid #CCCCCC;}
+#mag-contact-containter .mag-text-sm {font-size:0.85em; line-height:1.25em; float:left; padding:20px 41px 30px 5px; display:inline-block; width:20%;}
+#mag-contact-containter .mag-text-smlast {font-size:0.85em; line-height:1.25em; float:left; padding-top:20px; display:inline-block; width:21%;}
+#mag-info-container {padding-right:60px;}
+
+/* Subscribe Page */
+#sub-container {font-family: Arial, Helvetica, sans-serif; color: #000000; font-size:1.000em; line-height:1.400em; padding:0px;}
+#sub-container img {border:none;}
+#sub-container a, #sub-container a:link, #sub-container a:visited, #sub-container a:active li {text-decoration: none; font-weight:700; color:#000000;}
+#sub-container a:hover {text-decoration:underline;}
+#content #sub-container h1 {font-size: 28px; line-height: 1.78em; padding:0px 0px 15px 45px; margin:0px;}
+#sub-container #sub-mainimage {display:inline-block; vertical-align:top; }
+#sub-container #sub-mainimage #sub-coverimage {margin-left:29px; border:1px solid #CCCCCC; margin-bottom:-10px;}
+#sub-info-container { display:inline-block; vertical-align:top; width:290px; margin-left:5px; }
+#sub-info-container li {background-image:url('images/icon_sub.jpg'); background-position:left top; background-repeat: no-repeat; padding-left:14px; padding-bottom:10px!important; margin-left:20px; list-style:none; font-size:0.85em; line-height:1.000em;}
+#sub-info-container p {font-weight:bold; font-size: 1.05em; line-height: 1.000em; padding:10px 0px 5px 0px; border-bottom:1px dotted #1A1A1A; margin-bottom:10px; }
+#sub-form-container #webform-client-form-13043 .form-text { height:20px; width:285px; border:1px solid #9B9B9B; }
+#sub-form-container #webform-client-form-13043 .form-submit { background:url('images/button-submit-bg.png'); float:none; width:290px; height:28px; }
+
+/* Contact Us */
+.page-contact .node, .page-contract .node{border-top:none;}
+#contact-container {font-family: Arial, Helvetica, sans-serif; color: #000000; font-size:1.000em; line-height:1.400em;}
+#contact-container img {border:none;}
+#contact-container a,#contact-container a:link,#contact-container a:visited,#contact-container a:active {text-decoration: none; font-weight:700; color:#F65A24;}
+#contact-container a:hover {text-decoration:underline;}
+#content .node .content #contact-container h1 {font-size: 34px; line-height: 1.78em; padding:0px; margin:0px;}
+#contact-container .contact-contact-containter p {font-weight:bold; font-size: 1.125em; line-height: 1.000em; padding:15px 0px 1px 0px; margin:0px; border-bottom:1px dotted #1A1A1A;}
+#contact-container p {padding:0px; margin:0px;}
+#contact-container .contact-mainimage {float:left; padding-right:40px;}
+#contact-container .contact-mainimage .contact-coverimage {margin-left:42px; border:1px solid #CCCCCC;}
+#contact-container .contact-button-container {padding:30px;}
+#contact-container .contact-button-left {float:left; padding-right:15px;}
+#contact-container .contact-associationlogo {padding-left:470px;}
+.contact-contact-containter {display:inline-block; width:100%;}
+.contact-contact-containter .contact-left {padding:12px 50px 0px 0px; margin:0px; float:left; color:#000;}
+.contact-contact-containter ul {font-size:0.85em; line-height:1.25em; padding:12px 0px 0px 0px; margin:0px; color:#000;}
+.contact-contact-containter li {list-style:none; padding-bottom:15px; color:#000;}
+
+/* Apps Page */
+#apps-content-wrapper {font-family:Arial, Helvetica, sans-serif; padding:0px 180px 0px 100px;}
+.apps-indent-wrapper {display: inline-block;}
+#apps-product-first-wrapper {display: inline-block; margin-top: 50px; margin-bottom: 50px;}
+#apps-product-last-wrapper {display: inline-block; margin-bottom: 35px;}
+#apps-content-wrapper .apps-ipad-image {float: left; margin-right: 25px; border: none;}
+#apps-content-wrapper .apps-button-image {float: left; padding-top: 10px; border: none;}
+#apps-content-wrapper .apps-sponsor-image {float: right; padding: 20px 0px 0px 5px; border: none;}
+#apps-itunes-image {float: left; padding-right: 20px; margin-top: 10px; border: none;}
+#apps-content-wrapper a.app-link, #apps-content-wrapper a.app-link:link,#apps-content-wrapper a.app-link:visited, #apps-content-wrapper a.app-link:active {font-size: 19px; line-height: 25px; font-weight: 700; padding: 0px; margin: 0px; color: #000; text-decoration: none;}
+#apps-content-wrapper a.app-link:hover {font-size: 19px; line-height: 25px; font-weight: 700; padding: 0px; margin: 0px; color: #000; text-decoration: underline;}
+#apps-content-wrapper a.apps-small-link, a.apps-small-link:link, a.apps-small-link:visited, a.apps-small-link:hover, a.apps-small-link:active {font-size: 16px; line-height: 20px; font-weight: 700; padding: 23px 0px 0px 15px; margin: 0px; color: #000; text-align: left; text-decoration: none; display: inline-block;}
+#apps-content-wrapper a.apps-small-link:hover {text-decoration: underline;}
+#content .node .content #apps-content-wrapper h1 {font-size: 21px; line-height: 27px; font-weight: 700; padding: 20px 0px 10px 0px; margin: 0px;}
+#apps-content-wrapper .apps-deck p {font-size: 20px; line-height: 23px; font-weight: 400; font-style: italic; padding: 0px; margin: 0px;}
+#apps-content-wrapper p {font-size:17px; line-height: 23px; font-weight: 400; color: #666; padding: 0px; margin: 0px;}
+#apps-content-wrapper .apps-italic-text {text-align: right; font-style: italic; font-size: 15px; display: inline-block; padding-top: 15px;}
+#apps-content-wrapper .apps-small-text {font-size: 14px; line-height: 18px;}
+
+/* About Us */
+.page-about .node, .page-about .node{border-top:none;}
+#about-container {font-family: Arial, Helvetica, sans-serif; color: #000000; font-size:1.000em; line-height:1.400em; display:block;}
+#about-container img {border:none;}
+#about-container a, #about-container a:link, #about-container a:visited, #about-container a:active {text-decoration: none; font-weight:400; color:#F65A24;}
+#about-container a:hover {text-decoration:underline;}
+#about-container h1 {font-weight:bold; font-size: 1.875em; line-height: 1.78em; padding:0px 0px 0px 0px; margin:-60px 0px 0px 0px;}
+#about-container #about-contact-containter p {font-weight:bold; font-size: 1.125em; line-height: 1.75em; padding:10px 0px 5px 0px; margin:0px; border-bottom:2px solid #1A1A1A;}
+#about-container #about-contact-containter {display:inline-block; padding-right:60px; padding-left:20px;}
+#about-container p {padding:0px; margin:0px;}
+#about-container .about-mainimage {float:left; padding-right:10px;}
+#about-container .about-mainimage .about-coverimage {margin-left:42px;}
+#about-container #about-contact-containter .about-text-sm {font-size:0.85em; line-height:1.75em; float:left; padding:10px 60px 0px 0px; display:inline-block;}
+#about-container #about-contact-containter .about-pj p {border:none; font-size:1.00em; line-height:1.40em; font-weight:normal;}
+#about-container #about-contact-containter .about-pj {font-size:0.85em; line-height:1.25em; float:left; padding:10px 10px 0px 0px; display:inline-block;}
+#about-container #about-contact-containter .about-editor p {border:none; font-size:1.00em; line-height:1.40em; font-weight:normal; padding-top:40px;}
+#about-container #about-contact-containter .about-editor {font-size:0.85em; line-height:1.25em; float:left; padding:10px 10px 0px 0px; display:inline-block;}
+#about-container #about-contact-containter .about-bio {font-size:0.85em; line-height:1.75em; float:left; padding:10px 0px 0px 0px; display:inline-block;}
+#about-container #about-info-container {padding:80px 80px 90px 90px;}
+
+/* Double Skyscraper Ad */
+.adSkyWrapper {border:none; width:300px; border:1px solid #ffcd82; background-color:#FCF9F5; font-family: 'PT Sans', Helvetica, sans-serif; font-size:13px; line-height:17px;}
+.adSkyWrapper .adHead a, .adSkyWrapper .adHead a:link, .adSkyWrapper .adHead a:visited, .adSkyWrapper .adHead a:active {font-size:16px; line-height:16px; text-decoration: none; font-weight:700; color:#000;}
+.adSkyWrapper .adHead a:hover {text-decoration: underline;}
+.adSkyWrapper .adPhotoLeft {float:left; margin-right:10px; border:1px solid #999; width:65px; height:65px;}
+.adSkyWrapper .adPhotoRight {float:right; margin-left:10px; border:1px solid #999; width:65px; height:65px;}
+.adSkyWrapper .adBody {margin-top:5px;}
+.adSkyWrapper .adCompany {font-size:11px; line-height:17px; font-style:italic; color:#999;}
+
+/* Leaderboard Ad */
+.adHead a, .adHead a:link, .adHead a:visited, .adHead a:active {font-size:13px; line-height:16px; text-decoration: none; font-weight:700; color:#000000;}
+.adHead a:hover {text-decoration: underline;}
+.adPhotoLeft {float:left; margin-right:10px; border:1px solid #999; width:45px; height:45px;}
+.adBody {margin-top:2px;}
+.adCompany {font-size:11px; line-height:17px; font-style:italic; color:#999;}
+
+/*Automation Conference */
+.tac-image {width:100%; text-align:center; padding:10px;}
+.section-tac2012 #block-menu-menu-automation-conference .block-inner {display:none;}
+#block-menu-menu-automation-conference{ border-top: 5px solid #8A8C8F; margin: auto; padding: 0 !important; width: 960px;}
+.section-tac2012 #block-system-main .views-row-1 {}
+.page-tac2012-news h1.title{display:block;}
+#block-block-47 .block-inner{background-color:#CCF3FB;}
+#block-block-46 h3.title{background-color:transparent !important; font-size:20px; color:#000 !important;border-bottom:1px solid #CCCCCC !important;text-align:center;}
+.section-tac2012 #main-inner h1.category-title, .section-tac2013 #main-inner h1.category-title{font-size:3.2em;}
+
+/*Machine Automation */
+#block-views-category-news-block-10 h3.title {color: black;font-family: 'FolksLightRegular',Arial,Helvetica,sans-serif;font-size: 15px;font-weight: bold;text-transform:uppercase;padding-left: 0px;}
+.section-manufacturing-intelligence #main-inner h1.category-title, .section-informationmanagement #main-inner h1.category-title{font-size:3.6em;}
+/*NIPAC*/
+.page-nipac h1.category-title, .page-nipac #category-title-wrapper {display:none !important;}
+/* Events Page */
+.events-date { color:#666666; }

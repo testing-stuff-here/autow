@@ -1,0 +1,33 @@
+<?php
+/**
+ * @author Albert Jankowski <ajankowski@summitmediagroup.com>
+ */
+
+/**
+ * Implements hook_page_alter().
+ */
+function nielsen_page_alter(&$page) {
+ 
+    $output = <<<EOT
+
+    <!-- START Nielsen//NetRatings SiteCensus V5.3 -->
+	<!-- COPYRIGHT 2007 Nielsen//NetRatings -->
+	<script type="text/javascript">
+	 var _rsCI="us-bpaww";
+	 var _rsCG="0";
+	 var _rsDN="//secure-us.imrworldwide.com/";
+	 var _rsPLfl=0;
+	 var _rsSE=1;
+	 var _rsSM=1.0;
+	 var _rsCL=1;
+	</script>
+	<script type="text/javascript" src="//secure-us.imrworldwide.com/v53.js"></script>
+	<noscript>
+	 <div><img src="//secure-us.imrworldwide.com/cgi-bin/m?ci=us-bpaww&amp;cg=0&amp;cc=1" alt=""/></div>
+	</noscript>
+	<!-- END Nielsen//NetRatings SiteCensus V5.3 -->
+	
+EOT;
+    $page['page_bottom']['nielsen'] = array('#markup' => $output);
+  
+}

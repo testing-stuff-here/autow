@@ -1,0 +1,59 @@
+<?php
+function reference_delete_node_delete($node) {
+  if ( $fields = _reference_delete_make_table_names() ) {
+    foreach ( $fields as $field => $tables ) {
+      foreach ( $tables as $table ) {
+        db_delete($table)
+          ->condition($field . '_nid', $node->nid, '=')
+          ->execute();
+      }
+    }
+  }
+  
+  field_cache_clear();
+}
+
+function reference_delete_user_delete($account) {
+  if ( $fields = _reference_delete_make_table_names('user_reference') ) {
+    foreach ( $fields as $field => $tables ) {
+      foreach ( $tables as $table ) {
+        db_delete($table)
+          ->condition($field . '_uid', $account->uid, '=')
+          ->execute();
+      }
+    }
+  }
+  
+  field_cache_clear();
+}
+
+function _reference_delete_get_reference_fields($module) {
+  $fields = field_info_instances();
+
+  $reference_fields = array();
+  
+  foreach ( $fields['node'] as $nodetype => $fieldlist ) {
+    foreach ( $fieldlist as $field => $properties ) {
+      if ( $properties['widget']['module'] == $module ) {
+        $reference_fields[$field] = $field;
+      }
+    }
+  }
+  
+  if ( count($reference_fields) ) {
+    return $reference_fields;
+  }
+}
+
+function _reference_delete_make_table_names($module = 'node_reference') {
+  $fields = _reference_delete_get_reference_fields($module);
+  
+  if ( count($fields) ) {
+    $tables = array();
+    foreach ( $fields as $field ) {
+      $tables[$field] = array('field_data_' . $field, 'field_revision_' . $field);
+    }
+  
+    return $tables;
+  }
+}

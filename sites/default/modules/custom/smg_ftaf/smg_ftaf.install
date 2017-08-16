@@ -1,0 +1,24 @@
+<?php
+
+/**
+* Implements hook_enable().
+
+function smg_ftaf_enable() {
+  mailsystem_set(array('smg_ftaf' => 'SmgFtafMailSystem'));
+}
+/**
+* Implements hook_disable().
+
+function smg_ftaf_disable() {
+  mailsystem_clear(array('smg_ftaf' => 'SmgFtafMailSystem'));
+}
+*/
+
+function smg_ftaf_install(){
+  watchdog('smg_ftaf', 'install');
+  variable_set('mail_system', array('default-system' => 'DefaultMailSystem', 'smg_ftaf' => 'SmgFtafMailSystem'));
+}
+
+function smg_ftaf_uninstall(){
+  variable_set('mail_system', array('default-system' => 'DefaultMailSystem'));
+}

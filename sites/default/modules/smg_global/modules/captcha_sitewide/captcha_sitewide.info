@@ -1,0 +1,4 @@
+name = Captcha Sitewide
+description = Adds captcha to all Drupal webforms
+package = SMG
+core = 7.x

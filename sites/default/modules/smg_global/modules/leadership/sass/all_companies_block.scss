@@ -1,0 +1,113 @@
+// Variables for spinning wheel
+$spinSize: 2px;
+$spinColorOne: #FFF;
+$spinColorTwo: #005496;
+$spinValueOne: $spinSize solid $spinColorOne;
+$spinValueTwo: $spinSize solid $spinColorTwo;
+
+.leadership-all-companies-list {
+  ul li { list-style:none; padding-bottom:9px; }
+  ul.company-list { margin:0px; padding:0 0 0 30px }
+  .company-list li { padding: 10px 0 3px 0; }
+  .taxonomy-name {font-weight:bold;
+    &.loading {
+      &:after {
+        content: " ";
+        display: inline-block;
+        border-left: $spinValueOne;
+        border-bottom: $spinValueOne;
+        border-right: $spinValueTwo;
+        border-top: $spinValueTwo;
+        height: 10px;
+        width:10px;
+        border-radius: 100%;
+        margin-left: 5px;
+        -webkit-animation: spin .6s infinite linear;
+        -moz-animation: spin .6s infinite linear;
+        -ms-animation: spin .6s infinite linear;
+        -o-animation: spin .6s infinite linear;
+        animation: spin .6s infinite linear;
+      }
+    }
+  }
+  .brackets { color: #000; font-family: Arial,Helvetica,sans-serif; font-size:1.2em; margin-left:1px; }
+  .plus-minus { position:relative; color: #e2e9ef; }
+  .plus-minus span { top: 0px; left: 0px; text-align: center; width: 100%; color: #1e2a42!important; }
+  .youtube-amplified { margin-left:5px; position:relative; top:2px; }
+  ul.company-list {-webkit-transition:max-height 0.8s cubic-bezier(0, 1, 0.5, 1); transition:max-height 0.8s cubic-bezier(0, 1, .5, 1); max-height: 0; visibility: hidden; }
+  ul.company-list.slideDown { visibility: visible; -webkit-transition:max-height 0.8s cubic-bezier(0, 1, 0.5, 1); transition:max-height 0.8s cubic-bezier(0, 1, 0.5, 1); overflow: visible; }
+  ul.company-list { -webkit-transition:max-height 0.8s cubic-bezier(0, 1, 0.5, 1); transition:max-height 0.8s cubic-bezier(0, 1, 0.5, 1); overflow: hidden; }
+  .taxonomy-tid { position:relative;
+    &:hover {
+      cursor: pointer;
+    }
+  }
+  ul.company-list.hide { display: none; }
+  ul.company-list.invisible { visibility: hidden; position: absolute; display: block; max-height: none; }
+  .youtube-amplified-video-icon { background: url("images/cameraicon_19x15.png"); width: 19px; height: 15px; display: inline-block; }
+}
+
+@keyframes spin {
+  from {
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    -ms-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(359deg);
+    -moz-transform: rotate(359deg);
+    -o-transform: rotate(359deg);
+    -ms-transform: rotate(359deg);
+    transform: rotate(359deg);
+  }
+}
+
+@-moz-keyframes spin {
+  from {
+    -moz-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -moz-transform: rotate(359deg);
+    transform: rotate(359deg);
+  }
+
+}
+
+@-webkit-keyframes spin {
+  from {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(359deg);
+    transform: rotate(359deg);
+  }
+
+}
+
+@-ms-keyframes spin {
+  from {
+    -ms-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -ms-transform: rotate(359deg);
+    transform: rotate(359deg);
+  }
+
+}
+
+@-o-keyframes spin {
+  from {
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -o-transform: rotate(359deg);
+    transform: rotate(359deg);
+  }
+
+}

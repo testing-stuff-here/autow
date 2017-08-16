@@ -1,0 +1,11 @@
+<IfModule mod_headers.c>
+
+    <FilesMatch "(\.html)$">
+        Header set Cache-Control "s-maxage=86400, max-age=1209600"
+    </FilesMatch>
+
+    <FilesMatch "ads\.js">
+        Header set Cache-Control "s-maxage=172800, max-age=172800"
+    </FilesMatch>
+
+</IfModule>

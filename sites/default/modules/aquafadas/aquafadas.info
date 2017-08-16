@@ -1,0 +1,4 @@
+name = Aquafadas Integration
+description = Integration with Aquafadas mobile platform.
+package = SMG
+core = 7.x

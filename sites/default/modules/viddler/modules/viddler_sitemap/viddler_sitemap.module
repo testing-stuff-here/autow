@@ -1,0 +1,242 @@
+<?php
+/**
+ * @author Albert Jankowski <ajankowski@summitmediagroup.com>
+ *
+ * @file viddler_sitemap.module
+ *  creates a site map of all Viddler videos
+ */
+
+// 2 Weeks 
+define('VIDDLER_SITEMAP_CACHE_TIME', 1209600);
+
+/**
+ * Implements hook_menu().
+ */
+function viddler_sitemap_menu() {
+  $items['videos.xml'] = array(
+    'page callback' => '_viddler_sitemap_videos',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+  //Force Cache to refresh
+  $items['admin/config/media/viddler/sitemap'] = array(
+    'title' => 'Refresh Viddler Sitemap',
+    'description' => 'Manually force the sitemap to reset its cache version.',
+    'page callback' => 'viddler_sitemap_refresh',
+    'access arguments' => array('administer site configuration'),
+    'access callback' => 'user_access',
+    'type' => MENU_LOCAL_ACTION,
+    'weight' => 0,
+  );
+  
+  return $items;
+}
+
+/**
+ * Generate Videos Sitemap
+ */
+function _viddler_sitemap_videos() {  
+  global $language_content;
+  $sitemap = &drupal_static(__FUNCTION__);
+  if (!isset($sitemap)) {
+    if ($cache = cache_get('viddler_sitemap',$bin = 'cache_viddler_sitemap')) {
+      $sitemap = $cache->data;
+    }
+    else {
+      $sitemap = viddler_sitemap_update_sitmap_cache();
+    }
+  }
+
+  drupal_add_http_header('Content-Type', 'text/xml; charset=utf-8');
+  print $sitemap;
+}
+
+/**
+ * Uses the Viddler API to get all the videos per user.  The easier way would be to get info one video at a time
+ * but Viddler limits the amount of calls.  This is the way they recommended.
+ *
+ * @param $api_key
+ *  the api key associated with the Viddler account
+ * @param $user
+ *  the Viddle username
+ * @param $password
+ *  the Viddler password
+ * @param $per_page
+ *  the amount of videos that you want Viddler to give to you on the api call
+ * @param $max
+ *  the maximum amount of pages of videos. (50,000 is the maximum you can display on a page).
+ *  if we get a lot more videos than you may want to increase this to more.  Max would be 500
+ */
+function viddler_sitemap_get_videos_per_user($api_key, $username, $password, $per_page = 100, $max = 100) {
+  $current_page = 1;
+  
+  $viddler_connect = new Viddler_V2($api_key);
+  $session_id = viddler_get_sesssion_id($viddler_connect, $username, $password);
+  
+  $video_list = array();
+  $videos_per_account = array();
+  
+  for($current_page; $current_page <= $max; $current_page++) {
+    //Get all the videos from one account
+    $videos = $viddler_connect->viddler_videos_getByUser(array(
+      'sessionid'   =>  $session_id,
+      'page'        =>  $current_page,
+      'per_page'    =>  $per_page,
+      'visibility'  =>  'public,embed',
+    ));
+    
+    if(isset($videos['list_result']['video_list'])) {
+      foreach($videos['list_result']['video_list'] as $video_info) {
+        $videos_per_account[$video_info['id']] = array(
+          'id' => $video_info['id'],
+          'permissions' => $video_info['permissions'],
+          'files' => $video_info['files'],
+          'length' => $video_info['length'],
+          'view_count' => $video_info['view_count'],
+        ); 
+      }
+    }  
+  }
+  
+  return $videos_per_account;
+}
+
+/**
+ * Sets the sitemap into cache
+ */
+function viddler_sitemap_update_sitmap_cache() {  
+  global $language_content;
+  
+  // Get videos from main account
+  $videos_from_viddler = viddler_sitemap_get_videos_per_user(variable_get('viddler_apikey', ''), variable_get('viddler_user', ''), variable_get('viddler_password', ''));
+
+  // Get videos from second account
+  if(variable_get('viddler_password2', FALSE)) {
+    $videos_from_viddler_second = viddler_sitemap_get_videos_per_user(variable_get('viddler_apikey', ''), variable_get('viddler_user', ''), variable_get('viddler_password', ''));
+    if($videos_from_viddler_second) {
+      $videos_from_viddler = array_merge($videos_from_viddler, $videos_from_viddler_second);
+    }
+  }
+
+  // Get all nids and viddler ids from all nodes that have a video
+  $query = db_select('field_data_field_viddler_id', 'v')
+    ->fields('v', array('field_viddler_id_value', 'entity_id'))
+    ->orderBy('entity_id', 'DESC');
+  $video_nodes = $query->execute()->fetchAll();
+
+  // Get all xml rows to put into sitemap
+  $xml = '';
+  foreach($video_nodes as $video_node) {
+    if(isset($videos_from_viddler[$video_node->field_viddler_id_value])) {
+      $xml .= viddler_sitemap_get_sitemap_row($videos_from_viddler[$video_node->field_viddler_id_value], node_load($video_node->entity_id));
+    }
+  }
+  
+  // Create sitemap
+  $sitemap = viddler_create_sitemap($xml);
+  cache_set('viddler_sitemap', $sitemap, 'cache_viddler_sitemap', time() + VIDDLER_SITEMAP_CACHE_TIME);
+  
+  return $sitemap;
+}
+
+/**
+ * Implements hook_cron().
+ */
+function viddler_sitemap_cron() {
+  // Run once a day at 1:00am
+  if(date('G') == 1) {
+    viddler_sitemap_update_sitmap_cache();
+    watchdog('viddler_sitemap', 'Viddler Sitemap Has been refreshed on %time', array('%time' => date("F j, Y, g:i a")));
+  }  
+}
+
+/**
+ * You can manually refresh the sitemap
+ */
+function viddler_sitemap_refresh() {
+  viddler_sitemap_update_sitmap_cache();
+  watchdog('viddler_sitemap', 'Viddler Sitemap Has been refreshed on %time', array('%time' => date("F j, Y, g:i a")));
+  drupal_goto('videos.xml');
+}
+
+/**
+ * Sets the sitemap row
+ *
+ * @param $video
+ *  video info array provided from viddler
+ * @param $node
+ *  the node object
+ *
+ * @return $xml
+ *  all the rows
+ */
+function viddler_sitemap_get_sitemap_row($video, $node) {
+  global $base_url;
+
+  $xml = '';
+  $embed = (isset($video['permissions']['embed']['level']) && $video['permissions']['embed']['level'] != 'private') ? 'yes' : 'no';
+  $download = (isset($video['permissions']['download']['level']) && $video['permissions']['download']['level'] != 'private') ? true : false;
+ 
+  $xml .= '<url>';
+  $xml .= '<loc>' . viddler_getPathAlias($node->nid) . '</loc>';
+  $xml .= '<video:video>';
+  $xml .= '<video:thumbnail_loc>http://www.viddler.com/thumbnail/' . $video['id'] . '</video:thumbnail_loc>';
+  $xml .= '<video:title>' . htmlspecialchars($node->title, ENT_QUOTES, 'UTF-8') . '</video:title>';
+  if(isset($node->field_deckhead['und'][0]['value'])) {
+    $xml .= '<video:description>' . htmlspecialchars(strip_tags($node->field_deckhead['und'][0]['value']), ENT_QUOTES, 'UTF-8') . '</video:description>';
+  }
+  //If downloads for this content are not private, allow this param
+  
+  /*  // commenting out. Don't want any of our videos to be downloaded
+  if ($download === true) {
+    if(isset($video['files'][1]['url']) && $video['files'][1]['url']) {
+      $xml .= '<video:content_loc>' . $video['files'][1]['url'] . '</video:content_loc>';
+    }
+  }
+  */
+
+  $xml .= '<video:player_loc allow_embed="' . $embed . '">http://www.viddler.com/embed/' . $video['id'] . '</video:player_loc>';
+  $xml .= '<video:duration>' . $video['length'] . '</video:duration>';
+  $xml .= '<video:view_count>' . $video['view_count'] . '</video:view_count>';
+  $xml .= '<video:publication_date>' . date('Y-m-d', $node->created) . '</video:publication_date>';
+  $xml .= '<video:family_friendly>yes</video:family_friendly>';
+  $xml .= '<video:live>no</video:live>';
+  $xml .= '</video:video>';
+  $xml .= '</url>';
+  
+  return $xml;
+}
+
+/**
+ * Sets the opening and closing of sitemap
+ *
+ * @param $xml_rows
+ *  all the rows
+ */
+function viddler_create_sitemap($xml_rows) {
+  $str = '<?xml version="1.0" encoding="UTF-8"?>';
+  $str .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">';
+  $str .= $xml_rows;
+  $str .= '</urlset>';
+  
+  return $str;
+}
+
+/**
+ * Get full path of node
+ * 
+ * @param $nid
+ *  the node id
+ *
+ * @return
+ *  the full path alias
+ */
+function viddler_getPathAlias($nid) {
+  global $base_url;
+  
+  //check for an alias using drupal_lookup_path()
+  if((drupal_lookup_path('alias', 'node/'.$nid)!==false)) {
+    $alias = drupal_lookup_path('alias', 'node/'.$nid); 
+    return $base_url.'/'.$alias;
+  }
+}

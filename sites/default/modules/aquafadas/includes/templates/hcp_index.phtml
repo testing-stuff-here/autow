@@ -1,0 +1,87 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name='viewport' content='width=device-width' />
+<title>Hello Products</title>
+
+<script type="text/javascript" src="afdpLib.js" ></script>		
+<script type="text/javascript">
+window.onload= function(){
+window.afdp.readyToDisplay();
+};
+
+function callAction($pAction)
+{
+window.afdp.simpleCallOutActionWithName($pAction); 
+}
+</script>
+
+<style type="text/css">
+a, a:link, a:visited, a:active {color:#23a0c6; text-decoration:none;}
+a:hover {color:#23a0c6; text-decoration:underline;}
+.node-type { font-family:Arial, Geneva, sans-serif; font-size:15px; line-height:19px;}
+body { margin:0px; padding:0px; width:100%; }
+.space { margin:15px; }
+h1 {padding:0px 0px 6px 0px; margin:0px; font-family:Arial, Geneva, sans-serif; font-size:24px; line-height:27px;}
+p {padding:0px 0px 10px 0px; margin:0px; font-family:Arial, Geneva, sans-serif; font-size:15px; line-height:21px;}
+.deck {padding:0px 0px 15px 0px; margin:0px; font-family:Arial, Geneva, sans-serif; font-style:italic; font-size:15px; line-height:19px;}
+.caption {padding:3px 0px 17px 0px; margin:0px; font-family:Arial, Geneva, sans-serif; font-size:12px; line-height:15px;}
+.byline {font-weight:bold; text-transform:uppercase;}
+img { border:1px solid #bebebe; padding:5px;}
+.subhead {padding:8px 0px 0px 0px; margin:0px; font-family:Arial, Geneva, sans-serif; font-size:16px; line-height:24px; font-weight:bold;}
+.img-head {margin-bottom:10px; padding:12px 0px 0px 0px; font-family:Arial, Geneva, sans-serif; font-size:16px; line-height:24px; font-weight:bold; border-bottom:1px solid #bebebe;}
+.share .email { background: url(images/email_button.png);}
+</style>
+
+</head>
+<body>
+ <div class="space">
+   <div class="node-type">
+     <?php echo $this->content['node_type']; ?>
+   </div>
+   <h1>
+     <?php echo $this->content['title']; ?>
+   </h1>
+   <p class="deck">
+     <?php echo $this->content['deckhead']; ?>
+   </p>
+   <?php if(sizeof($this->content['images']['main']) > 0): ?>
+     <img src="images/<?php echo $this->content['images']['main']['filename']; ?>" />
+     <?php if(strlen($this->content['images']['main']['title']) > 0): ?>
+       <p class="caption">
+        <?php echo $this->content['images']['main']['title']; ?>
+       </p>
+     <?php endif; ?>
+   <?php endif; ?>
+   <?php if(strlen($this->content['author_name_title']) > 0): ?>
+     <p>
+       <span class="byline"><?php echo $this->content['author_name_title']; ?></span>
+     </p>
+   <?php endif; ?>
+   <?php echo $this->content['body']; ?>
+   
+   <div class="share">
+     <div class="email">
+     <a href="mailto:?Subject=I'm sharing this article from Healthcare Packaging&Body=Hi,%0D%0DI thought you would find this article from Healthcare Packaging of interest:%0D%0D<?php echo $this->content['url']; ?>"><img src="images/emailbtn.png" style="width:104px; height:23px; border:none;" /></a>
+     </div>
+   </div>
+   
+   <?php if(sizeof($this->content['images']['additional']) > 0): ?>
+     <p class="img-head">
+       Additional Images:
+     </p>
+     <?php foreach($this->content['images']['additional'] as $key => $value): ?>
+       <?php if(strlen($value['title']) > 0): ?>
+         <img src="images/<?php echo $value['filename']; ?>">
+         <p class="caption">
+           <?php echo $value['title']; ?>
+         </p>
+       <?php else: ?>
+         <img class="nocaption" src="images/<?php echo $value['filename']; ?>">
+       <?php endif; ?>
+     <?php endforeach; ?>
+   <?php endif; ?>
+ </div>
+</body>
+</html>

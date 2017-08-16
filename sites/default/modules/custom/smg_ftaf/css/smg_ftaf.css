@@ -1,0 +1,29 @@
+#smg_ftaf-next-to-logo-text {
+  padding-top: 10px;
+  font-family: sans-serif;
+  font-size: 17px;
+  font-style: italic;
+}
+
+#smg_ftaf-logo {
+
+  margin-bottom: 15px;
+}
+
+#smg_ftaf-headline {
+  font-size: 15px;
+  font-weight: bold;
+  color: #545659;
+}
+
+#smg_ftaf-use-form {
+  padding-bottom: 8px;
+  display: block;
+  width: 100%;
+}
+
+.form-item-Site-Name {
+  display: none;
+}
+
+.page-ftaf h1#page-title {display:none;}

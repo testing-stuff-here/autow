@@ -1,0 +1,100 @@
+<?php
+module_load_include('inc', 'viddler', 'viddler.field');
+
+define('VIDDLER_DEFAULT_VIDEO_WIDTH', 430);
+define('VIDDLER_DEFAULT_VIDEO_HEIGHT', '');
+define('VIDDLER_DEFAULT_PREVIEW_WIDTH', 270);
+define('VIDDLER_DEFAULT_PREVIEW_HEIGHT', 232);
+define('VIDDLER_DEFAULT_THUMBNAIL_WIDTH', 114);
+define('VIDDLER_DEFAULT_THUMBNAIL_HEIGHT', 86);
+
+
+function viddler_menu() {
+  $items['admin/config/media/viddler'] = array(
+    'title' => 'Viddler',
+    'description' => 'Configure Viddler.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('viddler_admin_settings_form'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+function viddler_admin_settings_form() {
+  $form = array();
+  $form['general'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('General Settings'),
+    '#description' => t('These features will effect all viddler content types.'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  $form['general']['viddler_apikey'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Viddler Api Key'),
+    '#default_value' => variable_get('viddler_apikey', ''),
+    '#required' => FALSE,
+    '#description' => t('The viddler api key is the only way we can post recorded or uploaded videos to Viddler.'),
+  );
+
+	$form['general']['viddler_user'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Viddler User'),
+    '#default_value' => variable_get('viddler_user', ''),
+    '#required' => FALSE,
+    '#description' => t('The viddler user for private videos.'),
+  );
+
+  $form['general']['viddler_password'] = array(
+    '#type' => 'password',
+    '#title' => t('Viddler Password'),
+    '#default_value' => variable_get('viddler_password', ''),
+    '#required' => FALSE,
+    '#description' => t('The viddler password for private videos.'),
+  );
+
+  $form['general']['viddler_apikey2'] = array(
+     '#type' => 'textfield',
+     '#title' => t('Viddler Api Key - Second Account'),
+     '#default_value' => variable_get('viddler_apikey2', ''),
+     '#required' => FALSE,
+     '#description' => t('The viddler api key for a second account is the only way we can post recorded or uploaded videos to Viddler.'),
+   );
+
+ 	$form['general']['viddler_user2'] = array(
+     '#type' => 'textfield',
+     '#title' => t('Viddler User - Second Account'),
+     '#default_value' => variable_get('viddler_user2', ''),
+     '#required' => FALSE,
+     '#description' => t('The secound account viddler user for private videos.'),
+   );
+
+   $form['general']['viddler_password2'] = array(
+     '#type' => 'password',
+     '#title' => t('Viddler Password - Second Account'),
+     '#default_value' => variable_get('viddler_password2', ''),
+     '#required' => FALSE,
+     '#description' => t('The second account viddler password for private videos.'),
+   );
+
+	$form['viddler_force_update'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Force update'),
+    '#default_value' => variable_get('viddler_force_update', false),
+    '#description' => t('The module only updates the embed code on node update if it is different from the previous entry. On debugging, it might be useful to force it on every update.'),
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * Implements hook_page_alter().
+ */
+function viddler_page_alter(&$page) {
+  // Add Viddler javascript.  Need to add it to every file because there may be
+  // videos embeded on the page.
+  drupal_add_js('https://static.cdn-ec.viddler.com/js/vapi.js', array('type' => 'external', 'scope' => 'footer', 'weight' => -20));
+  drupal_add_js(drupal_get_path('module', 'viddler') . '/js/viddler.js', array('scope' => 'footer'));
+}

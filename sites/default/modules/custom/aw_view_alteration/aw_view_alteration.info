@@ -1,0 +1,5 @@
+name = aw_view_alteration
+description = Modifies query in views
+dependencies[] = views
+package = "custom"
+core = 7.x

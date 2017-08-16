@@ -1,0 +1,1616 @@
+<?php
+
+/**
+ * Implements hook_menu()
+ */
+function smg_global_menu(){
+  $items = array();
+  $this_year = date('Y'); // #295 uses this
+
+  // #295 Contributor Analytics Dashboard
+  $items['admin/reports/cad'] = array (
+    'title' => 'Contributor Analytics Dashboard',
+    'description' => 'View analytical data for contributors to the site',
+    'page callback' => 'smg_global_cad_dashboard',
+    'page arguments' => array(date('Y'), TRUE),
+    'access arguments' => array('view cad'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  // #295 Contributor Analytics Dashboard
+  for ($year_counter = 2005; $year_counter <= $this_year; $year_counter++) {
+    $items['admin/reports/cad/' . (string) $year_counter] = array (
+      'title' => (string) $year_counter,
+      'description' => 'View analytical data for contributors to the site for '.  (string) $year_counter,
+      'page callback' => 'smg_global_cad_dashboard',
+      'page arguments' => array((string) $year_counter, FALSE),
+      'access arguments' => array('view cad'),
+      'type' => MENU_NORMAL_ITEM,
+    );
+  }
+  $items['app-registration/thank-you'] = array(
+    'title' => '',
+    'page callback' => 'app_registration_thank_you',
+    'access arguments' => array('access content'),
+    'theme callback' => 'app_registration_theme_callback',
+    'type' => MENU_CALLBACK,
+  );
+  $items['app-registration/forgot-password'] = array(
+    'title' => 'Forgot your password?',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('app_registration_forgot_password'),
+    'access arguments' => array('access content'),
+    'theme callback' => 'app_registration_theme_callback',
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/config/system/smg-global'] = array(
+    'title' => 'SMG Global Settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('smg_global_settings_form'),
+    'access arguments' => array('administer node'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'smg_global.admin.inc',
+  );
+  $items['app-registration-web/thank-you/%/%'] = array(
+    'page callback' => 'app_reg_confirmation_page',
+    'page arguments' => array(2,3),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+  // #125 Expo Countdown widget
+  $items['admin/config/content/expo-countdown'] = array(
+    'title' => 'Expo Countdown Widget Settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('smg_expo_countdown_settings_form'),
+    'access arguments' => array('administer node'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'smg_global.admin.inc',
+  );
+  if (module_exists('waywire')) {
+    // Waywire sitemap.
+    $items['videos.xml'] = array(
+      'page callback' => 'smg_global_waywire_video_sitemap',
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+      'file' => 'includes/smg_global_waywire_sitemap.inc',
+    );
+    // Force sitemap to refresh.
+    $items['admin/config/media/waywire/sitemap'] = array(
+      'title' => 'Refresh Waywire Sitemap',
+      'description' => 'Manually force the sitemap to reset its cache version.',
+      'page callback' => 'smg_global_waywire_sitemap_refresh',
+      'access arguments' => array('administer site configuration'),
+      'access callback' => 'user_access',
+      'type' => MENU_LOCAL_ACTION,
+      'weight' => 0,
+      'file' => 'includes/smg_global_waywire_sitemap.inc',
+    );
+  }
+  $items['api/field-option-find-replace'] = array(
+    'page callback' => 'smg_global_field_option_find_replace',
+    'delivery callback' => 'drupal_json_output',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/field_option_find_replace.inc'
+  );
+
+  return $items;
+}
+
+/**
+ * Formats a row of data to be inserted into the theme table.
+ *
+ * @param - string $row_cap
+ *     The cap end (left) of the row, displaying author name
+ * @param - array $row_data
+ *     An array containing all data from that row
+ *
+ * @return - array $return_row
+ *     An array that is formed to be displayed in the theme table
+ */
+function smg_global_cad_display_row($row_cap, $row_data, $wide_scope = TRUE, $this_year = 2016) {
+  // #295
+  $row_max = 16;
+  if(!$wide_scope) {
+    $row_max = 14;
+  }
+
+
+  $return_row = array_fill(0,$row_max,'0'); // fill in the row with 0s
+
+  $return_row[0] = $row_cap; // fill in the
+
+  ksort($row_data); // sort by year(s), then months
+
+
+  if ($wide_scope) {
+    $startdate = strtotime('today');
+    $startdate = strtotime("-14 months", $startdate);
+    $enddate = strtotime('last day of last month');
+
+    // tester.. 1.. 2.. 3?
+    // dsm(date('M d Y', strtotime("-6 month", $startdate)));
+    // dsm(date('M d Y', strtotime('last day -6 month')));
+    // $startdate = strtotime("-6 month", $startdate);
+    // $enddate = strtotime('last day -6 month');
+  } else {
+
+  }
+
+  if($wide_scope) { // if we want the wide scope, 14 month display
+    // Determine wide-ranging date for this table
+    $syear = date('Y',$startdate);
+    $eyear = date('Y',$enddate);
+    $yearrange = $eyear - $syear;
+
+    // since multiple years are represented in this array, the first foreach loop
+    // will cycle through an array of arrays
+    foreach ($row_data as $year => $yeardata) {
+      $fntld = ((14 - date('n', $startdate))); // calculation of the front offset
+      $bckld = date('n', $enddate); // rear offset
+
+      if ($year == $syear) {  // if the currently reviewed year is also the start year
+        $z = date('n', $startdate); // take into account row_cap
+        $frnt = 1; // front starts at 1
+        while ($z <= 12) { // cycle through the months from the first visible to the end
+          if ($yeardata[$z] > 0) { // if there's a value in the array
+            $return_row[$frnt] = $yeardata[$z]; // populate return row with each months data
+          }
+          $z++; // iterate
+          $frnt++;
+        }
+      }
+
+      if (($year > $syear) && ($year < $eyear)) { // if this is the middle of a 3 year span
+        $st = $fntld; // we're starting from the front offset.
+        $zz = 1; // from january
+        while ($st < ($row_max - $bckld)) { // while we don't hit the rear offset
+          if ($yeardata[$zz] > 0) { // if there's a value in the array (otherwise 0 will stay in the row)
+            $return_row[$st] = $yeardata[$zz]; // fill it with the current figure
+          }
+          $st++; // iterate
+          $zz++;
+        }
+      }
+
+      if ($year == $eyear) {
+        $endmonths = date('n', $enddate); // how many months are there to account for?
+        $row_to_begin_from = (($row_max - $endmonths) -1); // need to account for row cap, apparently.
+        $i = $row_to_begin_from;
+        $m = 1;
+        while ($i <= $row_max) {
+          if ($yeardata[$m] > 0) {
+            $return_row[$i] = $yeardata[$m];
+          }
+          $m++;
+          $i++;
+        }
+      }
+    }
+  }
+  else { // if we want the narrow, given year only scope.
+    foreach ($row_data as $row_of_data) { // loop through the master array
+      foreach ($row_of_data as $key => $value) { // and then through the array of arrays
+        $return_row[$key] = $value; // fill in the values
+      }
+    }
+  }
+
+  $return_row[$row_max - 1] = array_sum($return_row); // sum the fields (cap is ignored)
+  $return_avg = round($return_row[$row_max - 1] / ($row_max - 2)); // build the avg (based on scope)
+  $return_row[$row_max] = $return_avg . '/month'; // format the avg
+
+  return $return_row; // return the completed row
+}
+
+/**
+ * Provides comparison functionality for the smg_global_cad_dashboard usort
+ */
+function sort_rule($a, $b){
+  return $a[13] - $b[13];
+}
+
+/**
+ * Provides comparison functionality for the smg_global_cad_dashboard usort
+ * wide scope variant
+ */
+function sort_rule_wide($a, $b){
+  return $a[15] - $b[15];
+}
+
+/**
+ * Cycles through all rows and returns a grand total for the table
+ *
+ * @param - array $allrows
+ *    An array containing all row data, excluding the header
+ *
+ * @param - int $row_width
+ *    Is the row width 16 or 14 cells?
+ *
+ * @return - integer $grandtotal
+ *    An array containing all totals data, wrapped in strong tags
+ */
+function cad_grand_total($allrows, $row_width = 16) {
+  $grandtotal = array_fill(0, ($row_width + 1), ''); // set to zero prior to calculating
+  $grandtotal[0] = '<strong>TOTAL</strong>'; // create row cap
+
+  for ($v = 1; $v <= ($row_width - 2); $v++) { // for each month
+    foreach ($allrows as $user) { // go through each row in the table
+      $grandtotal[$v] = $grandtotal[$v] + $user[$v]; // and add their entry for the month to the total for the month
+    }
+    $grandtotal[$v] = '<strong>' . $grandtotal[$v] . '</strong>'; // wrap that total in a strong tag
+  }
+
+  foreach (range(1, ($row_width - 2)) as $key) { // now loop through each monthly total
+    $grandtotal[$row_width - 1] = $grandtotal[$row_width - 1] + strip_tags($grandtotal[$key]); // and add it to the grand total
+    if($key == ($row_width - 2)) { // wrap grand total in strong tag
+      $grandtotal[$row_width - 1] = '<strong>' . $grandtotal[$row_width - 1] . '</strong>';
+    }
+  }
+
+  return $grandtotal; // return the completed totals row for inclusion in the master table
+}
+
+/**
+ *  Generate a table analyzing contributor (author) data, based on a given year,
+ *  over a month to month range. Then show a grand total and an average per
+ *  month posting rate.
+ *
+ * @param - string $year_requested
+ *   The year the user is asking to analyze.
+ *
+ * @param - boolean $wide_scope
+ *   Should we provide a wide-scope or narrow scope table to the user
+ *
+ * @return - mixed $output
+ */
+function smg_global_cad_dashboard($year_requested = 2000, $wide_scope = TRUE) {
+  // #295
+  $table_data = array();  // houses data that will ultimately be output to user
+  $this_year = date('Y'); // on first load in, default to the current year.
+  $row_width = 16; // default $wide_scope is TRUE, so default here is 16 rows.
+
+  if (variable_get('smg_global_site') == 'hcp') {
+    $is_hcp = TRUE;
+  }
+  else {
+    $is_hcp = FALSE;
+  }
+
+  // build a year list to work off of, starting with earliest date in database
+  // to the current year
+  for ($year_counter = 2005; $year_counter <= $this_year; $year_counter++) {
+    $years_of_consideration[] = $year_counter;
+  }
+
+  // Check to see if a year other than the default has been requested
+  // Possible @TODO: Remove? Provide as a backup in case page arguments is for
+  // whatever reason not passed.
+  if (isset($_GET['year'])) {
+    $offered_year = (int) $_GET['year'];  // cleanse the param from the url
+    // if the url param provided is inside our published range, flip to that
+    // year. Otherwise, default to current year.
+    if (in_array($offered_year, $years_of_consideration)) {
+      $this_year = $offered_year;
+    }
+  }
+
+  // Set the active year to the year requested via the menu system,
+  // if it is in a viable scope
+  if (in_array($year_requested, $years_of_consideration)) {
+    $this_year = $year_requested;
+  }
+
+  if($wide_scope) { // if we want the wide scope, 14 month display
+    // Determine wide-ranging date for this table
+    $startdate = strtotime('today');
+    $startdate = strtotime("-14 months", $startdate);
+    $enddate = strtotime('last day of last month');
+
+    // tester
+    // $startdate = strtotime("-6 month", $startdate);
+    // $enddate = strtotime('last day -6 month');
+  }
+  else { // if we want the narrow, given year only scope.
+    // Determine wide-ranging date for this table
+    $startdate = strtotime($this_year . '-01-01 00:00:00');
+    $enddate = strtotime($this_year . '-12-31 23:59:00');
+    $row_width = 14; // if we're looking at a single year, shorten the rows
+  }
+
+  // Pull all the distinct author ids from the database
+  if ($is_hcp) {
+    $uidq = db_select('field_data_field_author', 'fa')
+      ->fields('fa', array('field_author_uid')) // + field_byline
+      ->distinct();
+    $uid_result = $uidq->execute()->fetchAll();
+    foreach ($uid_result as $uid_record) {
+      $uids[] = $uid_record->field_author_uid;
+    }
+    // Make all uids match to a name field for the author
+    $authors = user_load_multiple($uids);
+  }
+
+  // Definitions for filtering to only original content
+  $original_content_aggregator['pw'] = array('162');
+  $original_content_aggregator['aw'] = array('138');
+  $original_content_aggregator['hcp'] = array('162');
+
+  // Generate needed static header data (year, totaling columns)
+  $header = array_fill(0, 14, '-');
+  $month =  $startdate;
+
+  if (!$wide_scope) {
+    $header[0] = $this_year;
+  }
+  else {
+    //  $header[0] = date('F Y', strtotime('+1 month',$startdate)) . ' - ' . date('F Y', strtotime("last month"));
+    $header[0] = date('F Y', $startdate) . ' - ' . date('F Y', $enddate);
+  }
+
+  // populate the header with the months
+  for ($xyz = 1; $xyz <= $row_width; $xyz++) {
+    $month = strtotime("+1 month", $month);
+    if(!$wide_scope) {
+      $header[$xyz] = date('F', mktime(0, 0, 0, $xyz, 1, date('Y')));
+    }
+    else {
+      $header[$xyz] = date('F', strtotime('-1 month', $month));
+    }
+  }
+
+
+
+  $header[$row_width - 1] = 'TOTAL';
+  $header[$row_width] = 'AVERAGE';
+
+  if ($is_hcp) { // if we're culling from hcp
+    $author_uid_set = array(); // populate the author/uid array
+    foreach ($authors as $author) { // link each UID to an author name
+      $author_uid_set[$author->uid] = $author->name;
+    }
+  }
+
+// pull all articles (nodes) from the given year
+  $nodes = new EntityFieldQuery();
+  $nodes->entityCondition('entity_type', 'node')
+    ->propertyCondition('status', NODE_PUBLISHED)
+    ->fieldCondition('field_term_source_type',
+      'tid',
+      $original_content_aggregator[variable_get('smg_global_site')]) // only pulls nodes marked as original content in their site
+    ->propertyCondition('created', array($startdate, $enddate), 'BETWEEN');
+  $result = $nodes->execute();
+
+// build array to pass to node_load_multiple, grabbing nids from db result set
+  foreach ($result['node'] as $_result) {
+    $nids[] = $_result->nid;
+  }
+
+// multidimensional array listing names of staff editors, others
+// are considered 'unassigned'. Uses global site code as index.
+  $staff_directory['pw'] = array('Pat Reynolds',
+    'Anne Marie Mohan',
+    'Jim Butschli',
+    'Sean Riley',);
+  $staff_directory['hcp'] = array('Michelle Maskaly',
+    'Jim Butschli',
+    'Keren Sookne',
+    'Anne Marie Mohan',
+    'Pat Reynolds',
+    'Sean Riley',);
+  $staff_directory['aw'] = array('David Greenfield',
+    'Aaron Hand',
+    'Keren Sookne',
+    'Stephanie Neil',
+    'Sean Riley',);
+
+// load nodes, where uid already exists
+  $all_nodes = node_load_multiple($nids);
+
+  if (isset($all_nodes)) { // if there are nodes
+    foreach ($all_nodes as $_node){ // cycle through them
+      // in the table_data array, we'll store under the author UID (or name)
+      // then under a month. Iterate based on the month
+      if ($is_hcp) { // if culling data from hcp
+        if (!in_array($_node->field_author['und'][0]['uid'], $uids)) { // check the UID, if there is none use Unassigned
+          $table_data['Unassigned'][date('Y', $_node->created)][date('n', $_node->created)]++;
+        }
+        else {  // Otherwise, use the author name
+          if(in_array($author_uid_set[$_node->field_author['und'][0]['uid']],
+            $staff_directory[variable_get('smg_global_site')])) { // check uid against staff directory
+            $table_data[$author_uid_set[$_node->field_author['und'][0]['uid']]][date('Y', $_node->created)][date('n', $_node->created)]++;
+          }
+          else {
+            $table_data['Other contributors'][date('Y', $_node->created)][date('n', $_node->created)]++;
+          }
+        }
+      }
+      else { // if culling from other than hcp
+        if ($_node->field_byline['und'][0]['value'] == '') { // if there is no author name provided, use Unassigned
+          $table_data['Unassigned'][date('Y', $_node->created)][date('n', $_node->created)]++;
+        }
+        else {
+          if(in_array($_node->field_byline['und'][0]['value'],
+            $staff_directory[variable_get('smg_global_site')])) { // check against staff directory
+            $table_data[$_node->field_byline['und'][0]['value']][date('Y', $_node->created)][date('n', $_node->created)]++;
+          }
+          else {
+            $table_data['Other contributors'][date('Y', $_node->created)][date('n', $_node->created)]++;
+          }
+        }
+      }
+    }
+  }
+
+  $row_caps = array_keys($table_data);  // generate the row caps (contributor name)
+  foreach ($row_caps as $cap) {
+    $rows[] = smg_global_cad_display_row($cap, $table_data[$cap], $wide_scope, $this_year); // pass to function to form remainder of row for the table
+  }
+
+  $grand_total = cad_grand_total($rows, $row_width); // a total of all totals.
+
+// sort low contributor to high
+  if(!$wide_scope) {
+    usort($rows, "sort_rule");
+  }
+  else {
+    usort($rows, "sort_rule_wide");
+  }
+
+// Iterate through all returned data, determine if there are any non-staff
+// contributors or unassigned contributors.
+  foreach ($rows as $key=>$row) {
+    if ($row[0] == 'Other contributors') { // if there is an other row
+      $other_row = $row;  // push that data to a temp array
+      unset($rows[$key]); // unset it in the table row data array
+    }
+    if ($row[0] == 'Unassigned') { // if there is an unassigned row
+      $unassigned_row = $row; // push that data to a temp array
+      unset($rows[$key]); // unset it in the table row data array
+    }
+  }
+
+  if (isset($other_row)) { // if a temp other row has been created
+    array_push($rows, $other_row); // push it on the end of the table data row
+  }
+
+  if (isset($unassigned_row)) { // if a temp unassigned row has been created
+    array_push($rows, $unassigned_row); // push it on the end of the table data row
+  }
+  array_push($rows, $grand_total);
+
+  $output = theme('table', array('header' => $header, 'rows' => $rows)); // format the tabulated results out to the user
+  return $output; // passed the tabulated results to the user, if we are not generating an email via cron job
+}
+
+/**
+ * Implements hook_permission().
+ */
+function smg_global_permission(){
+  return array(
+    // #295
+    'view cad' => array( // Set unique permission for the Contributor Analytics Dashboard
+      'title' => t('Access Contributor Analytics Dashboard'),
+      'description' => t('Allow user to view the Contributor Analytics Dashboard via the Reports menu.'),
+    ),
+  );
+}
+
+/**
+ * Menu callback for mobile app registration page
+ *
+ * @param int/string $nid
+ *   Webform node id
+ * @param int/string $sid
+ *   Unique submission ID
+ *
+ * @return mixed $output OR drupal_access_denied()
+ */
+function app_reg_confirmation_page($nid, $sid){
+  // Get the email from the URL
+  if (isset($_GET['email'])){
+    $email_get = $_GET['email'];
+  }
+  else {
+    return drupal_access_denied();
+  }
+
+  // Decode html chars in email
+  $email_get = htmlspecialchars_decode($email_get);
+
+  // Get the submission array
+  $submission = webform_menu_submission_load($sid, $nid);
+  $node = node_load($nid);
+  // Search the webform for the submission key of the smg_password field
+  // and the email field
+  $email_key = 'submission error';
+  $pass_key = 'submission error';
+  foreach ($node->webform['components'] as $key => $value){
+    if ($value['type'] == 'smg_password')
+      $pass_key = $key;
+    if ($value['type'] == 'smg_email')
+      $email_key = $key;
+  }
+  $email = $submission->data[$email_key]['value'][0];
+  $pass = $submission->data[$pass_key]['value'][0];
+
+  // If email parameter not equal to email in submission, return access denied
+  if ($email != $email_get){
+    return drupal_access_denied();
+  }
+
+  $ios_link = 'https://itunes.apple.com/us/app/healthcare-packaging/id860100066?mt=8&amp;uo=4';
+  // Invoke hook_aquafadas_data
+  $data = array();
+  if (sizeof(module_implements('aquafadas_data')) > 0){
+    $data = module_invoke_all('aquafadas_data');
+    if (array_key_exists('ios_link', $data)){
+      $ios_link = $data['ios_link'];
+    }
+  }
+
+  $output = array(
+    '#type' => 'markup',
+    '#markup' => '<div style="padding-left:27px; margin-top:10px;"><p style="margin-bottom:5px; font-weight:bold; font-size:17px;">Thank you for registering. &nbsp;You can download the app here:</p><p style="margin"><a href="' . $ios_link .'" style="font-size:23px;">iOS (Apple iPhone/iPad)</a></p><p><span style="padding-left:4px;">After downloading the app, remember to login with this information:</span><br><span style="float:left; font-weight:bold; width:70px; text-align:right; margin-right:10px;">Username: </span>' . $email . '<br><span style="float:left; font-weight:bold; width:70px; text-align:right; margin-right:10px;">Password: </span>' . $pass . '</p></div>',
+  );
+  return $output;
+}
+
+/**
+ * Callback for app registration thank you page for jquery mobile reg form
+ */
+function app_registration_thank_you(){
+  return '<div id="app-registration-thank-you">Thank you for registering</div>';
+}
+
+/**
+ * Callback for app registration forgot password page
+ */
+function app_registration_forgot_password($form, &$form_state){
+
+  if (array_key_exists('leadworks_query', $form_state)){
+    if (!$form_state['leadworks_query']){
+      $form['email_not_found'] = array(
+        '#type' => 'item',
+        '#title' => t('Sorry, we don\'t have a record for the email you provided.  Either try a different email address, or complete the registration form.'),
+      );
+      $form['try_again'] = array(
+        '#type' => 'submit',
+        '#value' => t('Try again'),
+        '#submit' => array('app_registration_forgot_password_try_again'),
+      );
+      $form['register'] = array(
+        '#type' => 'submit',
+        '#value' => t('Register'),
+        '#submit' => array('app_registration_forgot_password_register'),
+      );
+    }
+    else {
+      $form['email_found'] = array(
+        '#type' => 'item',
+        '#title' => t('Thank you.  Your password has been sent to your email address'),
+      );
+    }
+  }
+  else {
+    $form['description'] = array(
+      '#type' => 'item',
+      '#title' => t('Please provide your email address, and we will email you your password:'),
+    );
+    $form['email'] = array(
+      '#type' => 'textfield',
+      '#title' => '',
+    );
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('SUBMIT EMAIL'),
+      '#submit' => array('app_registration_forgot_password_submit'),
+    );
+  }
+
+  return $form;
+}
+
+/**
+ * Submit handler for forgot password form
+ */
+function app_registration_forgot_password_submit($form, &$form_state){
+
+  require_once(drupal_get_path('module', 'playbook_fields') . '/includes/external_submit.inc');
+
+  $email = (isset($form_state['values']['email'])) ? $form_state['values']['email'] : false;
+  $leadworks_query = playbook_fields_leadworks_password_request($email);
+  if (!$leadworks_query){
+    $form_state['leadworks_query'] = false;
+  }
+  else {
+    $form_state['leadworks_query'] = true;
+    // Email the password
+    $params['email'] = $leadworks_query->email;
+    $params['password'] = $leadworks_query->password;
+    $data = module_invoke_all('aquafadas_data');
+    $brand = isset($data['brand']) ? $data['brand'] : 'hcp';
+    switch ($brand){
+      case 'hcp':
+        $from = 'webmaster@healthcarepackaging.com';
+        $params['brand'] = 'Healthcare Packaging';
+        break;
+      case 'aw':
+        $from = 'webmaster@automationworld.com';
+        $params['brand'] = 'Automation World';
+        break;
+      case 'pw':
+        $from = 'webmaster@packworld.com';
+        $params['brand'] = 'Packaging World';
+        break;
+    }
+    $to = $leadworks_query->email;
+    drupal_mail('smg_global', 'forgot_password', $to, language_default(), $params, $from);
+  }
+
+  $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Submit handler for forgot password - try again button
+ */
+function app_registration_forgot_password_try_again($form, &$form_state){
+  unset($form_state['leadworks_query']);
+}
+
+/**
+ * Submit handler for forgot password - register button
+ */
+function app_registration_forgot_password_register($form, &$form_state){
+  drupal_goto('app-registration');
+}
+
+
+function app_registration_form_pre_submit(&$form, &$form_state){
+  foreach ($form['submitted'] as $form_key => $value){
+    if (is_array($value) && array_key_exists('#webform_component', $value) && $value['#webform_component']['type'] == 'smg_password'){
+      $password = $form_state['input']['submitted'][$form_key]['password_primary'];
+      $cid = $value['#webform_component']['cid'];
+      $form_state['values']['submitted'][$cid] = $password;
+      foreach ($form_state['values']['submitted'] as $key => $submitted_value){
+        if (strlen($key) == 0 && $submitted_value == $password){
+          unset($form_state['values']['submitted'][$key]);
+        }
+      }
+    }
+  }
+}
+
+function app_registration_form_post_submit(&$form, &$form_state){
+  $webform_nid = $form['#node']->nid;
+  $_SESSION['app_registration_'.$webform_nid] = 'submitted';
+}
+
+/**
+ * Theme callback for app registration thank you page
+ */
+function app_registration_theme_callback(){
+  return 'mobile_signup';
+}
+
+/**
+ * Implements hook_custom_theme()
+ */
+function smg_global_custom_theme(){
+  $args = arg();
+  if ($args[0] == 'node' && isset($args[1]) && !isset($args[2])){
+    $node = node_load($args[1]);
+    if ($node->type == 'mobile_webform'){
+      return 'mobile_signup';
+    }
+  }
+}
+
+/**
+ * Implements hook_form_alter()
+ */
+function smg_global_form_alter(&$form, &$form_state, $form_id){
+
+  // Go through form and see if one of the fields is an smg_password field
+  $has_password = false;
+  if (isset($form['submitted'])){
+    foreach ($form['submitted'] as $key => $value){
+      if (is_array($value) && array_key_exists('#webform_component', $value) && $value['#webform_component']['type'] == 'smg_password'){
+        $has_password = true;
+      }
+    }
+  }
+  // Is this a mobile webform?
+  $is_mobile = (isset($form['#node']) && $form['#node']->type == 'mobile_webform') ? true : false;
+
+  if (isset($form['#node']) && ($is_mobile || $has_password) && (strstr($form_id, 'webform_client_form') != false)){
+    $webform_nid = $form['#node']->nid;
+
+    if (isset($_SESSION['app_registration_'.$webform_nid]) && $_SESSION['app_registration_'.$webform_nid] == 'submitted' && $is_mobile){
+      unset($_SESSION['app_registration_'.$webform_nid]);
+      drupal_goto('app-registration/thank-you');
+    }
+
+    $index = array_search('webform_client_form_submit', $form['#submit']);
+    array_splice($form['#submit'], $index, 0, 'app_registration_form_pre_submit');
+    $form['#submit'][] = 'app_registration_form_post_submit';
+
+    if ($is_mobile){
+      $form['#attributes']['class'][] = 'mobile-webform';
+      foreach ($form['submitted'] as $form_key => &$value){
+        if (is_array($value) && array_key_exists('password_fieldset', $value)){
+          $fieldset_weight = $value['password_fieldset']['#weight'];
+          $value['#weight'] = $fieldset_weight;
+        }
+      }
+    }
+
+  }
+
+  if (array_key_exists('#node_edit_form', $form) && $form['#node_edit_form'] && isset($form['type']['#value']) && $form['type']['#value'] == '360_package_spin_rotate'){
+    drupal_add_js(drupal_get_path('module','smg_global') . '/js/360EditAlterations.js', array('type'=>'file', 'every_page'=>false, 'preprocess'=>false));
+  }
+
+  // #207 Remove WYSIWYG form on Remote Source PURF edit forms
+  if (isset($form['#node_edit_form']) && $form['#node_edit_form'] && $form['#node']->type == 'remote_source_purf') {
+    $form['body']['und'][0]['#wysiwyg'] = FALSE;
+  }
+
+  // #899
+  if (array_key_exists('#node', $form) && $form['#node']->type == 'opt_out_form') {
+    drupal_add_css(".is-yes-no .form-item {display:inline-block; margin-right: 10px}", array('type' => 'inline'));
+    foreach ($form['submitted'] as $component_name => &$component) {
+      if (!is_array($component) || $component['#webform_component']['type'] !== 'smg_select') {
+        continue;
+      }
+
+      if (count($component['#options']) == 2 && array_key_exists('Yes', $component['#options']) && array_key_exists('No', $component['#options'])) {
+        $component['#attributes']['class'][] = 'is-yes-no';
+      }
+    }
+  }
+  if ($form_id == '360_package_spin_rotate_node_form') {
+    $form['field_360_magic_plugin_rows']['#states'] = array(
+      'visible' => array(':input[name^="field_360_magic_plugin"]' => array('checked' => TRUE)),
+      'required' => array(':input[name^="field_360_magic_plugin"]' => array('checked' => TRUE)),
+    );
+    $form['field_360_magic_plugin_columns']['#states'] = array(
+      'visible' => array(':input[name^="field_360_magic_plugin"]' => array('checked' => TRUE)),
+      'required' => array(':input[name^="field_360_magic_plugin"]' => array('checked' => TRUE)),
+    );
+  }
+}
+
+function smg_global_form_webform_client_form_alter(&$form, &$form_state, $form_id){
+  if (isset($form['#node']) && $form['#node']->type == 'mobile_webform'){
+
+    if (isset($form['#node']) && $form['#node']->title == 'Create an account'){
+      $form['#attributes']['autocomplete'] = 'off';
+    }
+
+    foreach($form['submitted'] as $form_key => &$value){
+
+      if (is_array($value) && array_key_exists('#type', $value)){
+        if ($value['#type'] == 'select'){
+          if (array_key_exists('#multiple', $value) && $value['#multiple']){
+            //$value['#default_value'] = '';
+            $value['#empty_value'] = '';
+            $value['#options'] = array('' => '- Select all that apply -') + $value['#options'];
+            $value['#attributes']['data-native-menu'] = 'false';
+          }
+        }
+        if (is_array($value) && array_key_exists('#webform_component', $value) && $value['#webform_component']['type'] == 'smg_password'){
+          $value['password_primary']['#attributes']['autocomplete'] = 'off';
+          $value['verify_password']['#attributes']['autocomplete'] = 'off';
+        }
+      }
+    }
+  }
+  //dpm($form);
+}
+
+/**
+ * Implements hook_mail()
+ */
+function smg_global_mail($key, &$message, $params){
+  switch ($key){
+    case 'forgot_password':
+      $langcode = $message['language']->language;
+      $message['subject'] = 'Password Request';
+      $message['body'][] = "Hello, \r\nYou recently filled out a form requesting a password reminder for your " . $params['brand'] . " app.  Please make note of your password below: \r\n\r\n" . $params['password'];
+      $message['headers'] += array(
+        'Bcc' => 'yananin@summitmediagroup.com, ajankowski@summitmediagroup.com',
+      );
+      break;
+    case 'social_media_watch':
+      $message['subject'] = 'Social Media Watch - ' . $params['title'];
+      $message['body'][] = "New content that needs to be promoted as part of Social Media Watch campaign, which ends " . $params['social_media_watch'] . ":\n" . $params['url'];
+      $message['headers']['Content-Type']  =  'text/html';
+      break;
+  }
+}
+
+/**
+ * Implements hook_node_insert()
+ */
+function smg_global_node_insert($node){
+
+  // If node type is 360 Spin Rotate and we're using the file upload feature instead of the old
+  // method of pointing to an uploaded directory, then we move the file(s) into a subdirectory of
+  // 360_gallery based on the node id, and we also generate small images and navigator images using
+  // image styles
+  if ($node->type == '360_package_spin_rotate' && !(isset($node->field_gallery_360_field_location['und']) && count($node->field_360_images['und']) > 0)){
+    smg_global_360_process_images($node);
+  }
+
+  smg_global_social_media_watch($node);
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function smg_global_block_info() {
+  $blocks = array();
+
+  // Only add the Mobile App Alert Box to AW, PW
+  $site = variable_get("site");
+  if ($site = 'aw' || $site = 'pw'){
+    $blocks['mobile_app_alert_box'] = array(
+      'info' => t('SMG Global Mobile App Alert Box'),
+    );
+  }
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function smg_global_block_view($delta = '') {
+  $block = array();
+
+  switch ($delta) {
+    case 'mobile_app_alert_box':
+      $block['subject'] = '';
+      $block['content'] = _smg_global_app_alert_content();
+      break;
+  }
+
+  return $block;
+}
+
+/**
+ * Implements hook_block_view_alter()
+ */
+function smg_global_preprocess_block(&$vars) {
+
+  $site_id = variable_get('smg_global_site');
+
+  if ($site_id && in_array($site_id, array('aw','pw'))) {
+
+    switch ($site_id) {
+      case 'pw':
+        $traffic_accelerator_blocks = array(
+          'default' => '61', // Only traffic accelerator positions
+          'imu' => '3', // Block that contains positions that rotate b/w accelerator and regular imu
+          'imu2' => '64', // Block that contains positions that rotate b/w accelerator and regular imu
+          'ta_ad' => '76', //Block for ta only.
+        );
+        break;
+    }
+
+    if (isset($traffic_accelerator_blocks) && $vars['block']->delta == $traffic_accelerator_blocks['default']) {
+      $vars['classes_array'][] = 'traffic-accelerator';
+    }
+
+    if (isset($traffic_accelerator_blocks) && ($vars['block']->delta == $traffic_accelerator_blocks['imu'] || $vars['block']->delta == $traffic_accelerator_blocks['imu2'] || $vars['block']->delta == $traffic_accelerator_blocks['ta_ad'])) {
+      $vars['classes_array'][] = 'not-traffic-accelerator';
+      $vars['classes_array'][] = 'imu-accelerator-switch';
+      drupal_add_css(drupal_get_path('theme','pw960') . "/css/ta-imu.css");
+
+      $ie_css = '/' . drupal_get_path('theme', 'pw960') . '/css/ta-imu-ie.css';
+      $ie_css_string = '<!--[if gte IE 8]><link rel="stylesheet" type="text/css" href="' . $ie_css . '" /><![endif]-->';
+      $ie_css_head = array(
+        '#type' => 'markup',
+        '#markup' => $ie_css_string,
+      );
+      drupal_add_html_head($ie_css_head, 'taImuSwitchIE');
+    }
+
+  }
+}
+
+/**
+ * Generate content for the Mobile App Alert Box
+ */
+function _smg_global_app_alert_content() {
+  // Set the friendly name of the site/brand
+  $site = variable_get("site");
+  $brand = '';
+  switch ($site) {
+    case 'aw':
+      $brand = 'Automation World';
+      break;
+    case 'pw':
+      $brand = 'Packaging World';
+      break;
+  }
+
+  $output = array(
+    '#type' => 'markup',
+    '#markup' => '<script type="text/javascript">ga(\'send\', \'event\', \'App Enticement\', \'Viewed\', {\'nonInteraction\': 1});</script><div id="mobile-app-alert-block"><a id="app-alert-close" onClick=">ga(\'send\', \'event\', \'App Enticement\', \'Closed\');" ></a><strong>Alert:</strong> ' . $brand . ' now enhanced for the iPad and iPhone.  Watch a <a href="/apps?csource=alertbox" id="mobile-app-alert-apps-link" >quick video preview</a></div>',
+  );
+
+  return $output;
+}
+
+/**
+ * Implements hook_page_alter
+ */
+function smg_global_page_alter(&$page) {
+
+  $smg_global_path = drupal_get_path('module','smg_global');
+
+  // Add the global js file with polyfills and other functions
+  drupal_add_js($smg_global_path . '/js/smg_global.min.js', array('type' => 'file', 'preprocess' => TRUE, 'every_page' => TRUE));
+
+  // Add the jquery cookie library
+  drupal_add_library('system', 'jquery.cookie');
+
+  // #125 If the Expo Countdown widget is enabled, implement it
+  $is_admin = path_is_admin(current_path());
+  if (variable_get('enable_expo_countdown') && !$is_admin) {
+
+    // Check to see if we should exclude this page
+    $show_current_page = !variable_get('expo_exclude_include_choose');
+    $current_path = current_path();
+    $src_path = drupal_lookup_path("source", $current_path);
+    if ($src_path)
+      $current_path = $src_path;
+    $delim = "\n";
+    $excl_incl_pages = explode($delim, variable_get('expo_exclude_include_pages'));
+    $excl_incl = variable_get('expo_exclude_include_choose');
+    foreach ($excl_incl_pages as $key => $exc) {
+      $exc = trim($exc);
+      $exc_src_path = drupal_lookup_path("source", $exc);
+      if (!$exc_src_path) {
+        if (in_array(trim($exc), array('<front>','front','home'))) {
+          $exc_src_path = 'home';
+        }
+      }
+      if ($exc_src_path) {
+        $exc = $exc_src_path;
+      }
+      if ($current_path === $exc) {
+        if ($excl_incl) {
+          $show_current_page = TRUE;
+          break;
+        }
+        else {
+          $show_current_page = FALSE;
+          break;
+        }
+      }
+    }
+    if ($show_current_page) {
+      $expo_date = variable_get('expo_date');
+      $expo_timezone = variable_get('expo_time_zone', 'America/Chicago');
+      $UTC = new DateTimeZone("UTC");
+      $expo_timezone_obj = new DateTimeZone($expo_timezone);
+      $date = new DateTime($expo_date, $expo_timezone_obj);
+      $date->setTimezone($UTC);
+      $expo_strtotime = strtotime($expo_date);
+      $expo_countdown_settings = array(
+        'year' => date('Y', $expo_strtotime),
+        'month' => date('m', $expo_strtotime),
+        'day' => date('d', $expo_strtotime),
+        'hour' => date('H', $expo_strtotime),
+        'min' => date('i', $expo_strtotime),
+        'expoName' => variable_get('expo_name'),
+        'utcYear' => $date->format('Y'),
+        'utcMonth' => $date->format('m'),
+        'utcDay' => $date->format('d'),
+        'utcHour' => $date->format('H'),
+        'utcMin' => $date->format('i'),
+        'showMin' => variable_get('expo_enable_min', false),
+        'showHour' => variable_get('expo_enable_hours', false),
+        'registerUrl' => variable_get('expo_register_url'),
+      );
+      $site_id = variable_get('smg_global_site');
+      $logo_obj = file_load(variable_get('expo_logo'));
+      $logo_path = file_create_url($logo_obj->uri);
+      if ($extra_classes = variable_get('expo_extra_classes')) {
+        if (strlen($extra_classes) > 0) {
+          $extra_classes = explode(",", $extra_classes);
+          $new_extra_classes = array();
+          foreach ($extra_classes as $key => $extra_class) {
+            $new_extra_classes[$extra_class] = TRUE;
+          }
+          $expo_countdown_settings['extra_classes'] = $new_extra_classes;
+        }
+      }
+      $expo_countdown_settings['logo_path'] = $logo_path;
+      drupal_add_js(array('expoCountdown' => $expo_countdown_settings), 'setting');
+      //drupal_add_library('smg_angular', 'angularjs');
+      drupal_add_js($smg_global_path . '/js/expoCountdown.js');
+      // Add the flipclock css
+      drupal_add_css($smg_global_path . '/css/flipclock.css', array('preprocess'=>true));
+      // Add site specific expo countdown css.  First get site id
+      drupal_add_css($smg_global_path . '/css/expoCountdown_' . $site_id . '.css', array('preprocess'=>true));
+
+      // Add IE8 specific css
+      $ie8_css = '/' . $smg_global_path . '/css/expoCountdown_ie8_' . $site_id . '.css';
+      $ie8_css_string = '<!--[if lte IE 8]><link rel="stylesheet" type="text/css" href="' . $ie8_css . '" /><![endif]-->';
+      $ie8_css_head = array(
+        '#type' => 'markup',
+        '#markup' => $ie8_css_string,
+      );
+      drupal_add_html_head($ie8_css_head, 'expoCountdownIE8');
+
+      if ($country_include = variable_get('country_include')) {
+        drupal_add_js(array('expoCountdownCountryInclude' => $country_include), 'setting');
+      }
+    }
+
+  }
+
+  $site_id = variable_get('smg_global_site');
+  drupal_add_js(array('pmgGlobal' => array('siteId' => $site_id)), array('type' => 'setting'));
+
+
+  // Add a global js function to use as a wrapper for ga event calls
+  $ga_event_fct = <<<EOS
+  function gaTrackLink(link, category, action, label) {
+    try {
+      ga('send', 'event', 'category', 'action', 'label');
+      setTimeout(function () {
+        //window.location.href = link.href;
+      }, 100);
+    } catch(err) {}
+  }
+EOS;
+  drupal_add_js($ga_event_fct, array('type'=>'inline', 'every_page'=>true));
+
+
+  // Add the dotdotdot jquery library
+  drupal_add_js($smg_global_path.'/includes/libraries/js/jQueryDotDot/jquery.dotdotdot.min.js', array('type'=>'file', 'preprocess'=>TRUE, 'every_page'=>TRUE));
+
+  $is_prod = (variable_get('smg_global_is_production', false));
+
+  if (!path_is_admin(current_path())) {
+    if ($is_prod) {
+      drupal_add_js($smg_global_path . "/js/jquery-migrate-1.2.1.min.js", array('type' => 'file', 'preprocess' => TRUE, 'every_page' => TRUE));
+    }
+    else {
+      drupal_add_js($smg_global_path . "/js/jquery-migrate-1.2.1-dev.js", array('type' => 'file', 'preprocess' => TRUE, 'every_page' => TRUE));
+    }
+  }
+
+  $browserDetection = <<<EOL
+  // Limit scope pollution from any deprecated API
+  (function() {
+
+    var matched, browser;
+
+    // Use of jQuery.browser is frowned upon.
+    // More details: http://api.jquery.com/jQuery.browser
+    // jQuery.uaMatch maintained for back-compat
+    jQuery.uaMatch = function (ua) {
+      ua = ua.toLowerCase();
+
+      var match = /(chrome)[ \/]([\w.]+)/.exec( ua ) ||
+      /(webkit)[ \/]([\w.]+)/.exec( ua ) ||
+      /(opera)(?:.*version|)[ \/]([\w.]+)/.exec( ua ) ||
+      /(msie) ([\w.]+)/.exec( ua ) ||
+      ua.indexOf("compatible") < 0 && /(mozilla)(?:.*? rv:([\w.]+)|)/.exec( ua ) ||
+      [];
+
+      return {
+        browser: match[ 1 ] || "",
+        version: match[ 2 ] || "0"
+      };
+    };
+
+    matched = jQuery.uaMatch( navigator.userAgent );
+    browser = {};
+
+    if (matched.browser) {
+      browser[ matched.browser ] = true;
+      browser.version = matched.version;
+    }
+
+    // Chrome is Webkit, but Webkit is also Safari.
+    if (browser.chrome) {
+      browser.webkit = true;
+    }
+    else if (browser.webkit) {
+      browser.safari = true;
+    }
+
+    jQuery.browser = browser;
+
+    jQuery.sub = function() {
+      function jQuerySub( selector, context ) {
+        return new jQuerySub.fn.init( selector, context );
+      }
+      jQuery.extend( true, jQuerySub, this );
+      jQuerySub.superclass = this;
+      jQuerySub.fn = jQuerySub.prototype = this();
+      jQuerySub.fn.constructor = jQuerySub;
+      jQuerySub.sub = this.sub;
+      jQuerySub.fn.init = function init( selector, context ) {
+        if ( context && context instanceof jQuery && !(context instanceof jQuerySub) ) {
+          context = jQuerySub( context );
+        }
+
+        return jQuery.fn.init.call( this, selector, context, rootjQuerySub );
+      };
+      jQuerySub.fn.init.prototype = jQuerySub.fn;
+      var rootjQuerySub = jQuerySub(document);
+      return jQuerySub;
+    };
+  })();
+EOL;
+
+  //drupal_add_js($browserDetection, array('type' => 'inline', 'group' => JS_LIBRARY));
+
+
+  // #1001
+  $ads_js_path = '/' . drupal_get_path('module', 'smg_global') . '/js/ads.js';
+  $adBlockCheck = "<!--Adblock Check--><script type='text/javascript' src='$ads_js_path'></script>";
+  if (!isset($page['content']['system_main'])) {
+    array_unshift($page['main_content']['system_main'], array('adBlockCheck' => array('#markup' => $adBlockCheck)));
+  }
+  else {
+    array_unshift($page['content']['system_main'], array('adBlockCheck' => array('#markup' => $adBlockCheck)));
+  }
+
+}
+
+/**
+ * Implements hook_js_alter().
+ */
+function smg_global_js_alter(&$javascript) {
+  $hasJQMigrate = FALSE;
+  $path = drupal_get_path('module', 'smg_global') . "/js/jquery-migrate-1.2.1.min.js";
+  foreach ($javascript as $js_key => $js) {
+    if ($js_key === $path) {
+      $hasJQMigrate = TRUE;
+    }
+  }
+
+  if (!$hasJQMigrate && !path_is_admin(current_path())) {
+    $jQMigrate = drupal_js_defaults($path);
+    $jQMigrate['group'] = 0;
+    $javascript[$path] = $jQMigrate;
+  }
+}
+
+/**
+ * For 360 nodes that are using the codecanyon library, this function makes sure that we have all of the
+ * correct images (large, small, and navigator), and that the images are in the correct place in the filesystem
+ */
+function smg_global_360_process_images(&$node){
+  // Process images only if the field_gallery_360_field_location field is empty
+  if (isset($node->field_gallery_360_field_location['und']) && sizeof($node->field_gallery_360_field_location['und']) > 0){
+    return false;
+  }
+  if (isset($node->field_360_multi_upload['und']) && sizeof($node->field_360_multi_upload['und']) > 0){
+    $new_dir = "public://360_gallery/" . $node->nid; // We're moving the images from files/360_gallery to files/360_gallery/[nid]
+    $large_dir = $new_dir . "/large_images";
+
+    // Check if node use magic360 plugin.
+    $magic_360 = FALSE;
+    if (isset($node->field_360_magic_plugin[$node->language]) && $node->field_360_magic_plugin[$node->language][0]['value'] == 1) {
+      $magic_360 = TRUE;
+    }
+
+    file_prepare_directory($new_dir, FILE_CREATE_DIRECTORY);
+    file_prepare_directory($large_dir, FILE_CREATE_DIRECTORY);
+
+    if (!$magic_360) {
+      $small_dir = $new_dir . "/small_images";
+      $nav_dir = $new_dir . "/navigator_images";
+      file_prepare_directory($small_dir, FILE_CREATE_DIRECTORY);
+      file_prepare_directory($nav_dir, FILE_CREATE_DIRECTORY);
+    }
+
+    foreach ($node->field_360_multi_upload["und"] as $key => $value){
+      $f = file_load($value["fid"]);
+      $new_file_uri = $new_dir . "/" . $f->filename;
+      // Check if this file already exist
+      $new_file = (!file_exists($new_file_uri)) ? file_move($f, $new_file_uri, FILE_EXISTS_ERROR) : false;
+      // When moving file for the first time, create new images based on image styles
+      if ($new_file){
+        $large_uri = $large_dir . "/" . $f->filename;
+        $large_file = file_copy($new_file, $large_uri, FILE_EXISTS_REPLACE);
+
+        if (!$magic_360) {
+          $small_url = image_style_url("360_width_500", $new_file_uri);
+          $small_destination = $small_dir . '/' . $f->filename;
+          $small_file = file_save_data(file_get_contents($small_url), $small_destination, FILE_EXISTS_REPLACE);
+          $nav_destination = $nav_dir . '/' . $f->filename;
+          $nav_url = image_style_url("360_width_110", $new_file_uri);
+          $nav_file = file_save_data(file_get_contents($nav_url), $nav_destination, FILE_EXISTS_REPLACE);
+        }
+
+        // Now Add a field collection for this file
+        $fc_item = entity_create("field_collection_item", array("field_name" => "field_360_images"));
+        $fc_item->setHostEntity('node', $node, LANGUAGE_NONE, FALSE);
+        $fc_item->field_360_fc_large["und"][$key] = (array)$large_file;
+
+        if (!$magic_360) {
+          $fc_item->field_360_fc_small["und"][$key] = (array)$small_file;
+          $fc_item->field_360_fc_nav["und"][$key] = (array)$nav_file;
+        }
+
+        $fc_item->save(true);
+
+        $node->field_360_images['und'][$key] = array('value'=>$fc_item->item_id, 'revision_id'=>$fc_item->revision_id);
+
+        /*
+        $new_file = (array)$new_file;
+        $new_file += array("display"=>1, "description"=>"");  // Multi upload widget expects these, file_move removes it for some reason so we add it back
+        $node->field_360_multi_upload["und"][$key] = $new_file;
+        */
+
+        //field_attach_update('node',$node);
+
+      }
+    } // End foreach
+    field_attach_update('node',$node);
+  }
+}
+
+/**
+ * Implements hook_node_update()
+ */
+function smg_global_node_update($node){
+  if ($node->type == '360_package_spin_rotate'){
+    smg_global_360_process_images($node);
+  }
+
+  smg_global_social_media_watch($node);
+}
+
+/**
+ * Implements hook_node_view(&$node, $view_mode, $langcode)
+ */
+function smg_global_node_view($node, $view_mode, $langcode){
+
+  if ($node->type == '360_package_spin_rotate'){
+    if (!isset($node->field_gallery_360_field_location['und']) && isset($node->field_360_images['und']) && $view_mode != 'teaser') {
+
+      include_once(drupal_get_path('module', 'smg_global').'/includes/templateController.php');
+
+      if (isset($node->field_360_magic_plugin[$node->language]) && $node->field_360_magic_plugin[$node->language][0]['value'] == 1) {
+        drupal_add_js(drupal_get_path('module','smg_global'). '/js/magic360.js', array('type'=> 'file', 'group'=> JS_DEFAULT, 'weight' => 6));
+        drupal_add_css(drupal_get_path('module','smg_global'). '/css/magic360.css', array('type'=> 'file', 'group'=> CSS_DEFAULT, 'weight' => 6));
+        $template_location = drupal_get_path('module', 'smg_global') . '/includes/templates/magic_360.phtml';
+
+      } else {
+        drupal_add_js(drupal_get_path('module','smg_global') . '/360_includes/java/FWDViewer.js', array('type'=>'file', 'group'=>JS_DEFAULT, 'weight'=>0));
+        drupal_add_js(drupal_get_path('module','smg_global') . '/360_includes/params.js', array('type'=>'file', 'group'=>JS_DEFAULT, 'weight'=>5));
+        $template_location = drupal_get_path('module', 'smg_global') . '/includes/templates/360.phtml';
+      }
+
+      drupal_add_css(drupal_get_path('module','smg_global') . '/360_includes/skin_round_silver/global.css', array('type'=>'file', 'group'=>CSS_DEFAULT));
+      drupal_add_css(drupal_get_path('module','smg_global') . '/360_includes/smg360.css', array('type'=>'file', 'group'=>CSS_DEFAULT));
+
+      $data = smg_global_360_get_template_data($node); // Get data to pass to template controller
+      $t = new SmgGlobalTemplateController();
+      $t->data = $data;
+      $t->rows = $node->field_360_magic_plugin_rows[$node->language][0]['value'];
+      $t->columns = $node->field_360_magic_plugin_columns[$node->language][0]['value'];
+      $output = $t->render($template_location);
+
+      // Create a render array and add to $node->content
+      $node->content['360'] = array(
+        '#type' => 'item',
+        '#markup' => $output,
+      );
+
+      $brand = variable_get('smg_global_site', 'pw');
+
+      if ($brand == 'hcp'){
+        $js = <<<EOS
+        jQuery(document).ready(function(){
+          jQuery("#product-details").hide();
+          jQuery(".three-sixty-gallery-button").on("click", function(){
+            if(jQuery("#product-details").is(":visible")){
+              jQuery("#product-details").hide(400);
+              jQuery(".three-sixty-gallery-button").html('<span id="three-sixty-button-triangle">&#x25b6;</span> Click to expand to see product details');
+            }
+            else {
+              jQuery("#product-details").show(400);
+              jQuery(".three-sixty-gallery-button").html('<span id="three-sixty-button-triangle">&#x25BC;</span> Click to collapse product details');
+            }
+          });
+        });
+
+EOS;
+        drupal_add_js($js, array('type'=>'inline'));
+      }
+
+    }
+  }
+
+  // #2301 Add inline javascript to call Silverpop's page view event
+  $menu_object = menu_get_object();
+  if (is_object($menu_object) && $menu_object->nid == $node->nid){
+    // Check to see if this is legacy content
+    $legacy = false;
+    if (property_exists($node, 'field_legacy')){
+      if (isset($node->field_legacy['und']) && $node->field_legacy['und'][0]['value'] == '1'){
+        $legacy = true;
+      }
+    }
+
+    // Create an array that we will convert to json later, and set as
+    // the "Name" field of Silverpop's web tracking event
+    $silverpop_tracking = array();
+    $silverpop_tracking['nid'] = $node->nid;
+    // Add companies
+    if (isset($node->field_companies['und'])){
+      $silverpop_tracking['companies'] = array();
+      foreach($node->field_companies['und'] as $comp_nid){
+        $silverpop_tracking['companies'][] = $comp_nid['nid'];
+      }
+    }
+    $silverpop_tracking['content_type'] = $node->type;
+    // Get the subtype
+    if (isset($node->field_term_subtype['und'])){
+      $silverpop_tracking['subtype'] = $node->field_term_subtype['und'][0]['tid'];
+    }
+    // Get the source type
+    if (isset($node->field_term_source_type['und'])){
+      $silverpop_tracking['source_type'] = $node->field_term_source_type['und'][0]['tid'];
+    }
+    // If node is legacy content, then we don't want tids b/c
+    // they're not reliable
+    if (!$legacy){
+      // Check for modules that implement silverpop_tracking_add
+      foreach (module_implements('silverpop_tracking_add') as $module){
+        $function = $module . '_silverpop_tracking_add';
+        $function($node, $silverpop_tracking);
+      }
+    }
+    $silverpop_tracking = json_encode($silverpop_tracking);
+    $silverpop_tracking_inline = '<script type="text/javascript">var ewt_pagename = \'' . $silverpop_tracking . '\'; </script>';
+    $silverpop_tracking_element = array(
+      '#type' => 'markup',
+      '#markup' => $silverpop_tracking_inline,
+    );
+    drupal_add_html_head($silverpop_tracking_element, 'spop_engagement_tracking');
+  }
+
+}
+
+/**
+ * Generates an array that is passed to the template system
+ */
+function smg_global_360_get_template_data($node){
+  $data = array();
+  $data['files'] = array();
+  $three_sixty_images = $node->field_360_images['und'];
+  // Check for the "Reverse" boolean field
+  if (property_exists($node, 'field_360_images_reverse') && isset($node->field_360_images_reverse['und']) && $node->field_360_images_reverse['und'][0]['value']){
+    $three_sixty_images = array_reverse($three_sixty_images);
+  }
+  foreach ($three_sixty_images as $key => $value){
+    $fc_item = entity_load('field_collection_item', array($value['value']));
+    $fc_item = $fc_item[$value['value']];
+    $large_url = file_create_url($fc_item->field_360_fc_large['und'][0]['uri']);
+    $large_url = parse_url($large_url);
+    $large_path = $large_url['path'];
+    $small_url = file_create_url($fc_item->field_360_fc_small['und'][0]['uri']);
+    $small_url = parse_url($small_url);
+    $small_path = $small_url['path'];
+    $nav_url = file_create_url($fc_item->field_360_fc_nav['und'][0]['uri']);
+    $nav_url = parse_url($nav_url);
+    $nav_path = $nav_url['path'];
+    $data['files'][$key] = array(
+      'large' => array(
+        'path' => $large_path,
+      ),
+      'small' => array(
+        'path' => $small_path,
+      ),
+      'nav' => array(
+        'path' => $nav_path,
+      ),
+    );
+  }
+  if(property_exists($node, 'field_deckhead') && isset($node->field_deckhead['und'])){
+    $data['deckhead'] = $node->field_deckhead['und'][0]['value'];
+  }
+  // Get location of 360_includes folder
+  $data['360_includes'] = array(
+    'path' => '/' . drupal_get_path('module', 'smg_global') . '/360_includes',
+  );
+
+  return $data;
+}
+
+/**
+ * Render a block (as html)
+ *
+ * @param string $module_name
+ *  the name of the module that invokes the block
+ * @param string $block_delta
+ *  the delta of the block
+ *
+ * @return string
+ *  rendered block
+ */
+function smg_global_block_render($module_name, $block_delta) {
+  $block = block_load($module_name, $block_delta);
+  $block_content = _block_render_blocks(array($block));
+  $build = _block_get_renderable_array($block_content);
+  return drupal_render($build);
+}
+
+/**
+ * Implements hook_ckeditor_plugin().
+ *
+ * @return array
+ */
+function smg_global_ckeditor_plugin() {
+  return array(
+    // Plugin for inserting a comment token into body so later you can replace it with a block
+    'smginsertblocks' => array(
+      'name' => 'smginsertblocks',
+      'desc' => t('Plugin for adding a comment tokens of blocks that need to be inserted. If more blocks are needed, they need to be added to /block-insert-list.'),
+      'path' => drupal_get_path('module', 'smg_global') . '/plugins/smginsertblocks/',
+      'buttons' => array(
+        'SMGInsertBlock' => array('label' => 'Insert Blocks', 'icon' => 'images/smginsertblocks.png'),
+      ),
+    ),
+  );
+}
+
+/**
+ * Sends email if company is part of social media watch.
+ *
+ * @param object $node
+ *   The node object.
+ */
+function smg_global_social_media_watch($node) {
+  // #50 - Send out a notification if the node has a company that has social
+  // media watch date not expired.
+  if (isset($node->field_companies['und']) && variable_get('smg_global_social_media_watch_admin')) {
+    $current_date = date("Y-m-d");
+    global $base_url;
+
+    foreach ($node->field_companies['und'] as $key => $company_node) {
+      $company = node_load($company_node['nid']);
+
+      if (isset($company->field_social_media_watch['und'][0]['value'])) {
+        if ($current_date < $company->field_social_media_watch['und'][0]['value']) {
+          $brand_info = smg_global_get_brand_info();
+
+          $from = $brand_info['email'];
+          $to = variable_get('smg_global_social_media_watch_admin');
+
+          $params['title'] = $company->title;
+          $params['social_media_watch'] = $company->field_social_media_watch['und'][0]['value'];
+          $alias = drupal_get_path_alias('node/' . $node->nid);
+          // When you create a new node it may not have an alias yet so check if
+          // it exists first.
+          if ($alias) {
+            $params['url'] = $base_url . '/' . drupal_get_path_alias('node/' . $node->nid);
+          }
+          else {
+            $params['url'] = $base_url . '/node/' . $node->nid;
+          }
+
+          drupal_mail('smg_global', 'social_media_watch', $to, language_default(), $params, $from);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Get info based on brand.
+ *
+ * @return array
+ *   an array containg keys like email, brand name, etc..
+ */
+function smg_global_get_brand_info() {
+  switch (variable_get('smg_global_site', 'pw')) {
+    case 'hcp':
+      $data['email'] = 'webmaster@healthcarepackaging.com';
+      $data['brand'] = 'Healthcare Packaging';
+      break;
+    case 'aw':
+      $data['email'] = 'webmaster@automationworld.com';
+      $data['brand'] = 'Automation World';
+      break;
+    case 'pw':
+      $data['email'] = 'webmaster@packworld.com';
+      $data['brand'] = 'Packaging World';
+      break;
+  }
+
+  return $data;
+}
+
+/**
+ * Implements hook_smg_angular_add_template().
+ */
+function smg_global_smg_angular_add_template() {
+  $site_id = variable_get('smg_global_site');
+  $templates = array(
+    'expoCountdown' => '/' . drupal_get_path('module','smg_global') . '/includes/templates/expoCountdown_' . $site_id . '.html',
+    'flipWidget' => '/' . drupal_get_path('module','smg_global') . '/includes/templates/flipWidget.html',
+  );
+  return $templates;
+}
+
+/**
+ * Implements hook_smg_angular_custom_elements().
+ */
+function smg_global_smg_angular_custom_elements() {
+  $elements = array(
+    'expo-countdown',
+    'countdown-flip-widget',
+  );
+  return $elements;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function smg_global_theme() {
+  return array(
+    'remote_source_purf' => array(
+      'template' => 'includes/templates/page--remote-source-purf',
+      'render element' => 'page',
+    ),
+  );
+}
+
+/**
+ * Implements hook_preprocess_page().
+ *
+ * @param  array  $variables
+ */
+function smg_global_preprocess_page(&$variables) {
+
+  // #207
+  if(isset($variables['node']) && $variables['node']->type == 'remote_source_purf' && !path_is_admin(current_path())) {
+    $variables['theme_hook_suggestions'][] = 'remote_source_purf';
+    _smg_purf_add_css_js();
+    _smg_purf_add_style_settings();
+    drupal_add_css(drupal_get_path('module', 'smg_global').'/css/remote_source_purf.css', array('type'=>'file', 'every_page' => false));
+    dpm($variables);
+    if (!empty($variables['node']->field_link)) {
+      $url = $variables['node']->field_link['und'][0]['url'];
+      if (false === strpos($url, '://')) {
+        $url = 'http://' . $url;
+      }
+      $variables['url'] = $url;
+    }
+  }
+
+}
+
+/**
+ * Implements hook_playbook_fields_post().
+ *
+ * @param  array   $fields
+ * @param  object  $node
+ */
+function smg_global_playbook_fields_post($fields, $node) {
+  if ($node->type == 'webinar_series') {
+    $webinar_selections = $fields['webinar_selections']['values'];
+    foreach ($node->field_ws_webinar['und'] as $webinar_target) {
+      $webinar = node_load($webinar_target['target_id']);
+      if (in_array($webinar->field_master_leadworks_id[LANGUAGE_NONE][0]['value'], $webinar_selections)) {
+        $webinar_id = $webinar->field_gotowebinar_webinar_id[LANGUAGE_NONE][0]['value'];
+        _webform_smg_gotowebinars_post($fields, $webinar_id, $webinar);
+      }
+    }
+  }
+}

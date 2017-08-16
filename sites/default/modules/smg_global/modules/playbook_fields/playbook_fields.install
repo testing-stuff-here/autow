@@ -1,0 +1,48 @@
+<?php
+
+/*function playbook_fields_field_schema($field) {
+    switch ($field['type']) {
+        case 'playbook_textfield':
+            $columns = array(
+                'value' => array(
+                    'type' => 'varchar',
+                    'length' => 256,
+                ),
+                'accela_id' => array(
+                    'type' => 'varchar',
+                    'length' => 32,
+                ),
+                'silverpop_field' => array(
+                    'type' => 'varchar',
+                    'length' => 64,
+                ),
+            );
+            $indexes = array(
+                'mapping' => array('accela_id', 'silverpop_field')
+            );
+            break;
+        default:
+            $columns = array();
+            $indexes = array();
+    }
+
+    return array(
+        'columns' => $columns,
+        'indexes' => $indexes,
+    );
+}*/
+
+function playbook_fields_update_7100() {
+  if (!db_table_exists('playbook_fields_silverpop_api_tracking')) {
+    db_create_table('playbook_fields_silverpop_api_tracking', array(
+      'description' => 'Store the array of user data that gets sent to Silverpop, after it gets processed by Playbook Fields',
+      'fields' => array(
+        'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+        'timestamp' => array('type' => 'varchar', 'length' => '255'),
+        'submission_id' => array('type' => 'int'),
+        'submission_data' => array('type' => 'varchar', 'length' => '10000'),
+      ),
+      'primary key' => array('id'),
+    ));
+  }  
+}

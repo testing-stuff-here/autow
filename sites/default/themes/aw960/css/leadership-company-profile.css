@@ -1,0 +1,159 @@
+/* line 3, ../sass/leadership-company-profile.scss */
+.leadership {
+  overflow: auto;
+  margin-bottom: 20px;
+}
+
+/* line 4, ../sass/leadership-company-profile.scss */
+.leadership-company #content .node .content .leadership h1 {
+  color: #000000;
+}
+
+/* line 5, ../sass/leadership-company-profile.scss */
+.leadership--company-button {
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #901900), color-stop(1, #DE4000));
+  background: -moz-linear-gradient(top, #901900 5%, #DE4000 100%);
+  background: -webkit-linear-gradient(top, #901900 5%, #DE4000 100%);
+  background: -o-linear-gradient(top, #901900 5%, #DE4000 100%);
+  background: -ms-linear-gradient(top, #901900 5%, #DE4000 100%);
+  background: linear-gradient(to bottom, #901900 5%, #DE4000 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='$start', endColorstr='$end',GradientType=0);
+  background-color: #901900;
+  -moz-border-radius: 10px;
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+  /*border:1px solid $border;*/
+  display: inline-block;
+  cursor: pointer;
+  color: #ffffff;
+  font-weight: bold;
+  padding: 5px 7px;
+  text-decoration: none;
+  text-shadow: 0px 1px 0px #901900;
+  font-size: 12px;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#901900', endColorstr='#DE4000',GradientType=0);
+  padding: 3px 5px;
+  font-size: 77%;
+  line-height: 18px;
+  color: #fff !important;
+}
+/* line 8, ../sass/leadership-company-profile.scss */
+.leadership--company-button:visited {
+  color: #fff;
+}
+/* line 11, ../sass/leadership-company-profile.scss */
+.leadership--company-button:hover {
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #DE4000), color-stop(1, #901900));
+  background: -moz-linear-gradient(top, #DE4000 5%, #901900 100%);
+  background: -webkit-linear-gradient(top, #DE4000 5%, #901900 100%);
+  background: -o-linear-gradient(top, #DE4000 5%, #901900 100%);
+  background: -ms-linear-gradient(top, #DE4000 5%, #901900 100%);
+  background: linear-gradient(to bottom, #DE4000 5%, #901900 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='$end', endColorstr='$start',GradientType=0);
+  background-color: #DE4000;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#DE4000', endColorstr='#901900',GradientType=0);
+}
+/* line 15, ../sass/leadership-company-profile.scss */
+.leadership--company-button:active {
+  position: relative;
+  top: 1px;
+}
+
+/* line 19, ../sass/leadership-company-profile.scss */
+.leadership-left-section {
+  display: inline-block;
+  float: left;
+  width: 22%;
+}
+/* line 21, ../sass/leadership-company-profile.scss */
+.leadership-left-section .location-info {
+  float: left;
+  clear: both;
+}
+/* line 23, ../sass/leadership-company-profile.scss */
+.leadership-left-section .location-info a {
+  color: #0a87b4;
+  font-weight: bold;
+}
+/* line 25, ../sass/leadership-company-profile.scss */
+.leadership-left-section .city-state {
+  line-height: 17px;
+  margin-top: 19px;
+}
+/* line 28, ../sass/leadership-company-profile.scss */
+.leadership-left-section img {
+  padding-top: 5px;
+}
+
+/* line 30, ../sass/leadership-company-profile.scss */
+.leadership-company-link {
+  display: block;
+  line-height: 18px;
+}
+
+/* line 31, ../sass/leadership-company-profile.scss */
+.leadership-right-section {
+  display: inline-block;
+  float: left;
+  width: 78%;
+}
+/* line 32, ../sass/leadership-company-profile.scss */
+.leadership-right-section #leadership-title {
+  border-bottom: 1px dotted #000000;
+  padding-bottom: 5px;
+}
+/* line 33, ../sass/leadership-company-profile.scss */
+.leadership-right-section .contact {
+  float: left;
+  width: 20%;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  padding-right: 10px;
+}
+/* line 34, ../sass/leadership-company-profile.scss */
+.leadership-right-section .contact-info {
+  font-size: 93%;
+}
+/* line 35, ../sass/leadership-company-profile.scss */
+.leadership-right-section .exec-photo {
+  margin: 0 auto;
+  padding: 3px;
+  border: 1px solid #000000;
+}
+/* line 36, ../sass/leadership-company-profile.scss */
+.leadership-right-section .company-info {
+  float: left;
+  width: 80%;
+}
+/* line 37, ../sass/leadership-company-profile.scss */
+.leadership-right-section .company-info .contact-title {
+  line-height: 21px;
+  display: block;
+  margin-bottom: 7px;
+}
+/* line 39, ../sass/leadership-company-profile.scss */
+.leadership-right-section .product-summary {
+  line-height: 21px;
+  margin-bottom: 10px;
+}
+
+/* line 43, ../sass/leadership-company-profile.scss */
+.node-type-company .node-leadership-online-profile {
+  margin-bottom: 70px;
+}
+
+/* line 45, ../sass/leadership-company-profile.scss */
+.node--company-contact-name {
+  font-weight: bold;
+}
+
+/* line 46, ../sass/leadership-company-profile.scss */
+.node--company-contact-title {
+  font-style: italic;
+}
+
+/* line 47, ../sass/leadership-company-profile.scss */
+#leadership-logo img {
+  width: 100%;
+}

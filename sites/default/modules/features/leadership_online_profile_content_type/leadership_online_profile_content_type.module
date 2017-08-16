@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Leadership Online Profile Content Type feature.
+ */
+
+include_once('leadership_online_profile_content_type.features.inc');

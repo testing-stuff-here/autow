@@ -1,0 +1,47 @@
+@import "variables";
+
+.leadership {overflow: auto; margin-bottom: 20px;}
+.leadership-company #content .node .content .leadership h1 {color: #000000;}
+.leadership--company-button {
+  @include button(#901900, #DE4000, #901900); font-size: 12px; filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#901900', endColorstr='#DE4000',GradientType=0);padding: 3px 5px; font-size: 77%; line-height: 18px;
+  color:#fff !important;
+  &:visited {
+    color:#fff;
+  }
+  &:hover {
+    @include buttonHover(#901900, #DE4000);
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#DE4000', endColorstr='#901900',GradientType=0);
+  }
+  &:active {
+    @include buttonActive;
+  }
+}
+.leadership-left-section {
+  display: inline-block; float: left; width: 22%;
+  .location-info {
+    float: left; clear: both;
+    a { color:#0a87b4; font-weight:bold; }
+  }
+  .city-state {
+    line-height: 17px; margin-top: 19px;
+  }
+  img {padding-top: 5px;}
+}
+.leadership-company-link {display: block; line-height: 18px;}
+.leadership-right-section { display: inline-block; float: left; width: 78%;
+  #leadership-title {border-bottom:1px dotted #000000; padding-bottom: 5px; }
+  .contact {float:left; width:20%; @include border-box; padding-right: 10px;}
+  .contact-info {font-size: 93%;}
+  .exec-photo {margin: 0 auto; padding:3px; border:1px solid #000000;}
+  .company-info {float:left; width:80%;
+    .contact-title {line-height: 21px; display: block; margin-bottom: 7px;}
+  }
+  .product-summary {line-height: 21px; margin-bottom: 10px;}
+}
+
+.node-type-company {
+  .node-leadership-online-profile {margin-bottom: 70px;}
+}
+.node--company-contact-name { font-weight:bold; }
+.node--company-contact-title { font-style:italic; }
+#leadership-logo img { width:100%; }

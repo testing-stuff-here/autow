@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * @file
+ * Database schema of Taxonomy Map
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function taxonomy_map_schema() {
+  $schema = array();
+  $schema['taxonomy_map_properties'] = array(
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'path' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'tid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'mapped_tid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Adds indexes to the taxonomy_map_properties table for better performance.
+ */
+function taxonomy_map_update_7000() {
+  db_add_index('taxonomy_map_properties', 'path', array('path'));
+  db_add_index('taxonomy_map_properties', 'tid', array('tid'));
+  db_add_index('taxonomy_map_properties', 'mapped_tid', array('mapped_tid'));
+}

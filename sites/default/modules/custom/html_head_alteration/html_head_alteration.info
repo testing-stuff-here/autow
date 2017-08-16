@@ -1,0 +1,5 @@
+;$Id$
+name = html_head_alteration
+description = This will alter the html head tags (ex. canonical tag in the nodes and print page)
+package = "custom"
+core = 7.x

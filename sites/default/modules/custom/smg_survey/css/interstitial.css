@@ -1,0 +1,72 @@
+#interContainer{
+position: absolute;
+width: 500px; /*Width of interstitial box*/
+left: 0;
+top: 0;
+padding: 15px;
+padding-top: 0;
+/*background-color: #d0e47e;*/
+background-color: #ECEFF1;
+border: 1px solid black;
+visibility: hidden;
+z-index: 999;
+}
+
+#interContainer .headerbar{ /*CSS for header bar of interstitial box*/
+color: gray;
+padding: 5px 0;
+text-align: center;
+font-size:13px;
+height: 7px;
+}
+
+#interContainer .headerbar img {margin-bottom:5px;}
+
+#interContainer .headerbar a {float:right;}
+
+#interContainer .headerbar a{ /*CSS for header bar links of interstitial box*/
+font-size: 120%;
+text-decoration: none;
+}
+
+
+#interContent{ /*CSS for div that holds the content to show*/
+border: 1px solid gray;
+background-color: white;
+padding: 20px 25px;
+}
+
+#interContent .survey-question {color:#0086B5; margin-bottom: 20px; text-align:center;}
+#interContent .survey-question #survey-question-1 {font-size: 16px;}
+#interContent .survey-question #survey-question-2 {font-size: 34px; line-height:1.1em;}
+#interContent #edit-radios {font-size:17px; display:block; margin: 0 auto 23px; width:95%;}
+#interContent #edit-radios .form-item-radios {margin-bottom: 17px;}
+#interContent .submit-link {font-size:15px; display:block; width:80%; text-align:center; margin:0 auto; letter-spacing:1px; text-decoration:none; color:white; -moz-border-radius:14px; -webkit-border-radius: 14px; border-radius:14px; border:1px solid #0089C0; padding:5px 18px; background-image: -ms-linear-gradient(top, #00ABE7 0%, #0089C0 100%); background-image: -moz-linear-gradient(top, #00ABE7 0%, #0089C0 100%); background-image: -o-linear-gradient(top, #00ABE7 0%, #0089C0 100%); background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #00ABE7), color-stop(1, #0089C0)); background-image: -webkit-linear-gradient(top, #00ABE7 0%, #0089C0 100%); background-image: linear-gradient(to bottom, #00ABE7 0%, #0089C0 100%);}
+#interContent .submit-link:hover {background:#126DB3;}
+#interContent #yes-no {display:block; margin:0 auto; max-width: 140px;}
+#interContent #yes-no .survey-answer {display:inline-block;}
+#interContent #yes-no .survey-answer a {font-size:15px; text-align:center; letter-spacing:1px; text-decoration:none; color:white; -moz-border-radius:14px; -webkit-border-radius: 14px; border-radius:14px; border:1px solid #0089C0; padding:5px 18px; background-image: -ms-linear-gradient(top, #00ABE7 0%, #0089C0 100%); background-image: -moz-linear-gradient(top, #00ABE7 0%, #0089C0 100%); background-image: -o-linear-gradient(top, #00ABE7 0%, #0089C0 100%); background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #00ABE7), color-stop(1, #0089C0)); background-image: -webkit-linear-gradient(top, #00ABE7 0%, #0089C0 100%); background-image: linear-gradient(to bottom, #00ABE7 0%, #0089C0 100%);}
+#interContent #yes-no .survey-answer a:hover {background:#126DB3;}
+#interContent #yes-no .survey-no {float:right;}
+#interContent #message {margin-top:28px; text-align: center; font-size:17px; color:#808080;}
+
+
+#interVeil{ /*CSS for background veil that covers entire page while interstitial box is visible*/
+position: absolute;
+background: black url(images/blackdot.gif);
+right: 0;
+width: 10px;
+top: 0;
+z-index: 998;
+visibility: hidden;
+filter:progid:DXImageTransform.Microsoft.alpha(opacity=80);
+opacity: 0.8;
+}
+
+#countdown{
+
+}
+
+#countdown-wrapper{
+	padding-right: 140px;
+}

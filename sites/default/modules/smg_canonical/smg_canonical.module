@@ -1,0 +1,22 @@
+<?php
+/**
+ * @author Albert Jankowski<ajankowski@summitmediagroup.com>
+ *
+ * Overwrites the canonical link with the specified url otherwise uses the default
+ *
+ * Create a field called canonical_link in a node that you want the ability to overwrite.
+ */
+
+/**
+ * Implements metatag_metatags_view_alter()
+ */
+function smg_canonical_metatag_metatags_view_alter(&$output, $instance) {
+  // Alter the canonical tag if it is set in the node
+  if($instance != 'global') {
+    $node = menu_get_object();
+    if(isset($node->field_canonical_link['und'][0]['value'])) {
+      $canonical = $node->field_canonical_link['und'][0]['value'];
+      $output['canonical']['#attached']['drupal_add_html_head'][0][0]['#value'] = $canonical;
+    }
+  }
+}

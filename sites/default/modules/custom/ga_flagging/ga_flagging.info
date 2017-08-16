@@ -1,0 +1,4 @@
+name = Google Analytics Flagging
+description = Script used for tracking page views based on category
+package = Statistics
+core = 7.x

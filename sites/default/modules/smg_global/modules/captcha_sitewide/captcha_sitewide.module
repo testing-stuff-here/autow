@@ -1,0 +1,42 @@
+<?php
+
+/**
+ * Implements hook_form_alter().
+ *
+ * Add reCAPTCHA to all webforms so don't have to add each one by id.
+ *
+ * @param array  $form
+ * @param array  $form_state
+ * @param string $form_id
+ */
+function captcha_sitewide_form_alter(&$form, &$form_state, $form_id ){
+  // Check to see if it is any webform, regardless of ID
+  // Also check to see if user has 'skip CAPTCHA' permissions
+  if (!isset($form['#node'])) return;
+  $node = $form['#node'];
+  $not_stage_one = !property_exists($node, 'field_stage_one_form')
+    || $node->field_stage_one_form['und'][0]['value'] != 1;
+  $is_PURF = $node->type === 'pop_up_registration';
+  $is_comment_form = !empty($form['#entity_type']) && $form['#entity_type'] == 'comment';
+
+  if (($is_PURF || $not_stage_one) && !$is_comment_form) {
+    $silverpop_cookie = $_COOKIE['com.silverpop.iMA.jid'];
+    if (!isset($silverpop_cookie)) {
+      if ($is_PURF) {
+        $form['#attached']['js']['https://www.google.com/recaptcha/api.js'] = array('external' => TRUE);
+        $form['#attached']['js'][drupal_get_path('module', 'captcha_sitewide') . '/captcha_sitewide.js'] = array();
+        $form['#attached']['js'][] = array(
+          'data' => array('recaptcha' => array('class' => 'g-recaptcha')),
+          'type' => 'setting'
+        );
+      }
+      if ((strstr($form_id, 'webform_client_form')) && !(user_access('skip CAPTCHA')) && empty($form['captcha'])) {
+        $form['my_captcha_element'] = array(
+          '#type' => 'captcha',
+          // default captcha type set at
+          '#captcha_type' => 'default',
+        );
+      }
+    }
+  }
+}

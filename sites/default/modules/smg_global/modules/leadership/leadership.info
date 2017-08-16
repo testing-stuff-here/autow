@@ -1,0 +1,10 @@
+name = Leadership
+description = Handles Leadership in Packaging & Leadership in Automation & Premier Suppliers
+core = 7.x
+dependencies[] = content_complete
+dependencies[] = pmg_youtube_feed_leadership
+dependencies[] = publish_button
+dependencies[] = smg_angular
+dependencies[] = taxonomy_map
+dependencies[] = video_widget
+dependencies[] = youtube

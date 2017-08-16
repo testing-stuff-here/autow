@@ -1,0 +1,111 @@
+<?php
+
+/**
+ * @file
+ * Waywire installation funcitons.
+ */
+
+/**
+ * Implements hook_field_schema().
+ */
+function waywire_field_schema($field) {
+  $columns = array(
+    'video_id' => array(
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => TRUE,
+      'description' => t('Waywire video ID'),
+    ),
+    'video_url' => array(
+      'type' => 'text',
+      'not null' => FALSE,
+      'description' => t('Waywire video url'),
+    ),
+    'thumbnail_url' => array(
+      'type' => 'text',
+      'not null' => FALSE,
+      'description' => t('Waywire thumnail url'),
+    ),
+    'thumbnail_fid' => array(
+      'type' => 'int',
+      'length' => 11,
+      'not null' => FALSE,
+      'description' => t('Thumnail file id'),
+    ),
+    'read_more_link' => array(
+      'type' => 'text',
+      'not null' => FALSE,
+      'description' => t('Show a read more link'),
+    ),
+    'lb' => array(
+      'type' => 'int',
+      'length' => 1,
+      'not null' => FALSE,
+      'size' => 'tiny',
+      'default' => 0,
+      'description' => t('Leave behind active'),
+    ),
+    'lb_playlist' => array(
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => FALSE,
+      'description' => t('Leave behind playlist'),
+    ),
+    'lb_counter' => array(
+      'type' => 'int',
+      'length' => 11,
+      'not null' => FALSE,
+      'description' => t('Leave behind counter'),
+    ),
+    'video_duration' => array(
+      'type' => 'int',
+      'length' => 11,
+      'not null' => FALSE,
+      'description' => t('Waywire video duration'),
+    ),
+  );
+
+  return array('columns' => $columns);
+}
+
+/**
+ * Adding video_duration column to current waywire field tables.
+ */
+function waywire_update_7100() {
+  $fields = waywire_get_mymodule_fields();
+
+  foreach ($fields as $field) {
+    $table_prefixes = array(
+      _field_sql_storage_tablename($field),
+      _field_sql_storage_revision_tablename($field)
+    );
+
+    foreach ($table_prefixes as $table_prefix) {
+      $field_name = $field['field_name'] . '_video_duration';
+      $spec = array(
+        'type' => 'int',
+        'length' => 11,
+        'not null' => FALSE,
+        'description' => t('Waywire video duration'),
+      );
+      db_add_field($table_prefix, $field_name, $spec);
+    }
+  }
+
+  return t('Video duration has been added to the waywire field tables.');
+}
+
+/**
+  * Returns all fields created on the system of the type defined in waywire.
+  */
+function waywire_get_mymodule_fields() {
+  $types = array_keys(waywire_field_info()); // field types defined in waywire
+  $fields = array();
+  foreach (field_info_fields() as $field) {
+    if (in_array($field['type'], $types)) {
+      $fields[] = $field;
+    }
+  }
+
+  return $fields;
+}

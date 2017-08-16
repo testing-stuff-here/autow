@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Feature - 360 Gallery feature.
+ */
+
+include_once('feature_360_gallery.features.inc');

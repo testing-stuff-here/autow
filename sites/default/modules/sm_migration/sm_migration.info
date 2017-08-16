@@ -1,0 +1,15 @@
+name = Summit Media Migration Script
+description = migration script
+package = Other
+dependencies[] = migrate
+core = 7.x
+
+files[] = joomla.inc
+files[] = aw.inc
+files[] = aw_article.inc
+files[] = aw_video.inc
+files[] = aw_blog.inc
+files[] = aw_static.inc
+files[] = aw_podcast.inc
+files[] = aw_webcast.inc
+files[] = aw_whitepaper.inc

@@ -1,0 +1,91 @@
+diff --git a/plugins/FeedsYoutubeParser.inc b/plugins/FeedsYoutubeParser.inc
+index d0d7bc2..28b622d 100755
+--- a/plugins/FeedsYoutubeParser.inc
++++ b/plugins/FeedsYoutubeParser.inc
+@@ -23,6 +23,12 @@ class FeedsYoutubeParser extends FeedsParser {
+     $libraries = libraries_load('google-api-php-client');
+ 
+     $url = $source->config['FeedsHTTPFetcher']['source'];
++    $parsed_url = parse_url($url);
++    $url_path = ltrim($parsed_url["path"], "/");
++    $path_parts = explode("/", $url_path);
++    $api_type = $path_parts[2];
++    parse_str($parsed_url['query'], $parsed_query);
++    $key = (isset($parsed_query['key'])) ? $parsed_query['key'] : '';
+ 
+     $result = new FeedsParserResult();  
+ 
+@@ -36,7 +42,15 @@ class FeedsYoutubeParser extends FeedsParser {
+       $video_results = array();
+ 
+       foreach ($search_response['items'] as $search_result) {
+-        array_push($video_results, $search_result['id']['videoId']);
++        switch ($api_type) {
++          case 'search':
++            $videoId = $search_result['id']['videoId'];
++            break;
++          case 'playlistItems':
++            $videoId = $search_result['snippet']['resourceId']['videoId'];
++            break;
++        }
++        array_push($video_results, $videoId);
+       }
+ 
+       $video_ids = join(',', $video_results);
+@@ -48,16 +62,16 @@ class FeedsYoutubeParser extends FeedsParser {
+       }
+ 
+       try {
+-        $videos_response = $youtube->videos->listVideos($part, array(
+-          'id' => $video_ids,
+-        ));
++        $video_list_url = "https://www.googleapis.com/youtube/v3/videos?part=$part&id=$video_ids&key=$key";
++        $video_list_request = drupal_http_request($video_list_url);
++        $videos_response = json_decode($video_list_request->data);
+       } catch (Exception $ex) {
+         if(strpos($ex->getMessage(), 'Forbidden') > -1) {
+           drupal_set_message(t('It seems you don\'t have access to read/view the results, please configure you feed importer !admin_link', array('!admin_link' => l('configure', "admin/structure/feeds/{$source->id}/settings/FeedsYoutubeParser"))), 'error');
+         }
+       }
+ 
+-      if (!empty($videos_response['items'])) {
++      if (!empty($videos_response->items)) {
+         $result = $this->parseVideoItems($videos_response, $source, $fetcher_result);
+       }
+     }
+@@ -180,23 +194,23 @@ class FeedsYoutubeParser extends FeedsParser {
+    * @param FeedsFetcherResult $fetcher_result
+    * @param FeedsSource $source
+    */
+-  private function parseVideoItems(Google_Service_YouTube_VideoListResponse $video_items, FeedsSource $source, FeedsFetcherResult $fetcher_result) {
++  private function parseVideoItems($video_items, FeedsSource $source, FeedsFetcherResult $fetcher_result) {
+     $fetcher_result->title = 'test';
+     $result = new FeedsParserResult();
+-
++    
+     foreach ($video_items->items as $key => $video) {
+-      $feed_title = $video['snippet']['title'];
++      $feed_title = $video->snippet->title;
+       $id = $video->id;
+       $video_url = 'http://www.youtube.com/watch?v=' . $video->id;
+-      $thumbnail_default = $video['snippet']['thumbnails']->default->url;
+-      $thumbnail_medium = $video['snippet']['thumbnails']->medium->url;
+-      $thumbnail_high = $video['snippet']['thumbnails']->high->url;
+-      $thumbnail_standard = $video['snippet']['thumbnails']->standard->url;
+-      $description = $video['snippet']['description'];
+-      $categoryId = $video['snippet']['categoryId'];
+-      $duration = $video['contentDetails']['duration'];
+-      $tags = implode(', ', $video['snippet']['tags']);
+-      $published = $video['snippet']->publishedAt;
++      $thumbnail_default = $video->snippet->thumbnails->default->url;
++      $thumbnail_medium = $video->snippet->thumbnails->medium->url;
++      $thumbnail_high = $video->snippet->thumbnails->high->url;
++      $thumbnail_standard = $video->snippet->thumbnails->standard->url;
++      $description = $video->snippet->description;
++      $categoryId = $video->snippet->categoryId;
++      $duration = $video->contentDetails->duration;
++      $tags = implode(', ', $video->snippet->tags);
++      $published = $video->snippet->publishedAt;
+ 
+       $item = array(
+         'feed_title' => $feed_title,

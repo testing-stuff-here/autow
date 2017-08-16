@@ -1,0 +1,137 @@
+<?php
+/**
+ * @author Albert Jankowski <ajankowski@summitmediagroup.com>
+ *
+ * Module for viewing stats of all the content
+ */
+ 
+/**
+ * Implements hook_menu()
+ */
+function smg_stats_menu() {
+  $items = array();
+  $items['admin/reports/stats/vocabulary'] = array(
+    'title' => 'Vocabulary Stats',
+    'description' => 'Vocabulary Stats',
+    'page callback' => 'smg_stats_vocabs',
+    'page arguments' => array(),
+    'access arguments' => array('view_stats'),
+    //'access callback' => TRUE,
+  );
+  $items['admin/reports/stats/vocabulary/%'] = array(
+    'title' => 'Stats',
+    'description' => 'Taxonomy Stats',
+    'page callback' => 'smg_stats_terms',
+    'page arguments' => array(4),
+    'access arguments' => array('view_stats'),
+    'type' => MENU_CALLBACK,
+  );
+  
+  return $items;
+  
+}
+
+/**
+ * Implements hook_permission()
+ */
+function smg_stats_permission() {
+  return array(
+    'view_stats' => array(
+      'title' => t('View stats'),
+    ),
+  );
+}
+
+/**
+ * Returns a table of Vocabularies and count of nodes for each vocabulary
+ */
+function smg_stats_vocabs() {
+  $i = 0;
+  $vocabs = taxonomy_get_vocabularies();
+  
+  foreach($vocabs as $vocab) {
+    $tids = smg_stats_get_all_terms_in_vocab($vocab->vid);
+    $count = smg_stats_term_node_count($tids);
+    $rows[$i]['data'] = array(l($vocab->name, 'admin/reports/stats/vocabulary/' . $vocab->vid), $count);
+    $i++;
+  }
+  
+  $header = array(t('Vocabulary'), t('Count'));
+  
+  $output = '<h1>Vocabulary Stats</h1>';
+  $output .= theme('table', array(
+    'header' => $header, 
+    'rows' => $rows, 
+  ));
+  
+    
+  return $output;
+}
+
+/**
+ * Returns a table of Taxonomies for a vocabulary and count of nodes 
+ * for each vocabulary
+ *
+ * @param $vid
+ *  vocabuarly id
+ */
+function smg_stats_terms($vid) {
+  $i = 0;
+  $tids = smg_stats_get_all_terms_in_vocab($vid);
+  $vocab = taxonomy_vocabulary_load($vid);
+  
+  foreach($tids as $tid) {
+   $term = taxonomy_term_load($tid);
+   $count = smg_stats_term_node_count($tid);
+   $rows[$i]['data'] = array($term->name, $count);
+   $i++;
+  }
+  
+  $header = array(t('Taxonomy Name'), t('Count'));
+  
+  $output = '<h1>' . $vocab->name . ' Stats</h1>';
+  $output .= theme('table', array(
+    'header' => $header, 
+    'rows' => $rows, 
+  ));
+  
+  return $output;
+}
+
+/**
+ * Count of nodes per vocabulary
+ *
+ * @param vid
+ *   Vocabulary Id
+ */
+function smg_stats_get_all_terms_in_vocab($vid) {
+  $tids = array();  
+  $vocab_objects = taxonomy_get_tree($vid);
+  foreach($vocab_objects as $vocab_object) {
+    $tids[] = $vocab_object->tid;
+  }
+  
+  return $tids;
+}
+
+/**
+ * Count of nodes per taxonomy term
+ *
+ * @param tids
+ *   array(or single) of Term ID
+ */
+function smg_stats_term_node_count($tids) { 
+  $count = 0;
+  $query = db_select('taxonomy_index', 't');
+  if(is_array($tids)) {
+    if($tids) {
+      $query->condition('t.tid', $tids, 'IN');
+    }
+  }
+  else {
+    $query->condition('t.tid', $tids);
+  }
+  $count = $query->countQuery()->execute()->fetchField(); 
+  
+  return $count;
+}

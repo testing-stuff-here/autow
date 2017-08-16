@@ -1,0 +1,4 @@
+name = Comment Filter
+description = Deletes comments if they meet certain criteria
+core = 7.x
+package = SMG

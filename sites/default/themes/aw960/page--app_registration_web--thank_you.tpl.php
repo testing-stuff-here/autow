@@ -1,0 +1,1 @@
+<?php include drupal_get_path('theme','aw960') . '/includes/apps-page.inc'; ?>

@@ -1,0 +1,1127 @@
+<?php
+
+/**
+ * implements hook_block_info
+ */
+function personality_block_info() {
+  return array(
+    'tab' => array(
+      'info' => t('AW Personality Tab'),
+    ),
+    'greenfield_bio' => array(
+      'info' => t('Personality: David Greenfield\'s blogger bio'),
+    ),
+    'campbell_bio' => array(
+      'info' => t('Personality: Keith Campbell\'s blogger bio'),
+    ),
+    'bassett_bio' => array(
+      'info' => t('Personality: Renee Bassett\'s blogger bio'),
+    ),
+    'stephanie_bio' => array(
+      'info' => t('Personality: Stephanie Neil\'s blogger bio'),
+    ),
+    'hand_bio' => array(
+      'info' => t('Personality: Aaron Hand\'s blogger bio'),
+    ),
+    'reynolds_bio' => array(
+      'info' => t('Personality: Pat Reynolds\' blogge bio'),
+    ),
+    'mintchell_bio' => array(
+      'info' => t('Personality: Gary Mintchell\'s blogger bio'),
+    ),
+    'gerke_bio' => array(
+      'info' => t('Personality: Grant Gerke\'s blogger bio'),
+    ),
+    'chrzan_bio' => array(
+      'info' => t('Personality: Jim Chrzan\'s blogger bio'),
+    ),
+    'recent_blog_posts' => array(
+      'info' => t('Personality: one recent post from each blog beat'),
+    ),
+    'latest_factory' => array(
+      'info' => t('Personality: latest Factory Automation blog post'),
+    ),
+    'latest_batch' => array(
+      'info' => t('Personality: latest Batch Processing blog post'),
+    ),
+    'latest_process' => array(
+      'info' => t('Personality: latest Process Automation blog post'),
+    ),
+    'latest_packaging' => array(
+      'info' => t('Personality: latest Packaging Automation blog post'),
+    ),
+    'latest_industry' => array(
+      'info' => t('Personality: latest Industry Coverage blog post'),
+    ),
+    'latest_on_the_edge' => array(
+      'info' => t('Personality: latest On the Edge blog post'),
+    ),
+  );
+}
+
+/**
+ * get a list of bloggers currently active on the site
+ **** Use this array to control the order of the bloggers in the main personality tab ****
+ * Only 4 and 5 bloggers are currently supported
+ */
+function personality_get_current_bloggers() {
+  return array(
+    'greenfield',
+    //'bassett',
+    'neil',
+    'hand',
+    'reynolds',
+    //'mintchell',
+    'campbell',
+  );
+}
+
+/**
+ * implements hook_block_view
+ */
+function personality_block_view($delta) {
+  $bloggers = personality_get_current_bloggers();
+  $pcount = count($bloggers);
+
+  switch ($delta) {
+    case 'tab':
+      $results = personality_get_recent_blog_posts();
+
+      foreach ($results as &$result) {
+        if (strlen($result['title']) > 60) {
+          $result['title'] = preg_replace('/^(.{1,60})\ .*$/','$1...', $result['title']);
+        }
+        $result['title'] = decode_entities('&raquo;').' '.$result['title'];
+      }
+
+      $personality_tabs = array();
+      $personality_tabs_expanded = array();
+      $JS = "
+        jQuery(document).ready(function($) {
+          $('#personality-tabs-wrapper-$pcount').hover(
+            function() {
+              $('#personality-tabs-expanded-$pcount').stop().animate({
+                'width':183,
+                'opacity':0.95
+              }, 300);
+              $('#personality-tabs-expanded-$pcount').css({'z-index':10});
+              $('#personality-tabs-wrapper-$pcount').css({'width':280});
+              $('#personality-tabs-arrow').show();
+            },
+            function() {
+              $('#personality-tabs-expanded-$pcount').stop().animate({
+                'width':0,
+                'opacity':0
+              }, 300);
+              $('#personality-tabs-wrapper-$pcount').css({'width':98});
+              $('#personality-tabs-arrow').hide();
+            }
+          );";
+      foreach ($bloggers as $i => $blogger) {
+        $personality = personality_get_blogger($blogger);
+        $beat_url = $personality['blog_beat_url'];
+        $top = 60 + $i*139;
+
+        $JS .= "
+          $('#{$blogger}-tab, #{$blogger}-tab-expanded').mouseenter(function() {
+            $('#personality-tabs-arrow').stop().animate({'top':$top}, 300);
+          });
+          $('#{$blogger}-tab').click(function() {
+            window.location.href = '/{$beat_url}';
+          });";
+
+        $personality_tabs[$blogger] = array(
+          '#theme_wrappers' => array('container'),
+          '#attributes' => array(
+            'id' => array("$blogger-tab"),
+            'class' => ($i == count($bloggers)-1) ? array('personality-tab', 'personality-tab-last') : array('personality-tab'),
+          ),
+          'img' => array(
+            '#theme' => 'image',
+            '#path' => $personality['small_img'],
+            '#width' => '66',
+            '#height' => '69',
+          ),
+          'name' => array(
+            '#theme_wrappers' => array('container'),
+            '#attributes' => array(
+              'class' => array('personality-tab-name'),
+            ),
+            '#type' => 'markup',
+            '#markup' => $personality['last_name'],
+          ),
+          'beat' => array(
+            '#theme_wrappers' => array('container'),
+            '#attributes' => array(
+              'class' => array('personality-tab-beat'),
+            ),
+            '#type' => 'markup',
+            '#markup' => $personality['blog_beat'],
+          ),
+        );
+
+        $personality_tabs_expanded[$blogger] = array(
+          '#theme_wrappers' => array('container'),
+          '#attributes' => array(
+            'id' => array("$blogger-tab-expanded"),
+            'class' => ($i == count($bloggers)-1) ? array('personality-tab-expanded', 'personality-tab-expanded-last') : array('personality-tab-expanded'),
+          ),
+          'name' => array(
+            '#theme_wrappers' => array('container'),
+            '#attributes' => array(
+              'class' => array('personality-tab-expanded-name'),
+            ),
+            '#type' => 'markup',
+            '#markup' => $personality['name'],
+          ),
+          'title' => array(
+            '#theme_wrappers' => array('container'),
+            '#attributes' => array(
+              'class' => array('personality-tab-expanded-title'),
+            ),
+            '#type' => 'markup',
+            '#markup' => $personality['title'],
+          ),
+          'beat' => array(
+            '#theme_wrappers' => array('container'),
+            '#attributes' => array(
+              'class' => array('personality-tab-expanded-beat'),
+            ),
+            '#theme' => 'link',
+            '#text' => $personality['blog_beat_expanded'],
+            '#path' => $personality['blog_beat_url'],
+            '#options' => array(
+              'attributes' => array(),
+              'html' => FALSE,
+            ),
+          ),
+          'headline' => array(
+            '#theme_wrappers' => array('container'),
+            '#attributes' => array(
+              'class' => array('personality-tab-expanded-headline-link'),
+            ),
+            '#theme' => 'link',
+            '#text' => $results[$blogger]['title'],
+            '#path' => 'node/' . $results[$blogger]['nid'],
+            '#options' => array(
+              'attributes' => array(),
+              'html' => FALSE,
+            ),
+          ),
+        );
+      }
+      $JS .= "});";
+
+          /*$('#bassett-tab, #bassett-tab-expanded').mouseenter(function() {
+            $('#personality-tabs-arrow').stop().animate({'top':199}, 300);
+          });
+          $('#hand-tab, #hand-tab-expanded').mouseenter(function() {
+            $('#personality-tabs-arrow').stop().animate({'top':338}, 300);
+          });
+          $('#reynolds-tab, #reynolds-tab-expanded').mouseenter(function() {
+            $('#personality-tabs-arrow').stop().animate({'top':477}, 300);
+          });
+
+          $('#bassett-tab').click(function() {
+            window.location.href = '/batch-processing-desk';
+          });
+          $('#hand-tab').click(function() {
+            window.location.href = '/process-automation-desk';
+          });
+          $('#reynolds-tab').click(function() {
+            window.location.href = '/packaging-automation-desk';
+          });
+        });";*/
+
+      return array(
+        'subject' => null,
+        'content' => array(
+          'wrapper' => array(
+            '#theme_wrappers' => array('container'),
+            '#attributes' => array(
+              'id' => array("personality-tabs-wrapper-$pcount"),
+            ),
+            '#attached' => array(
+              'js' => array(
+                $JS => array('type' => 'inline'),
+              ),
+            ),
+            'arrow' => array(
+              '#theme' => 'image',
+              '#path' => '/sites/default/themes/aw960/css/images/personality-tabs-arrow.png',
+              '#width' => 6,
+              '#height' => 12,
+              '#attributes' => array(
+                'id' => array('personality-tabs-arrow'),
+              ),
+            ),
+            'personality-tabs' => array(
+              '#theme_wrappers' => array('container'),
+              '#attributes' => array(
+                'id' => array('personality-tabs-'.$pcount),
+              ),
+              $personality_tabs,
+            ),
+            'personality-tabs-expanded' => array(
+              '#theme_wrappers' => array('container'),
+              '#attributes' => array(
+                'id' => array('personality-tabs-expanded-'.$pcount),
+              ),
+              $personality_tabs_expanded,
+            ),
+          ),
+        ),
+      );
+      break;
+    case 'greenfield_bio':
+      $personality = personality_get_blogger('greenfield');
+      return array(
+        'subject' => null,
+        'content' => array(
+          '#theme_wrappers' => array('container'),
+          '#attributes' => array(
+            'class' => array('blogger-bio-wrapper'),
+          ),
+          'img' => array(
+            '#theme' => 'image',
+            '#attributes' => array(
+              'class' => array('blogger-photo'),
+            ),
+            '#path' => $personality['large_img'],
+            '#width' => '125',
+            '#height' => '135',
+          ),
+          'bio' => array(
+            '#type' => 'markup',
+            '#prefix' => '<div class="blogger-bio">',
+            '#markup' => t('David Greenfield has been covering industrial technologies, ranging from software and hardware to embedded systems, for more than 20 years. His principal areas of coverage for Automation World focus on technologies deployed for factory and process automation. Contact David at ') . l($personality['email'], "mailto:{$personality['email']}") . t(' or follow him on twitter ') . l("@{$personality['twitter']}", "https://twitter.com/{$personality['twitter']}") . '.',
+            '#suffix' => '</div>',
+          ),
+        ),
+      );
+      break;
+    case 'bassett_bio':
+      $personality = personality_get_blogger('bassett');
+      return array(
+        'subject' => null,
+        'content' => array(
+          '#theme_wrappers' => array('container'),
+          '#attributes' => array(
+            'class' => array('blogger-bio-wrapper'),
+          ),
+          'img' => array(
+            '#theme' => 'image',
+            '#attributes' => array(
+              'class' => array('blogger-photo'),
+            ),
+            '#path' => $personality['large_img'],
+            '#width' => '125',
+            '#height' => '135',
+          ),
+          'bio' => array(
+            '#type' => 'markup',
+            '#prefix' => '<div class="blogger-bio">',
+            '#markup' => t('Renee Robbins Bassett has covered industrial automation for more than a decade with a focus on applications of technology and the engineers who design and implement them. Her principal areas of coverage include batch process, HMIs and other interfaces, and trends in the food & beverage, CPG, and pharmaceuticals industries. Contact Renee at ') . l($personality['email'], "mailto:{$personality['email']}") . t(' or follow her on twitter ') . l("@{$personality['twitter']}", "https://twitter.com/{$personality['twitter']}") . '.',
+            '#suffix' => '</div>',
+          ),
+        ),
+      );
+      break;
+    case 'stephanie_bio':
+      $personality = personality_get_blogger('neil');
+      return array(
+        'subject' => null,
+        'content' => array(
+          '#theme_wrappers' => array('container'),
+          '#attributes' => array(
+            'class' => array('blogger-bio-wrapper'),
+          ),
+          'img' => array(
+            '#theme' => 'image',
+            '#attributes' => array(
+              'class' => array('blogger-photo'),
+            ),
+            '#path' => $personality['large_img'],
+            '#width' => '125',
+            '#height' => '135',
+          ),
+          'bio' => array(
+            '#type' => 'markup',
+            '#prefix' => '<div class="blogger-bio">',
+            '#markup' => t('Stephanie Neil has been reporting on enterprise IT and industrial automation news and technology trends for 20 years. Now covering the food & beverage, CPG, and pharmaceutical space, her focus is on the plant floor control systems, applications and processes that serve as the foundation for operational efficiency and innovation in manufacturing.  Contact her at ') . l($personality['email'], "mailto:{$personality['email']}") . t(' and follow her on twitter ') . l("@{$personality['twitter']}", "https://twitter.com/{$personality['twitter']}") . '.',
+            '#suffix' => '</div>',
+          ),
+        ),
+      );
+      break;
+    case 'hand_bio':
+      $personality = personality_get_blogger('hand');
+      return array(
+        'subject' => null,
+        'content' => array(
+          '#theme_wrappers' => array('container'),
+          '#attributes' => array(
+            'class' => array('blogger-bio-wrapper'),
+          ),
+          'img' => array(
+            '#theme' => 'image',
+            '#attributes' => array(
+              'class' => array('blogger-photo'),
+            ),
+            '#path' => $personality['large_img'],
+            '#width' => '125',
+            '#height' => '135',
+          ),
+          'bio' => array(
+            '#type' => 'markup',
+            '#prefix' => '<div class="blogger-bio">',
+            '#markup' => t('Aaron Hand has been covering technology and manufacturing trends for more than two decades, particularly within photonics, semiconductor and photovoltaics industries. For Automation World, his principal focus is continuous process industries such as oil and gas, chemicals, power generation and water/wastewater. Contact Aaron at ') . l($personality['email'], "mailto:{$personality['email']}") . t(' or follow him on twitter ') . l("@{$personality['twitter']}", "https://twitter.com/{$personality['twitter']}") . '.',
+            '#suffix' => '</div>',
+          ),
+        ),
+      );
+      break;
+    case 'reynolds_bio':
+      $personality = personality_get_blogger('reynolds');
+      return array(
+        'subject' => null,
+        'content' => array(
+          '#theme_wrappers' => array('container'),
+          '#attributes' => array(
+            'class' => array('blogger-bio-wrapper'),
+          ),
+          'img' => array(
+            '#theme' => 'image',
+            '#attributes' => array(
+              'class' => array('blogger-photo'),
+            ),
+            '#path' => $personality['large_img'],
+            '#width' => '125',
+            '#height' => '135',
+          ),
+          'bio' => array(
+            '#type' => 'markup',
+            '#prefix' => '<div class="blogger-bio">',
+            '#markup' => t('Pat Reynolds has been a packaging journalist since 1983. He was part of the small group who launched Packaging World in 1993, and he was named VP/Editor of the magazine in 2002. He covers automation applications in the packaging industry for Automation World. Pat\'s career has taken him to countless packaging operations, technical conferences, and converting plants, not only across the U.S., but internationally as well. Contact Pat at ') . l($personality['email'], "mailto:{$personality['email']}") . t(' or follow him on twitter ') . l("@{$personality['twitter']}", "https://twitter.com/{$personality['twitter']}") . '.',
+            '#suffix' => '</div>',
+          ),
+        ),
+      );
+      break;
+    case 'mintchell_bio':
+      $personality = personality_get_blogger('mintchell');
+      return array(
+        'subject' => null,
+        'content' => array(
+          '#theme_wrappers' => array('container'),
+          '#attributes' => array(
+            'class' => array('blogger-bio-wrapper'),
+          ),
+          'img' => array(
+            '#theme' => 'image',
+            '#attributes' => array(
+              'class' => array('blogger-photo'),
+            ),
+            '#path' => $personality['large_img'],
+            '#width' => '125',
+            '#height' => '135',
+          ),
+          'bio' => array(
+            '#type' => 'markup',
+            '#prefix' => '<div class="blogger-bio">',
+            '#markup' => t('Gary Mintchell has either worked in or covered manufacturing for his 30+ year career that included stints in product development, manufacturing engineering and IT-related projects. Having helped found Automation World in 2003, Gary retired from his day-to-day editor-in-chief duties in 2013. He continues to cover automation technology developments and related industry trends for Automation World. Contact Gary at ') . l($personality['email'], "mailto:{$personality['email']}") . t(' or follow him on twitter ') . l("@{$personality['twitter']}", "https://twitter.com/{$personality['twitter']}") . '.',
+            '#suffix' => '</div>',
+          ),
+        ),
+      );
+      break;
+    case 'gerke_bio':
+      $personality = personality_get_blogger('gerke');
+      return array(
+        'subject' => null,
+        'content' => array(
+          '#theme_wrappers' => array('container'),
+          '#attributes' => array(
+            'class' => array('blogger-bio-wrapper'),
+          ),
+          'img' => array(
+            '#theme' => 'image',
+            '#attributes' => array(
+              'class' => array('blogger-photo'),
+            ),
+            '#path' => $personality['large_img'],
+            '#width' => '125',
+            '#height' => '135',
+          ),
+          'bio' => array(
+            '#type' => 'markup',
+            '#prefix' => '<div class="blogger-bio">',
+            '#markup' => t('Grant Gerke has been covering the manufacturing space for the last 13 years, including packaging automation applications, industry trends and energy management. He will be focusing on automation technology strategies for a 21st century global infrastructure and the industries closely aligned with infrastructure, such as Water and Wastewater, Power Generation, and Building Automation. Contact Grant at ') . l($personality['email'], "mailto:{$personality['email']}") . t(' or follow him on twitter ') . l("@{$personality['twitter']}", "https://twitter.com/{$personality['twitter']}") . '.',
+            '#suffix' => '</div>',
+          ),
+        ),
+      );
+      break;
+    case 'chrzan_bio':
+      $personality = personality_get_blogger('chrzan');
+      return array(
+        'subject' => null,
+        'content' => array(
+          '#theme_wrappers' => array('container'),
+          '#attributes' => array(
+            'class' => array('blogger-bio-wrapper'),
+          ),
+          'img' => array(
+            '#theme' => 'image',
+            '#attributes' => array(
+              'class' => array('blogger-photo'),
+            ),
+            '#path' => $personality['large_img'],
+            '#width' => '125',
+            '#height' => '135',
+          ),
+          'bio' => array(
+            '#type' => 'markup',
+            '#prefix' => '<div class="blogger-bio">',
+            '#markup' => t('Jim Chrzan brings 25 years of B-to-B publishing experience to Automation World. He has spent many years in Packaging Automation and is also the publisher of Healthcare Packaging. For Automation World, he writes about education, training and Life Sciences. Contact Jim at ') . l($personality['email'], "mailto:{$personality['email']}") . '.',
+            '#suffix' => '</div>',
+          ),
+        ),
+      );
+      break;
+    case 'recent_blog_posts':
+      $recent_blog_posts = array(
+        'subject' => null,
+        'content' => array(
+          '#theme_wrappers' => array('container'),
+          '#attributes' => array(
+            'class' => array('recent-blog-post-wrapper')
+          ),
+          'title' => array(
+            '#prefix' => '<div class="title">',
+            '#markup' => 'Recent Blog Posts',
+            '#suffix' => '</div>',
+          ),
+        ),
+      );
+
+      $results = personality_get_recent_blog_posts();
+
+      foreach ($results as $result) {
+        if (strlen($result['title']) > 50) // trim title to 50 characters, rounded back to the closest space
+          $result['title'] = preg_replace('/^(.{1,50})\ .*$/','$1...', $result['title']);
+
+        $recent_blog_posts['content'][] = array(
+          '#theme_wrappers' => array('container'),
+          '#attributes' => array(
+            'class' => array('recent-blog-post')
+          ),
+          'img' => array(
+            '#theme' => 'image',
+            '#attributes' => array(
+              'class' => array('blogger-photo'),
+            ),
+            '#path' => $result['photo'],
+            '#width' => '66',
+            '#height' => '69',
+          ),
+          'text' => array(
+            '#theme_wrappers' => array('container'),
+            '#attributes' => array(
+              'class' => array('blog-desc'),
+            ),
+            'title' => array(
+              '#prefix' => '<span class="blog-title">',
+              '#markup' => l(trim($result['title']), "node/{$result['nid']}"),
+              '#suffix' => '</span>',
+            ),
+            'pipe' => array(
+              '#markup' => ' <span class="pipe">|</span> ',
+            ),
+            'date' => array(
+              '#prefix' => '<span class="blog-date">',
+              '#markup' => date('F d, Y', $result['created']),
+              '#suffix' => '</span>',
+            ),
+          ),
+        );
+      }
+
+      return $recent_blog_posts;
+      break;
+    case 'latest_factory':
+      return personality_return_latest_blog_post('greenfield');
+      break;
+    case 'latest_batch':
+      return personality_return_latest_blog_post('neil');
+      break;
+    case 'latest_process':
+      return personality_return_latest_blog_post('hand');
+      break;
+    case 'latest_packaging':
+      return personality_return_latest_blog_post('reynolds');
+      break;
+    case 'latest_industry':
+      return personality_return_latest_blog_post('mintchell');
+      break;
+  }
+}
+
+/**
+ * returns data on the named blogger
+ *
+ * @param $who string naming an AW blogger
+ * @return array containing various data
+ */
+function personality_get_blogger($who) {
+  switch ($who) {
+    case 'campbell':
+      return array(
+        'first_name' => 'Keith',
+        'last_name' => 'Campbell',
+        'name' => 'Keith Campbell',
+        'title' => 'Contributing Writer',
+        'blog_beat' => 'On the Edge',
+        'blog_beat_expanded' => 'On the Edge',
+        'blog_beat_id' => 'page_9',
+        'blog_beat_url' => 'on-the-edge-blog',
+        'small_img' => '/sites/default/themes/aw960/css/images/Campbell_2.jpg',
+        'large_img' => '/sites/default/themes/aw960/css/images/Campbell_2.jpg',
+        'email' => 'Keith@campbellmanagementservices.com',
+        'twitter' => '',
+        'uid' => '3154',
+        'tid' => '2292',
+      );
+      break;
+    case 'greenfield':
+      return array(
+        'first_name' => 'David',
+        'last_name' => 'Greenfield',
+        'name' => 'David Greenfield',
+        'title' => 'Director of Content',
+        'blog_beat' => 'Factory Automation',
+        'blog_beat_expanded' => 'Factory Automation',
+        'blog_beat_id' => 'page_1',
+        'blog_beat_url' => 'factory-automation-desk',
+        'small_img' => '/sites/default/themes/aw960/css/images/greenfield_small.jpg',
+        'large_img' => '/sites/default/themes/aw960/css/images/greenfield_large.jpg',
+        'email' => 'dgreenfield@automationworld.com',
+        'twitter' => 'DJGreenfield',
+        'uid' => '16',
+        'tid' => '1876',
+      );
+      break;
+    case 'bassett':
+      return array(
+        'first_name' => 'Renee',
+        'last_name' => 'Bassett',
+        'name' => 'Renee Robbins Bassett',
+        'title' => 'Deputy Editor',
+        'blog_beat' => 'Batch Processing',
+        'blog_beat_expanded' => 'Batch Processing',
+        'blog_beat_id' => 'page_4',
+        'blog_beat_url' => 'batch-processing-desk',
+        'small_img' => '/sites/default/themes/aw960/css/images/bassett_66.jpg',
+        'large_img' => '/sites/default/themes/aw960/css/images/bassett_125.jpg',
+        'email' => 'rbassett@automationworld.com',
+        'twitter' => 'AutoM8now',
+        'uid' => '36',
+        'tid' => '1879',
+      );
+      break;
+    case 'neil':
+      return array(
+        'first_name' => 'Stephanie',
+        'last_name' => 'Neil',
+        'name' => 'Stephanie Neil',
+        'title' => 'Senior Editor',
+        'blog_beat' => 'Batch Processing',
+        'blog_beat_expanded' => 'Batch Processing',
+        'blog_beat_id' => 'page_4',
+        'blog_beat_url' => 'batch-processing-desk',
+        'small_img' => '/sites/default/themes/aw960/css/images/neil_small.jpg',
+        'large_img' => '/sites/default/themes/aw960/css/images/neil_large.jpg',
+        'email' => 'sneil@automationworld.com',
+        'twitter' => 'neilst',
+        'uid' => '5596',
+        'tid' => '1879',
+      );
+    case 'hand':
+      return array(
+        'first_name' => 'Aaron',
+        'last_name' => 'Hand',
+        'name' => 'Aaron Hand',
+        'title' => 'Executive Editor',
+        'blog_beat' => 'Process Automation',
+        'blog_beat_expanded' => 'Process Automation',
+        'blog_beat_id' => 'page_8',
+        'blog_beat_url' => 'process-automation-desk',
+        'small_img' => '/sites/default/themes/aw960/css/images/aaron_small.jpg',
+        'large_img' => '/sites/default/themes/aw960/css/images/aaron_large.jpg',
+        'email' => 'ahand@automationworld.com',
+        'twitter' => 'AaronHand',
+        'uid' => '2272',
+        'tid' => '2195',
+      );
+      break;
+    case 'reynolds':
+      return array(
+        'first_name' => 'Pat',
+        'last_name' => 'Reynolds',
+        'name' => 'Pat Reynolds',
+        'title' => 'VP Editor, Packaging World',
+        'blog_beat' => 'Packaging Automation',
+        'blog_beat_expanded' => 'Packaging Automation',
+        'blog_beat_id' => 'page_2',
+        'blog_beat_url' => 'packaging-automation-desk',
+        'small_img' => '/sites/default/themes/aw960/css/images/reynolds_66.jpg',
+        'large_img' => '/sites/default/themes/aw960/css/images/reynolds_125.jpg',
+        'email' => 'reynolds@packworld.com',
+        'twitter' => 'Packcentric',
+        'uid' => '2126',
+        'tid' => '2209',
+      );
+      break;
+    case 'mintchell':
+      return array(
+        'first_name' => 'Gary',
+        'last_name' => 'Mintchell',
+        'name' => 'Gary Mintchell',
+        'title' => 'Founding Editor, Automation World',
+        'blog_beat' => 'Industry Coverage',
+        'blog_beat_expanded' => 'Industry Coverage',
+        'blog_beat_id' => 'page_3',
+        'blog_beat_url' => 'gary-mintchell',
+        'small_img' => '/sites/default/themes/aw960/css/images/mintchell_66.jpg',
+        'large_img' => '/sites/default/themes/aw960/css/images/mintchell_125.jpg',
+        'email' => 'gmintchell@automationworld.com',
+        'twitter' => 'garymintchell',
+        'uid' => '10',
+        'tid' => '171',
+      );
+      break;
+    case 'gerke':
+      return array(
+        'first_name' => 'Grant',
+        'last_name' => 'Gerke',
+        'name' => 'Grant Gerke',
+        'title' => 'Digital Managing Editor',
+        'blog_beat' => 'NextGen Infrastructure',
+        'blog_beat_expanded' => 'NextGen Infrastructure',
+        'blog_beat_url' => 'nextgen-infrastructure-desk',
+        'small_img' => '/sites/default/themes/aw960/css/images/gerke_66.jpg',
+        'large_img' => '/sites/default/themes/aw960/css/images/gerke_125.jpg',
+        'email' => 'ggerke@automationworld.com',
+        'twitter' => 'AutoGrant',
+        'uid' => '14',
+        'tid' => '1877',
+      );
+      break;
+    case 'chrzan':
+      return array(
+        'first_name' => 'Jim',
+        'last_name' => 'Chrzan',
+        'name' => 'Jim Chrzan',
+        'title' => 'Publisher',
+        'blog_beat' => 'Publisher\'s Pen',
+        'blog_beat_expanded' => 'Publisher\'s Pen',
+        'blog_beat_url' => 'publishers-pen',
+        'small_img' => '/sites/default/themes/aw960/css/images/chrzan_66.jpg',
+        'large_img' => '/sites/default/themes/aw960/css/images/chrzan_125.jpg',
+        'email' => 'jchrzan@automationworld.com',
+        'twitter' => '',
+        'uid' => '',
+        'tid' => null,
+      );
+      break;
+  }
+}
+
+/**
+ * gets the latest blog post by the named blogger
+ *
+ * @param $blogger string naming an AW blogger
+ * @return renderable array including blogger info, blog pull-quote and headline
+ */
+function personality_return_latest_blog_post($blogger) {
+  $personality = personality_get_blogger($blogger);
+
+  $query = db_select('node', 'node');
+  $query->innerJoin('field_data_field_pull_quote', 'pull_quote', 'node.nid = pull_quote.entity_id');
+  $query->leftJoin('taxonomy_index', 'taxonomy_index', 'node.nid = taxonomy_index.nid');
+  $query->leftJoin('field_data_field_byline', 'byline', 'node.nid = byline.entity_id');
+  $query->condition('node.status', '1');
+  $query->condition('node.type', 'blog');
+  $query->condition('node.uid', $personality['uid']);
+  if ($personality['tid']) {
+    //$query->condition('taxonomy_index.tid', $personality['tid']);
+  }
+  $query->fields('node', array('title', 'nid', 'created'));
+  $query->fields('pull_quote', array('field_pull_quote_value'));
+  $query->orderBy('node.created', 'DESC');
+  $query->range(0, 1);
+  $result = $query->execute()->fetchAssoc();
+
+  if (!$result) return array();
+
+  return array(
+    'content' => array(
+      '#theme_wrappers' => array('container'),
+      '#attributes' => array(
+        'class' => array('featured-blog', 'featured-blog-' . $blogger),
+      ),
+      'left' => array(
+        '#theme_wrappers' => array('container'),
+        '#attributes' => array(
+          'class' => array('left'),
+        ),
+        'beat' => array(
+          '#prefix' => '<div class="blog-beat">',
+          '#markup' => l($personality['blog_beat'], $personality['blog_beat_url']),
+          '#suffix' => '</div>',
+        ),
+        'img' => array(
+          '#theme' => 'image',
+          '#attributes' => array(
+            'class' => array('blogger-photo'),
+          ),
+          '#path' => $personality['large_img'],
+          '#width' => '125',
+          '#height' => '135',
+        ),
+        'name' => array(
+          '#prefix' => '<div class="blogger-name">',
+          '#markup' => $personality['name'],
+          '#suffix' => '</div>',
+        ),
+        'title' => array(
+          '#prefix' => '<div class="blogger-title">',
+          '#markup' => $personality['title'],
+          '#suffix' => '</div>',
+        ),
+      ),
+      'right' => array(
+        '#theme_wrappers' => array('container'),
+        '#attributes' => array(
+          'class' => array('right'),
+        ),
+        'pullquote' => array(
+          '#theme_wrappers' => array('container'),
+          '#attributes' => array(
+            'class' => array('pullquote'),
+          ),
+          'opening_quote' => array(
+            '#theme_wrappers' => array('container'),
+            '#attributes' => array(
+              'class' => 'opening-quote',
+            ),
+            0 => array(
+              '#theme' => 'image',
+              '#path' => '/sites/default/themes/aw960/css/images/pull-quote-opening-quote.png',
+              '#attributes' => array(
+                'class' => array('opening-quote'),
+              ),
+            ),
+          ),
+          'text' => array(
+            '#theme_wrappers' => array('container'),
+            '#attributes' => array(
+              'class' => array('field-item'), //existing css expects this class
+            ),
+            0 => array(
+              '#markup' => $result['field_pull_quote_value'],
+            ),
+            1 => array(
+              'closing_quote' => array(
+                '#theme' => 'image',
+                '#path' => '/sites/default/themes/aw960/css/images/pull-quote-closing-quote.png',
+                '#attributes' => array(
+                  'class' => array('closing-quote'),
+                ),
+              ),
+            ),
+          ),
+        ),
+        'post_title' => array(
+          '#prefix' => '<div class="title">',
+          '#markup' => l($result['title'], "node/{$result['nid']}"),
+          '#suffix' => '</div>',
+        ),
+      ),
+    ),
+  );
+}
+
+/**
+ * returns the most recent blog post from each blog beat
+ */
+function personality_get_recent_blog_posts() {
+
+  $recent_blog_posts = &drupal_static(__FUNCTION__);
+  if (!isset($recent_blog_posts)) {
+    if ($cache = cache_get('personality_recent_blog_posts')) {
+      $recent_blog_posts = $cache->data;
+    }
+    else {
+      $recent_blog_posts = array();
+      $bloggers = personality_get_current_bloggers();
+
+      foreach ($bloggers as $blogger) {
+         $personality = personality_get_blogger($blogger);
+         $nids = personality_get_nids($personality['tid']);
+         $query = db_select('node', 'node');
+         //$query->leftJoin('taxonomy_index', 'taxonomy_index', 'node.nid = taxonomy_index.nid');
+         //$query->leftJoin('field_data_field_byline', 'byline', 'node.nid = byline.entity_id');
+         //$query->condition('node.status', '1');
+         //$query->condition('node.type', array('article', 'blog'));
+         if($nids) {
+           $query->condition('node.nid', $nids);
+           foreach ($recent_blog_posts as $r) {
+             if ($r['nid'])
+               $query->condition('node.nid', $r['nid'], '!='); //exclude blog entries that have already been selected
+           }
+         }
+         $query->fields('node', array('title', 'nid', 'created'));
+         $query->orderBy('node.created', 'DESC');
+         $query->range(0, 1);
+         $result = $query->execute()->fetchAssoc();
+         $result['photo'] = $personality['large_img'];
+         $recent_blog_posts[$blogger] = $result;
+
+         unset($query);
+         cache_set('personality_recent_blog_posts', $recent_blog_posts, 'cache');
+       }
+    }
+  }
+
+  return $recent_blog_posts;
+}
+
+/**
+ * implements hook_views_query_alter
+ * removes the results of the blog beat from "related articles" blocks
+ * removes the contents of the "more by <author>" view from the "more on <subject>" view
+ */
+function personality_views_query_alter(&$view, &$query) {
+  if ($view->name == 'blog_beat') {
+    $mgi = menu_get_item();
+
+    if (isset($mgi['page_arguments'][0]) && is_object($mgi['page_arguments'][0]) && isset($mgi['page_arguments'][0]->nid)) { // this is the case for blog posts
+      $nids = array($mgi['page_arguments'][0]->nid); // this stores the node ids to exclude from this display
+      $deps = array( // the contents of views that are named for array values are removed from views named for array keys
+        'block_5' => array('block_1'), // exclude "more on factory automation" from "more from david"
+        'block_6' => array('block_4'), // "batch" from "renee"
+        'block_9' => array('block_8'), // "process" from "hand"
+        'block_7' => array('block_2'), // "packaging" from "pat"
+      );
+    } else { // assume it's a blog beat view
+      $nids = array();
+      $deps = array(
+        'block_1' => array('page_1'),
+        'block_5' => array('page_1', 'block_1'),
+        'block_4' => array('page_4'),
+        'block_6' => array('page_4', 'block_4'),
+        'block_8' => array('page_8'),
+        'block_9' => array('page_8', 'block_8'),
+        'block_2' => array('page_2'),
+        'block_7' => array('page_2', 'block_2'),
+        'block_3' => array('page_3'),
+      );
+    }
+
+    if (array_key_exists($view->current_display, $deps)) {
+      $where = array(
+        'conditions' => array(),
+        'type' => 'AND',
+      );
+      foreach ($deps[$view->current_display] as $dep) {
+        $nids = array_merge($nids, personality_get_block_nids($dep));
+      }
+      foreach ($nids as $nid) {
+        $where['conditions'][$nid] = array(
+          'field' => 'node.nid',
+          'value' => $nid,
+          'operator' => '!=',
+        );
+      }
+      if ($where['conditions']) {
+        $query->where[] = $where;
+      }
+    }
+  }
+}
+
+/**
+ * returns an array of nids contained in the specified display
+ */
+/*function personality_get_nids($view_name, $display_name) {
+  $ids = array();
+  $results = views_get_view_result($view_name, $display_name);
+  foreach($results as $result) {
+    $ids[] = $result->nid;
+  }
+
+  return $ids;
+}
+*/
+
+/**
+ * Returns an array of nids to be displayed.
+ *
+ * @param int $tid
+ *  taxonomy term id
+ * @param int $uid
+ *  user id
+ * @param int $range
+ *  the amount of node ids to return
+ *
+ * @param array $nids
+ *  the node ids
+ */
+function personality_get_nids($tid = FALSE, $uid = FALSE, $range = 5) {
+  $nids = array();
+
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node', '=');
+  if($tid) {
+    $query->fieldCondition('field_allterms', 'tid', $tid);
+  }
+  if($uid) {
+    $query->condition('node.uid', $uid);
+  }
+  $query->propertyCondition('status', 1);
+  $query->propertyOrderBy('changed', 'DESC');
+  $query->range(0, $range);
+  $result = $query->execute();
+
+  if ($result && isset($result['node'])) {
+    foreach($result['node'] as $tid => $data) {
+      $nids[] = $tid;
+    }
+  }
+
+  return $nids;
+}
+
+/**
+ * Get Nids from blocks. These were originally in views but
+ * they were causing a tremendous site slowdown so using a manual
+ * query instead.
+ *
+ * @param string $block_name
+ *
+ * @return array $nids
+ *  node ids
+ */
+function personality_get_block_nids($block_name) {
+  $nids = array();
+
+  switch($block_name) {
+    case 'page_1':  // Factory Automation Page
+    case 'block_1': // Factory Automation Related
+      $nids = personality_get_nids(1876);
+      break;
+    case 'page_4':  // Batch Processing Page
+    case 'block_4': // Batch Processing Related
+      $nids = personality_get_nids(1879);
+      break;
+    case 'page_8':  // Process Automation Page
+    case 'block_8': // Process Automation Related
+      $nids = personality_get_nids(2195);
+      break;
+    case 'page_2':  // Package Automation Page
+    case 'block_2': // Package Automation Related
+      $nids = personality_get_nids(2209);
+      break;
+    case 'block_9': // Hand
+      $nids = personality_get_nids(FALSE, 2272);
+      break;
+    case 'block_7': // Reynolds
+      $nids = personality_get_nids(FALSE, 2272);
+      break;
+    case 'page_7': // Automation Roundup
+      $nids = personality_get_nids(1875);
+      break;
+    case 'page_9': // On the Edge
+      $nids = personality_get_nids(2292);
+      break;
+  }
+
+  return $nids;
+}
+
+/**
+ * loads a block
+ * returns a renderable array
+ */
+function personality_load_block($module, $block_id){
+  $block = block_load($module, $block_id);
+  $block_content = _block_render_blocks(array($block));
+  $build = _block_get_renderable_array($block_content);
+  return $build;
+}
+
+/**
+ * implements hook_page_alter
+ * inserts various "related article" blocks in the right sidebar when related content is displayed
+ * adds a "more from this author" block and a "more on this topic" block
+ * looks first for a byline, then a uid when determining article author
+ */
+/*function personality_page_alter(&$page) {
+  $tid_to_block = array(
+    '1876' => 'blog_beat-block_1', //factory automation
+    '1879' => 'blog_beat-block_4', //batch processing
+    '2195' => 'blog_beat-block_8', //process automation
+    '2209' => 'blog_beat-block_2', //packaging automation
+  );
+  $byline_to_block = array(
+    'David Greenfield' => 'blog_beat-block_5',
+    'Renee Robbins Bassett' => 'blog_beat-block_6',
+    'Aaron Hand' => 'blog_beat-block_9',
+    'Pat Reynolds' => 'blog_beat-block_7',
+  );
+  $uid_to_block = array(
+    '16' => 'blog_beat-block_5', //David Greenfield
+    '36' => 'blog_beat-block_6', //Renee Robbins Bassett
+    '2272' => 'blog_beat-block_9', //Aaron Hand
+    '2126' => 'blog_beat-block_7', //Pat Reynolds
+  );
+  $page_nodes = element_children($page['content']['system_main']['nodes']);
+  $nid = $page_nodes[0];
+  $node_content = $page['content']['system_main']['nodes'][$nid];
+
+  // Per Dave - only Display Blog Beat Block on blog content type
+  if(isset($node_content['#node']->type) && $node_content['#node']->type == 'blog') {
+    $taxonomy = $node_content['field_allterms']['#items'];
+    $byline = $node_content['#node']->field_byline['und'][0]['safe_value'];
+    $uid = $node_content['#node']->uid;
+
+    if (array_key_exists($byline, $byline_to_block)) {
+      $block = block_load('views', $byline_to_block[$byline]);
+      $block_content = _block_render_blocks(array($block));
+      $build = _block_get_renderable_array($block_content);
+      array_splice($page['sidebar_second'], 1, 0, array(
+        'related_posts_author-block' => $build
+      ));
+    } elseif (array_key_exists($uid, $uid_to_block)) {
+      $block = block_load('views', $uid_to_block[$uid]);
+      $block_content = _block_render_blocks(array($block));
+      $build = _block_get_renderable_array($block_content);
+      array_splice($page['sidebar_second'], 1, 0, array(
+        'related_posts_author-block' => $build
+      ));
+    }
+
+    foreach ($taxonomy as $t) {
+      if (array_key_exists($t['tid'], $tid_to_block)) {
+        $block = block_load('views', $tid_to_block[$t['tid']]);
+        $block_content = _block_render_blocks(array($block));
+        $build = _block_get_renderable_array($block_content);
+        array_splice($page['sidebar_second'], 1, 0, array(
+          'related_posts_topic-block' => $build
+        ));
+        break;
+      }
+    }
+  }
+}*/

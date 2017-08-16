@@ -1,0 +1,157 @@
+a.thumblink:link    {color:#FFFFFF;}
+a.thumblink:visited {color:#FFFFFF;}
+a.thumblink:hover   {color:#009aff;}
+a.thumblink:active  {color:#FFFFFF;}
+
+/* CSS Document */
+.text-holder {
+  background-color:black;
+  display:block;
+  padding:10px;
+}
+
+.thumb1Div{
+	background-image:url("/sites/default/files/fluke2/images/migrate-content2.jpg");
+	background-color:#FF0000;
+	width:100%;
+	height:100%;
+}
+
+.thumb1P{
+	font-family:Arial, Helvetica, sans-serif !important;
+	font-weight:100;
+	color:#FFFFFF !important;
+	font-size:13px !important;
+	line-height:18px !important;
+	width:180px;
+	padding-left:195px;
+	padding-top:10px;
+}
+
+.thumb2Div{
+	background-image:url("/sites/default/files/fluke2/images/mf-ti95-15a-k-600x402.jpg");
+	background-color:#FF0000;
+	width:100%;
+	height:100%;
+}
+
+.thumb2P{
+	font-family:Arial, Helvetica, sans-serif !important;
+	font-weight:100;
+	color:#FFFFFF !important;
+	font-size:13px !important;
+	line-height:18px !important;
+	width:170px;
+	padding-left:12px;
+	padding-top:50px;
+}
+
+.thumb3Div{
+	background-image:url("/sites/default/files/fluke2/images/F-712b-04a-c-600x402.jpg");
+	background-color:#FF0000;
+	width:100%;
+	height:100%;
+}
+
+.thumb3P{
+	font-family:Arial, Helvetica, sans-serif !important;
+	font-weight:100;
+	color:#FFFFFF !important;
+	font-size:13px !important;
+	line-height:18px !important;
+	width:115px;
+	padding-left:10px;
+	padding-top:20px;
+}
+
+.thumb4Div{
+	background-image:url("/sites/default/files/fluke2/images/F-190-204_11b_328px_x_220px.jpg");
+	background-color:#FF0000;
+	width:100%;
+	height:100%;
+}
+
+.thumb4P{
+	font-family:Arial, Helvetica, sans-serif !important;
+	font-weight:100;
+	color:#FFFFFF !important;
+	font-size:13px !important;
+	line-height:18px !important;
+	width:165px;
+	padding-left:206px;
+	padding-top:8px;
+}
+
+.thumb5Div{
+	background-image:url("/sites/default/files/fluke2/images/F-1625-2-01b-s600x402.jpg");
+	background-color:#FF0000;
+	width:100%;
+	height:100%;
+}
+
+.thumb5P{
+	font-family:Arial, Helvetica, sans-serif !important;
+	font-weight:100;
+	color:#FFFFFF !important;
+	font-size:13px !important;
+	line-height:18px !important;
+	width:240px;
+	padding-left:48px;
+	padding-top:157px;
+}
+
+.thumb6Div{
+	background-image:url("/sites/default/files/fluke2/images/F-1730-18a-s-600x402.jpg");
+	background-color:#FF0000;
+	width:100%;
+	height:100%;
+}
+
+.thumb6P{
+	font-family:Arial, Helvetica, sans-serif !important;
+	font-weight:100;
+	color:#FFFFFF !important;
+	font-size:13px !important;
+	line-height:18px !important;
+	width:90px;
+	padding-left:282px;
+	padding-top:35px;
+}
+
+.thumb7Div{
+	background-image:url("/sites/default/files/fluke2/images/F-568ex_03a_328px_x_220px.jpg");
+	width:100%;
+	height:100%;
+}
+
+.thumb7P{
+	font-family:Arial, Helvetica, sans-serif !important;
+	font-weight:100;
+	color:#FFFFFF !important;
+	font-size:13px !important;
+	line-height:18px !important;
+	width:122px;
+	padding-left:248px;
+	padding-top:111px;
+}
+
+.thumb7P2{
+	padding-top:60px;
+}
+
+.thumb8Div{
+	background-image:url("/sites/default/files/fluke2/images/F-810_10a_s_328px_x_220px.jpg");
+	width:100%;
+	height:100%;
+}
+
+.thumb8P{
+	font-family:Arial, Helvetica, sans-serif !important;
+	font-weight:100;
+	color:#FFFFFF !important;
+	font-size:13px !important;
+	line-height:18px !important;
+	width:350px;
+	padding-left:20px;
+	padding-top:185px;
+}

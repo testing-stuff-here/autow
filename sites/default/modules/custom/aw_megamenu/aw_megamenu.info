@@ -1,0 +1,4 @@
+name = Automation World Bootstrap Theme Mega Menu
+description = Mega Menus for AW redesign (May 2015)
+package = "custom"
+core = 7.x

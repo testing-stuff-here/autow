@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Webinar Registration feature.
+ */
+
+include_once 'webinar_registration.features.inc';

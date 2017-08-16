@@ -1,0 +1,30 @@
+#sliding-panel {
+display: none;
+position: fixed;
+bottom: 0;
+right: 0px;
+border-top-left-radius: 20px;
+-moz-border-radius-topleft: 20px;
+-webkit-border-top-left-radius: 20px;
+width: auto;
+height: auto;
+padding: 10px;
+background: transparent url('images/transparent.png') repeat top left;
+border-left: 1px solid #b8b8b8;
+border-top: 1px solid #b8b8b8;
+margin: 10px 0 0 10px;
+box-shadow: 0px 0px 6px #a9a9a9;
+-webkit-box-shadow: 0px 0px 6px #a9a9a9;
+-moz-box-shadow: 0px 0px 6px #a9a9a9;
+z-index: 100;
+width:652px; }
+.close-slide-in {display:block; font-size:25px; padding:5px; position:absolute; right:5px; top:0; cursor:pointer; }
+#block-block-41 {display:none;}
+#sliding-panel .node-stage-one-form { background-color:transparent; border:none; padding-bottom:0px; display:block; }
+#sliding-panel .node-stage-one-form .field-name-field-form-description  { text-align:left; }
+#sliding-panel .node-stage-one-form .field-name-field-form-description .field-item{ background-color: transparent; margin: 5px 0 0 0; font-style:italic; color:#000; padding-top:0px; width:150px; position:static; background-image:none; font-weight:bold; }
+#sliding-panel .node-stage-one-form .stage-one-title { padding-top:5px; }
+#sliding-panel .node-stage-one-form .field-name-field-image img { padding-top:0px; margin-top:5px; margin-bottom:0px; }
+@media screen and (max-width: 480px) {
+  #sliding-panel { display:none !important; }
+}

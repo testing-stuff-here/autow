@@ -1,0 +1,1205 @@
+<?php
+/*
+TODO:
+- create views filter for this field
+
+TODO but only nice to have OR low priority:
+- Bug in field settings - need to consider default values and how to display them in the settings page (low priority)
+- UI fr "ajax is updating" type of functionality so the user knows if something is updating or not (nice to have)
+- use form_set_value() for leaner code. see options_field_widget_validate() (nice to have)
+
+*/
+
+module_load_include('inc', 'pmg_reltw', '/pmg_reltw.field');
+
+function pmg_reltw_menu() {
+  $items['pmg_reltw_field_ajax'] = array(
+    'page callback' => 'pmg_reltw_field_ajax',
+    'delivery callback' => 'ajax_deliver',
+    'access arguments' => array('access content'),
+    'theme callback' => 'ajax_base_page_theme',
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['admin/config/content/pmg_reltw'] = array(
+    'title' => 'Related Nodes by Term',
+    'description' => 'Basic Settings for related nodes most settings are in the blocks config.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('pmg_reltw_admin_settings'),
+    'file' => 'pmg_reltw.admin.inc',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+function pmg_reltw_field_ajax() {
+  $form_parents = func_get_args();
+
+  list($form, $form_state) = ajax_get_form();
+
+  //$form_state['cache'] = TRUE;
+  $form_state['rebuild'] = TRUE;
+  $form_state['submitted'] = FALSE;
+  $form_state['input'] = $_POST;
+
+
+  drupal_process_form($form['#form_id'], $form, $form_state);
+  //return array('#type' => 'ajax', '#commands' => array());
+
+  foreach ($form_parents as $parent) {
+    $form = $form[$parent];
+  }
+
+  unset($form['#theme_wrappers']);
+
+  $render = drupal_render($form);
+  $output = theme('status_messages') . $render;
+
+  $commands = array();
+  $commands[] = array(
+    'command' => 'pmg_reltwFieldUpdate',
+    'output' => $output,
+  );
+
+  return array('#type' => 'ajax', '#commands' => $commands);
+}
+
+
+/**
+ * Implements hook_block_info().
+ */
+function pmg_reltw_block_info() {
+  // This example comes from node.module.
+
+  $blocks['pmg_reltw_default'] = array(
+    'info' => t('Related Nodes using Reltw'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
+
+  $max = (int) variable_get('pmg_reltw_block_instance', 0);
+  if ($max > 0) {
+    for ($i = 1; $i <= $max; $i++) {
+      $blocks['pmg_reltw_default_' . $i] = array(
+        'info' => t('Related Nodes using Reltw #' . $i),
+        'cache' => DRUPAL_CACHE_PER_PAGE,
+      );
+    }
+  }
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function pmg_reltw_block_view($delta = '') {
+  // This example is adapted from node.module.
+  $block = array();
+
+  $block = array(
+    'subject' => t('Related Articles'),
+    'content' => theme('pmg_reltw_block', array(
+      'display_options' => variable_get('pmg_reltw_display_options_' . $delta, 'title_only'),
+      'nodes' => pmg_reltw_related_nodes($delta),
+    )),
+  );
+
+  return $block;
+}
+
+function pmg_reltw_related_nodes($delta) {
+  $nid = 0;
+  if (arg(0) == 'node' && is_numeric(arg(1)) && !$nid) {
+    $nid = arg(1);
+  }
+
+  if (!$nid) {
+    return '';
+  }
+
+  $fieldname = variable_get('pmg_reltw_fieldname_' . $delta, '');
+  if (!$fieldname) {
+    return '';
+  }
+
+  $cache_lifetime = variable_get('pmg_reltw_cache_options', 3600);
+  $node_display_limit = variable_get('pmg_reltw_count_' . $delta, 5);
+
+  $debug = FALSE;
+  if (module_exists('devel')) {
+    $debug = variable_get('pmg_reltw_debug', FALSE);
+  }
+
+  $cid = "$delta:$nid";
+  if ($cache_lifetime) {
+    if ($cached = cache_get($cid, 'cache_pmg_reltw_block')) {
+      return $cached->data;
+    }
+  }
+
+  $node_obj = node_load($nid);
+  // No Terms are Selected
+  $no_terms_selected = FALSE;
+  if (!isset($node_obj->{$fieldname}['und'])) {
+    $no_terms_selected = TRUE;
+  }
+
+
+  //Sponsored Links Block
+  if ($delta == 'pmg_reltw_default') {
+
+    //Only if not marked as legacy tagging
+    if ($node_obj->field_legacy['und'][0]['value'] != 1 && !$no_terms_selected) {
+      $legacy_tagging = FALSE;
+
+      //get L1 term of first group
+      $term_L1 = $node_obj->field_allterms['und'][0]['tid'];
+
+      //get all terms
+      foreach ($node_obj->field_allterms['und'] as $termdata) {
+        $all_terms = taxonomy_term_load($termdata['tid']);
+      }
+      //get all L1 terms
+      foreach ($node_obj->field_allterms['und'] as $termdata) {
+        if (!taxonomy_get_parents($termdata['tid'])) { // for all L1 terms
+          $term_L1_terms[] = $termdata['tid'];
+        }
+      }
+      if (isset($term_L1_terms)) {
+        $term_L1_terms = array_unique($term_L1_terms);
+
+        //get all the L2 terms
+        foreach ($node_obj->field_allterms['und'] as $termdata) {
+          $term = $termdata['tid'];
+          $parent = taxonomy_get_parents($term);
+          if ($parent) {
+            foreach ($parent as $property => $value) {
+              $parent_term = $value->tid;
+            }
+            if (array_search($parent_term, $term_L1_terms) !== FALSE) {
+              $term_L2_terms[] = $term;
+            }
+          }
+        }
+        if (isset($term_L2_terms)) {
+          $term_L2_terms = array_unique($term_L2_terms);
+
+          //get all the L3 terms
+          foreach ($node_obj->field_allterms['und'] as $termdata) {
+            $term = $termdata['tid'];
+            $parent = taxonomy_get_parents($term);
+            if ($parent) {
+              foreach ($parent as $property => $value) {
+                $parent_term = $value->tid;
+              }
+              if (array_search($parent_term, $term_L2_terms) !== FALSE) {
+                $term_L3_terms[] = $term;
+              }
+            }
+          }
+          if (isset($term_L3_terms)) {
+            $term_L3_terms = array_unique($term_L3_terms);
+          }
+        }
+      }
+
+      $sponsored_links = array();
+
+      // *** CASE #1 - Match on L3 term
+      if (isset($term_L3_terms[0])) {
+        $records = _pmg_reltw_query_by_terms($term_L3_terms[0]);
+        if ($records) {
+          //Get only nodes with L2 term
+          foreach ($records as $record) {
+            $node = node_load($record['nid']);
+
+            if (isset($node->field_allterms['und'][0]['tid'])) {
+              $terms = array();
+              // *** GET ALL GROUP 1 TERMS
+              foreach ($node->field_allterms['und'] as $termdata) {
+                if ($termdata['group'] == 1) {
+                  $terms[] = $termdata['tid'];
+                }
+              }
+              // *** GET L3 TERM
+              //first get L1 term
+              foreach ($terms as $term) {
+                if (!taxonomy_get_parents($term)) {
+                  $term_L1 = $term;
+                }
+              }
+
+              //Now you can figure our the L2 term from the L1 term
+              foreach ($terms as $term) {
+                $parent = taxonomy_get_parents($term);
+                if ($parent) {
+                  foreach ($parent as $property => $value) {
+                    $parent_term = $value->tid;
+                  }
+                  if ($parent_term == $term_L1) {
+                    $term_L2 = $term;
+                  }
+                }
+              }
+
+              //Now you can figure our the L3 term from the L2 term
+              foreach ($terms as $term) {
+                $parent = taxonomy_get_parents($term);
+                if ($parent) {
+                  foreach ($parent as $property => $value) {
+                    $parent_term = $value->tid;
+                  }
+                  if ($parent_term == $term_L2 && $term == $term_L3_terms[0]) {
+                    $nodes_with_L3_term[] = $record;
+                  }
+                }
+              }
+            }
+          }
+
+          if (isset($nodes_with_L3_term)) {
+            $sponsored_links_3 = array_merge($sponsored_links, $nodes_with_L3_term);
+            $sponsored_links = pmg_reltw_company_split($sponsored_links_3);
+          }
+        }
+      }
+
+      // *** END CASE #1
+
+      // *** CASE #2 - Match on L2 term
+      if (isset($term_L2_terms[0]) && count($sponsored_links) < $node_display_limit) {
+        $records = _pmg_reltw_query_by_terms($term_L2_terms[0]);
+        if ($records) {
+          //Get only nodes with L2 term
+          foreach ($records as $record) {
+            $node = node_load($record['nid']);
+
+            if (isset($node->field_allterms['und'][0]['tid'])) {
+              $terms = array();
+              // *** GET ALL GROUP 1 TERMS
+              foreach ($node->field_allterms['und'] as $termdata) {
+                if ($termdata['group'] == 1) {
+                  $terms[] = $termdata['tid'];
+                }
+              }
+              // *** GET L2 TERM
+              //first get L1 term
+              foreach ($terms as $term) {
+                if (!taxonomy_get_parents($term)) {
+                  $term_L1 = $term;
+                }
+              }
+
+              //Now you can figure our the L2 term from the L1 term
+              foreach ($terms as $term) {
+                $parent = taxonomy_get_parents($term);
+                if ($parent) {
+                  foreach ($parent as $property => $value) {
+                    $parent_term = $value->tid;
+                  }
+                  if ($parent_term == $term_L1 && $term == $term_L2_terms[0]) {
+                    $nodes_with_L2_term[] = $record;
+                  }
+                }
+              }
+            }
+          }
+          if (isset($nodes_with_L2_term)) {
+            $sponsored_links_2 = array_merge($sponsored_links, $nodes_with_L2_term);
+            $sponsored_links = pmg_reltw_company_split($sponsored_links_2);
+          }
+        }
+      }
+      // *** End Case #2
+
+      // *** Case #3 - Match on L1 term Row 1
+      if (isset($term_L1_terms[0]) && count($sponsored_links) < $node_display_limit) {
+        $records = _pmg_reltw_query_by_terms($term_L1_terms[0]);
+        if ($records) {
+          //Get only nodes with L1 term
+          foreach ($records as $record) {
+            $node = node_load($record['nid']);
+
+            if (isset($node->field_allterms['und'][0]['tid'])) {
+              $terms = array();
+              // *** GET ALL GROUP 1 TERMS
+              foreach ($node->field_allterms['und'] as $termdata) {
+                if ($termdata['group'] == 1) {
+                  $terms[] = $termdata['tid'];
+                }
+              }
+
+              //Check if L1 term
+              foreach ($terms as $term) {
+                if (!taxonomy_get_parents($term) && $term == $term_L1_terms[0]) {
+                  $nodes_with_L1_term_row_1[] = $record;
+                }
+              }
+            }
+          }
+          if (isset($nodes_with_L1_term_row_1)) {
+            $sponsored_links_1 = array_merge($sponsored_links, $nodes_with_L1_term_row_1);
+            $sponsored_links = pmg_reltw_company_split($sponsored_links_1);
+          }
+        }
+      }
+      // *** End Case #3
+
+      //  *** Case #4 - Check on all L1 terms(any row)
+      if (count($sponsored_links) < $node_display_limit) {
+
+        //#1333 Removing terms with a vocabulary of Applications
+        foreach ($term_L1_terms as $term_tid) {
+          $term_object = taxonomy_term_load($term_tid);
+          if ($term_object->vid != 20) {
+            $filtered_L1_terms[] = $term_tid;
+          }
+        }
+
+        if (isset($filtered_L1_terms)) {
+          $records = _pmg_reltw_query_by_terms($filtered_L1_terms);
+        }
+        else {
+          $records = NULL;
+        }
+
+        if ($records) {
+          //Randomize
+          shuffle($records);
+          //Remove Nodes that were already caught in cases above
+          foreach ($records as $record) {
+            if (!array_search($record, $sponsored_links)) {
+              $nodes_with_L1_term_all[] = $record;
+            }
+          }
+          $sponsored_links = array_merge($sponsored_links, $nodes_with_L1_term_all);
+          $sponsored_links = _pmg_reltw_remove_duplicates($sponsored_links);
+
+        }
+      }
+      // *** End Case #4
+      if (count($sponsored_links) == 0) {
+        $legacy_tagging = TRUE;
+        //changing the style of the block
+        pmg_reltw_change_sponored_css();
+      }
+    }
+    else {
+      $legacy_tagging = TRUE;
+      pmg_reltw_change_sponored_css();
+    }
+
+
+    if ($legacy_tagging) {
+
+      $query = db_select('node', 'node');
+      $query->fields('node', array('created', 'nid'));
+      $query->addField('field_data_field_companies', 'field_companies_nid', 'field_companies_nid');
+      $query->leftJoin('field_data_field_companies', 'field_data_field_companies', "node.nid = field_data_field_companies.entity_id AND (field_data_field_companies.entity_type = 'node' AND field_data_field_companies.deleted = :field_data_field_companies_deleted)  ", array(':field_data_field_companies_deleted' => 0));
+      $query->join('field_data_field_term_source_type', 'field_term_source_type', 'node.nid = field_term_source_type.entity_id AND node.vid = field_term_source_type.revision_id');
+      $query->join('field_data_field_sponsor_expiration', 'field_sponsor_expiration', 'node.nid = field_sponsor_expiration.entity_id
+				AND node.vid = field_sponsor_expiration.revision_id');
+      $query->condition('status', '1', '=');
+      $query->condition('field_term_source_type.field_term_source_type_tid', '165');
+      $query->condition('field_companies_nid', 'NULL', '<>');
+      $query->condition('field_sponsor_expiration_value', date('Y-m-d H:i:s'), '>=');
+      $query->orderBy('created', 'desc');
+      $query->distinct();
+      $result = $query->execute();
+
+      while ($record = $result->fetchAssoc()) {
+        $records[] = $record;
+      }
+
+      if (isset($records)) {
+        $sponsored_links = pmg_reltw_company_split($records);
+        shuffle($sponsored_links);
+      }
+      else {
+        //just making an empty array if no records
+        $sponsored_links = array();
+      }
+    }
+
+
+    $related_nodes = array();
+
+    $cnt = 0;
+    foreach ($sponsored_links as $key => $nodes) {
+      if ($cnt < $node_display_limit) {
+        $sponsored_nodes = node_load($nodes['nid']);
+        // Adding this so I can use different google events further down
+        if ($legacy_tagging == TRUE) {
+          $sponsored_nodes->legacy = TRUE;
+        }
+        $related_nodes[$key] = $sponsored_nodes;
+        $cnt++;
+      }
+    }
+
+  }
+
+  //Related Articles block
+  else {
+
+    //Not showing anything for Related Articles
+    if ($no_terms_selected) {
+      return '';
+    }
+
+    // Group by group number. Only get the first 3 groups
+    $groups = array();
+    $group_cnt = 0;
+    $last_group = NULL;
+    foreach ($node_obj->{$fieldname}['und'] as $item) {
+      $groups[$item['group']][] = $item;
+      /*
+      if ($item['group'] != $last_group) {
+        $group_cnt++;
+      }
+
+      $last_group = $item['group'];
+      if ($group_cnt > 2) break;
+      */
+    }
+
+    $related_nodes = array();
+
+    // Process first group which requires that
+    /*
+    SELECT q4.entity_id
+    FROM (
+      SELECT q2.entity_id
+      FROM (
+        select entity_id from field_data_field_allterms where field_allterms_tid=4 and field_allterms_group=1
+      ) as q1
+      LEFT JOIN field_data_field_allterms as q2 on q1.entity_id=q2.entity_id
+      WHERE q2.field_allterms_tid=26 and q2.field_allterms_group=1
+    ) as q3
+    LEFT JOIN field_data_field_allterms as q4 on q3.entity_id=q4.entity_id
+    where q4.field_allterms_tid=28 and q4.field_allterms_group=1
+    */
+
+    if ($debug) {
+      dsm($groups, 'Block [' . $delta . '] groups');
+    }
+    //
+    $table_name = 'field_data_' . $fieldname;
+    $field_tid_name = $fieldname . '_tid';
+    $field_group_name = $fieldname . '_group';
+
+    $table_cnt = 1;
+    $cnt = 0;
+    $params = array();
+    $first_group = TRUE;
+    $prev_results = array();
+    $next_group = FALSE;
+    foreach ($groups as $group_id => $group) {
+      foreach ($group as $item) {
+        if ($item['group'] != 1) {
+          $first_group = FALSE;
+        }
+
+        if ($cnt == 0) {
+          /*
+          $query_string = "SELECT entity_id
+            FROM {{$table_name}} first_table
+            LEFT JOIN {node} as node ON node.nid=first_table.entity_id
+            WHERE $field_tid_name=:tid AND entity_id != :nid AND node.status=1
+              AND $field_group_name=1
+            ORDER BY node.created DESC";
+          */
+          $obj_query = db_select($table_name, 'first_table')
+            ->fields('first_table', array('entity_id'))
+            ->condition('node.status', '1')
+            ->condition('nid', $nid, '!=')
+            ->condition($field_tid_name, $item['tid']);
+          $obj_query->leftJoin('node', 'node', 'node.nid = first_table.entity_id
+	    			AND node.vid = first_table.revision_id');
+
+          module_invoke_all('pmg_reltw_related_node_search', $delta, $obj_query);
+
+          if ($first_group) {
+            $obj_query->condition($field_group_name, 1);
+          }
+
+          $obj_query->orderBy('node.created', 'DESC');
+
+          $query[] = $obj_query->__toString();
+          $params = $obj_query->getArguments();
+
+          $result = db_query($query[0], $params);
+          $num_rows = $result->rowCount();
+
+          if ($num_rows == 0) {
+            // if it's the first term that is missing, then skip totally
+            break 2;
+          }
+          else {
+            if ($num_rows <= $node_display_limit) {
+              foreach ($result as $record) {
+                if (!in_array($record->entity_id, $related_nodes)) {
+                  $related_nodes[] = $record->entity_id;
+                }
+              }
+              if ($debug) {
+                dsm($query, "[rows: $num_rows] -- [cnt: $cnt] -- [tid: {$item['tid']}]");
+                dsm($params);
+              }
+              break 2;
+            }
+          }
+
+          if ($debug) {
+            dsm($query, "[rows: $num_rows] -- [cnt: $cnt] -- [tid: {$item['tid']}]");
+            dsm($params);
+          }
+
+          $table_cnt++;
+        }
+        else {
+          $table1 = 'q' . ($table_cnt++);
+          $table2 = 'q' . ($table_cnt++);
+
+          $key = $cnt - 1;
+          $query_string = "SELECT $table2.entity_id
+	          FROM ({$query[$key]}) as $table1
+	          LEFT JOIN {{$table_name}} as $table2 ON $table1.entity_id=$table2.entity_id
+	          WHERE $table2.$field_tid_name=:{$table2}_tid";
+          if ($first_group) {
+            $query_string .= " AND $table2.$field_group_name=1";
+          }
+
+          $params_tmp = $params;
+          $params_tmp[':' . $table2 . '_tid'] = $item['tid'];
+
+          $result = db_query($query_string, $params_tmp);
+          $num_rows = $result->rowCount();
+
+          if ($num_rows == 0) { // skip this query and group
+            if ($debug) {
+              dsm('empty. bypassed', "[rows: $num_rows] -- [cnt: $cnt] -- [tid: {$item['tid']}]");
+            }
+            break;
+          }
+          else {
+            if ($num_rows <= $node_display_limit) {
+              foreach ($result as $record) {
+                if (!in_array($record->entity_id, $related_nodes)) {
+                  $related_nodes[] = $record->entity_id;
+                }
+              }
+              if ($debug) {
+                dsm($query, "[rows: $num_rows] -- [cnt: $cnt] -- [tid: {$item['tid']}]");
+                dsm($params_tmp);
+              }
+              break 2;
+            }
+          }
+
+          $query[] = $query_string;
+          $params[':' . $table2 . '_tid'] = $item['tid'];
+          if ($debug) {
+            dsm($query, "[rows: $num_rows] -- [cnt: $cnt] -- [tid: {$item['tid']}]");
+            dsm($params_tmp);
+          }
+        }
+
+        if ($num_rows > 0) {
+          $tmp_limit_cnt = 1;
+          $tmp_limit = $node_display_limit * 2; // to make sure we have enough. it is possible the first result will be the same as the results from the actual
+          $prev_results = array();
+          foreach ($result as $record) {
+            if (in_array($record->entity_id, $prev_results)) {
+              continue;
+            }
+            $prev_results[] = $record->entity_id;
+            $tmp_limit_cnt++;
+            if ($tmp_limit_cnt == $tmp_limit) {
+              break;
+            }
+          }
+        }
+
+        $cnt++;
+      }
+    }
+
+
+    // no results because there are more than what we need, use the previous results
+    if (!$related_nodes && $prev_results) {
+      $related_nodes = array_slice($prev_results, 0, $node_display_limit);
+    }
+
+    $cnt = count($related_nodes);
+    if ($cnt < $node_display_limit) {
+      // get data from previous results
+      foreach ($prev_results as $entity_id) {
+        if (in_array($entity_id, $related_nodes)) {
+          continue;
+        }
+        $related_nodes[] = $entity_id;
+        $cnt++;
+        if ($cnt == $node_display_limit) {
+          break;
+        }
+      }
+    }
+
+    foreach ($related_nodes as $key => $nodes) {
+      $related_nodes[$key] = node_load($nodes);
+    }
+  }
+
+  if ($cache_lifetime) {
+    cache_set($cid, $related_nodes, 'cache_pmg_reltw_block', REQUEST_TIME + $cache_lifetime);
+  }
+
+  return $related_nodes;
+
+}
+
+/**
+ * Function for splitting out repeat companies
+ *
+ * @param $result
+ *  array of nodes
+ * @return $articles_with_unique_company
+ *  array of unique articles
+ */
+function pmg_reltw_company_split($result) {
+
+  $articles_with_unique_nids = array();
+  //First got to make sure that there aren't multiple nodes
+  foreach ($result as $article) {
+    //there can be multiple because of multiple companies in one node
+    if (_pmg_reltw_recursive_array_search($article['nid'], $articles_with_unique_nids) == FALSE) {
+      //if(_pw_sponsored_recursive_array_search($article['nid'],$articles_with_unique_nids) == FALSE) {
+      $articles_with_unique_nids[] = $article;
+    }
+  }
+  $articles_with_unique_company = array();
+  //Split up companies
+  //$articles_with_unique_company - this array contains sponsored links that have companies that were not yet used
+  //$articles_with_already_used_company - this array contains sponsored links that are already in articles_with_unique_company
+  foreach ($articles_with_unique_nids as $article) {
+    //if(module_invoke_all('_pw_sponsored_recursive_array_search', $article['field_companies_nid'], $articles_with_unique_company) == FALSE) {
+    if (_pmg_reltw_recursive_array_search($article['field_companies_nid'], $articles_with_unique_company) == FALSE) {
+      //only adding to array if the company nid was not used
+      $articles_with_unique_company[] = $article;
+    }
+  }
+
+  return $articles_with_unique_company;
+}
+
+
+/**
+ * Implements hook_block_configure().
+ */
+function pmg_reltw_block_configure($delta = '') {
+  $fields = array();
+  $allfields = field_info_fields();
+  foreach ($allfields as $key => $f) {
+    if ($f['module'] != 'pmg_reltw') {
+      continue;
+    }
+    if (isset($f['bundles']['node'])) {
+      $fields[$key] = $key;
+    }
+  }
+  $form['fieldname'] = array(
+    '#type' => 'select',
+    '#title' => t('Field name to collect the terms'),
+    '#default_value' => variable_get('pmg_reltw_fieldname_' . $delta, 5),
+    '#options' => $fields,
+    '#required' => TRUE,
+  );
+
+  $form['count'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Item count'),
+    '#default_value' => variable_get('pmg_reltw_count_' . $delta, 5),
+    '#size' => 3,
+    '#description' => t('The maximum number of related nodes to display'),
+  );
+
+  $display_options = array(
+    'title_only' => t('Display titles only'),
+    'teaser' => t('Display titles and teaser'),
+  );
+  $form['display_options'] = array(
+    '#type' => 'radios',
+    '#title' => t('Display Options'),
+    '#default_value' => variable_get('pmg_reltw_display_options_' . $delta, 'title_only'),
+    '#options' => $display_options,
+    '#required' => FALSE,
+    '#prefix' => '<div>',
+    '#suffix' => '</div>',
+  );
+
+  // limit to same page type
+  $types = array('0' => t('<none>'), '1' => t('same as current'));
+  $arr_types_obj = node_type_get_types();
+  foreach ($arr_types_obj as $type => $obj) {
+    $types[$type] = $obj->name;
+  }
+
+  $form['sametype'] = array(
+    '#type' => 'select',
+    '#title' => t('Content type limit'),
+    '#default_value' => variable_get('pmg_reltw_sametype_' . $delta, FALSE),
+    '#options' => $types,
+    '#description' => t('Limit to pages of this or these content type(s)'),
+    '#multiple' => TRUE
+  );
+
+  return $form;
+}
+
+/**
+ * Perform the "save" op for hook_block().
+ *
+ * @param $delta
+ *   String specifying which block to proocess.
+ * @param $edit
+ *   Array containg the form input.
+ *
+ * @return
+ *   None. Values are saved as system variables.
+ */
+function pmg_reltw_block_save($delta = '', $edit = array()) {
+  variable_set('pmg_reltw_count_' . $delta, $edit['count']);
+  variable_set('pmg_reltw_fieldname_' . $delta, $edit['fieldname']);
+  variable_set('pmg_reltw_sametype_' . $delta, $edit['sametype']);
+  variable_set('pmg_reltw_display_options_' . $delta, $edit['display_options']);
+}
+
+/**
+ * Implements hook_theme().
+ */
+function pmg_reltw_theme() {
+  return array(
+    'pmg_reltw_block' => array(
+      'template' => 'pmg_reltw_block',
+      'variables' => array('display_options' => NULL, 'nodes' => NULL),
+    ),
+  );
+}
+
+function pmg_reltw_preprocess_block(&$vars) {
+  /*
+  if($vars['block']->delta == 'pmg_reltw_default') {
+    $arg1 = arg(0);
+    $arg2 = arg(1);
+    if($arg1 == 'node') {
+      $node = node_load($arg2);
+      if($node->field_legacy['und'][0]['value'] == 1) {
+        drupal_add_css('#sidebar-left #block-pmg_reltw-pmg_reltw-default h3.title {background: url("http://www.packworld.com/sites/default/themes/pw960/css/images/sidebar_left_header_bg.png") repeat-x scroll center top transparent !important;}',$option['type'] = 'inline');
+        $vars['block']->subject = 'SPONSORED LINKS';
+      }
+    }
+  }
+  */
+}
+
+/**
+ * Preprocess for pmg_reltw_block.tpl.php.
+ *
+ * @todo: Needs to be converted to renderable array output.
+ */
+function template_preprocess_pmg_reltw_block(&$variables) {
+  $links = array();
+  $nodes = $variables['nodes'];
+  if ($nodes) {
+    foreach ($nodes as $node) {
+      if ($variables['display_options'] == 'teaser') {
+        $teaser = ' - ' . $node->teaser;
+      }
+      else {
+        $teaser = '';
+      }
+      $links[] = l($node->title, 'node/' . $node->nid) . $teaser;
+    }
+    $variables['items'] = theme('item_list', array('items' => $links));
+  }
+  else {
+    $variables['items'] = "";
+  }
+}
+
+function pmg_reltw_token_info() {
+
+  $info['tokens']['node']['first-term'] = array(
+    'name' => t("First Term"),
+    'description' => t("The first unique ID of the taxonomy term chosen."),
+    'type' => 'pmg_reltw',
+  );
+  $info['tokens']['node']['first-vocabulary'] = array(
+    'name' => t("First Vocabulary"),
+    'description' => t("The first unique ID of the vocabulary name chosen."),
+    'type' => 'pmg_reltw',
+  );
+  $info['tokens']['node']['article_terms_based_path'] = array(
+    'name' => t('Article terms based path'),
+    'description' => t('Path generated based on selected terms'),
+    'type' => 'pmg_reltw'
+  );
+  $info['tokens']['node']['all_node_terms'] = array(
+    'name' => t('All node terms'),
+    'description' => t('All of the terms in node, to use for DFP targeting'),
+    'type' => 'pmg_reltw'
+  );
+  $info['tokens']['node']['all_node_vocabulary'] = array(
+    'name' => t('All node terms'),
+    'description' => t('All of the vocabularies in node, to use for DFP targeting'),
+    'type' => 'pmg_reltw'
+  );
+
+  return $info;
+}
+
+/**
+ * Implements hook_tokens().
+ */
+function pmg_reltw_tokens($type, $tokens, array $data = array(), array $options = array()) {
+  $replacements = array();
+  $sanitize = !empty($options['sanitize']);
+
+  if ($type == 'node' && !empty($data['node'])) {
+    $node = $data['node'];
+
+    $fieldname = '';
+    $allfields = field_info_fields();
+    foreach ($allfields as $key => $f) {
+      if ($f['module'] != 'pmg_reltw') {
+        continue;
+      }
+      $fieldname = $key;
+    }
+
+    if (!$fieldname) {
+      return;
+    }
+    if (empty($node->{$fieldname}[$node->language])) {
+      return;
+    }
+
+    foreach ($tokens as $name => $original) {
+      switch ($name) {
+
+        case 'all_node_vocabulary':
+          $vids = array();
+          foreach ($node->field_allterms['und'] as $term) {
+            if (!in_array($term['vid'], $vids)) {
+                $vocabs[] = taxonomy_vocabulary_load($term['vid'])->name;
+                $vids[] = $term['vid'];
+            }
+          }
+            $replacements[$original] = implode(",", $vocabs);
+
+          break;
+
+        case 'all_node_terms':
+
+          foreach ($node->field_allterms['und'] as $term) {
+            $terms[] = taxonomy_term_load($term['tid'])->name;
+          }
+            $replacements[$original] = implode(",", $terms);
+
+          break;
+
+        case 'first-term':
+
+          if (isset($node->{$fieldname}[$node->language][0])) {
+            $tid = $node->{$fieldname}[$node->language][0]['tid'];
+          }
+          // When we cross post items the taxonomies may not have a 0 key. This
+          // gets the first one if 0 doesn't exist.
+          else {
+            reset($node->{$fieldname}[$node->language]);
+            $first_key = key($node->{$fieldname}[$node->language]);
+            $tid = $node->{$fieldname}[$node->language][$first_key]['tid'];
+          }
+
+          $term = taxonomy_term_load($tid);
+          if ($term) {
+            $replacements[$original] = check_plain($term->name);
+          }
+
+          break;
+        case 'first-vocabulary':
+
+          if (isset($node->{$fieldname}[$node->language][0])) {
+            $vid = $node->{$fieldname}[$node->language][0]['vid'];
+          }
+          // When we cross post items the taxonomies may not have a 0 key. This
+          // gets the first one if 0 doesn't exist.
+          else {
+            reset($node->{$fieldname}[$node->language]);
+            $first_key = key($node->{$fieldname}[$node->language]);
+            $vid = $node->{$fieldname}[$node->language][$first_key]['vid'];
+          }
+
+          $v = taxonomy_vocabulary_load($vid);
+          if ($v) {
+            $replacements[$original] = check_plain($v->name);
+          }
+
+          break;
+
+        case 'article_terms_based_path':
+
+          // Define operating vars
+          $grouped_terms = array();
+          $path = array();
+          $generating_path = FALSE;
+          $generating_path_group = 0;
+          $generating_path_include_vocab_name = FALSE;
+          $i = 0;
+
+          // generate structured terms array
+          foreach ($node->field_allterms['und'] as $term) {
+            $grouped_terms[$term['group']][] = $term['tid'];
+          }
+
+          foreach ($grouped_terms as $group => $terms) {
+            foreach ($terms as $term) {
+              if ($group != '1') { // if terms group == 2, 3, 4, 5, etc
+                // start searching group of terms to generate alias
+                if (!$generating_path) {
+                  if ($term == 388) { // if term == Food - generate alias by terms in this group
+                    $generating_path = TRUE;
+                    $generating_path_group = $group;
+                  }
+                }
+              }
+            }
+          }
+
+          if (!$generating_path) { // if nothing found - generate alias by first group with vocabulary name
+            $generating_path_group = 1;
+            $generating_path = TRUE;
+            $generating_path_include_vocab_name = TRUE;
+          }
+
+          if ($generating_path) { // generate alias part
+            foreach ($grouped_terms[$generating_path_group] as $term_id) { // process all terms in group
+              $term_data = taxonomy_term_load($term_id);
+              $path[] = pathauto_cleanstring($term_data->name);
+              if ($generating_path_include_vocab_name && $i == 0) { // if need - include vocab name in the beginning of path
+                $vocab_data = taxonomy_vocabulary_load($term_data->vid);
+                array_unshift($path, pathauto_cleanstring($vocab_data->name));
+              }
+              $i++;
+            }
+          }
+
+          if (!empty($path)) {
+            $replacements[$original] = implode('/', $path);
+          }
+          else {
+            $replacements[$original] = '';
+          }
+
+          break;
+      }
+    }
+  }
+
+  return $replacements;
+}
+
+/**
+ * Function for  dealing with duplicate company nids
+ *
+ * @param $needle
+ *  string to use for search
+ * @param $heystack
+ *  array to use for seach
+ * @return
+ *  boolean
+ */
+function _pmg_reltw_recursive_array_search($needle, $haystack) {
+  foreach ($haystack as $key => $value) {
+    $current_key = $key;
+    if ($needle === $value OR (is_array($value) && _pmg_reltw_recursive_array_search($needle, $value) !== FALSE)) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Function for sending a query
+ */
+function _pmg_reltw_query_by_terms($tids) {
+  if (is_array($tids)) {
+    $operator = 'in';
+  }
+  else {
+    $operator = '=';
+  }
+  $query = db_select('node', 'node');
+  $query->fields('node', array('created', 'nid'));
+  $query->addField('field_data_field_companies', 'field_companies_nid', 'field_companies_nid');
+  $query->leftJoin('field_data_field_companies', 'field_data_field_companies', "node.nid = field_data_field_companies.entity_id AND (field_data_field_companies.entity_type = 'node' AND field_data_field_companies.deleted = :field_data_field_companies_deleted)  ", array(':field_data_field_companies_deleted' => 0));
+  $query->join('field_data_field_term_source_type', 'field_term_source_type', 'node.nid = field_term_source_type.entity_id AND node.vid = field_term_source_type.revision_id');
+  $query->join('taxonomy_index', 'taxonomy_index', 'node.nid = taxonomy_index.nid');
+  $query->join('field_data_field_sponsor_expiration', 'field_sponsor_expiration', 'node.nid = field_sponsor_expiration.entity_id
+		AND node.vid = field_sponsor_expiration.revision_id');
+  $query->condition('status', '1', '=');
+  $query->condition('field_term_source_type.field_term_source_type_tid', '165');
+  $query->condition('taxonomy_index.tid', $tids, $operator);
+  $query->condition('field_companies_nid', 'NULL', '<>');
+  $query->condition('field_sponsor_expiration_value', date('Y-m-d H:i:s'), '>=');
+  $query->condition('node.nid', arg(1), '<>');
+  $query->orderBy('created', 'desc');
+  $query->distinct();
+  $result = $query->execute();
+
+  while ($record = $result->fetchAssoc()) {
+    $records[] = $record;
+  }
+  if (isset($records)) {
+    //$sponsored_links = pmg_reltw_company_split($records);
+    return $records;
+  }
+  else {
+    //just making an empty array if no records
+    $sponsored_links = array();
+    return $sponsored_links;
+  }
+}
+
+/**
+ * Function for removing duplicate nodes
+ */
+function _pmg_reltw_remove_duplicates($nodes) {
+  $nodes_without_duplicates = array();
+  foreach ($nodes as $node) {
+    if (_pmg_reltw_recursive_array_search($node['nid'], $nodes_without_duplicates) == FALSE) {
+      $nodes_without_duplicates[] = $node;
+    }
+  }
+
+  return $nodes_without_duplicates;
+}
+
+/**
+ * Respond to the deletion of taxonomy terms.
+ */
+function pmg_reltw_taxonomy_term_delete($term) {
+  pmg_reltw_setup_detele_terms_batch($term);
+}
+
+/**
+ * Sets up the batch operation of going through all the nodes and deleting the terms
+ */
+function pmg_reltw_setup_detele_terms_batch($term) {
+  // Wow, we have to go through all our fields to delete them and arrange them again
+  $result = db_query('SELECT * FROM {field_config} WHERE type=\'pmg_reltw_field\' AND active=1 AND deleted=0');
+
+  $nids = array();
+  foreach ($result as $record) {
+    $table = 'field_data_' . $record->field_name;
+    $sql = 'SELECT entity_id FROM {' . $table . '} WHERE deleted=0 AND ' . $record->field_name . '_tid=' . $term->tid;
+    $result2 = db_query($sql);
+    foreach ($result2 as $record2) {
+      $nids[$record2->entity_id] = array(
+        $record2->entity_id,
+        $record->field_name
+      );
+    }
+  }
+
+  $children = _pmg_reltw_taxonomy_get_children_all($term->tid, $term->vid);
+  $tids = array();
+  $tids[$term->tid] = $term->tid;
+  foreach ($children as $child) {
+    $tids[$child->tid] = $child->tid;
+  }
+
+  //Break up all of our data so each process does not time out.
+  $chunks = array_chunk($nids, 20, TRUE);
+  $operations = array();
+  $count_chunks = count($chunks);
+
+  //for every chunk, assign some method to run on that chunk of data
+  foreach ($chunks as $chunk) {
+    $operations[] = array("pmg_reltw_batch_nodes", array($chunk, $tids));
+  }
+
+  //put all that information into our batch array
+  $batch = array(
+    'operations' => $operations,
+    'title' => t('Taxonomy Delete Batch Operation to delete Reltw terms'),
+    'init_message' => t('Initializing'),
+    'error_message' => t('An error occurred'),
+    'progress_message' => t('Processed @current out of @total.'),
+    'finished' => 'pmg_reltw_batch_finished'
+  );
+
+  //Get the batch process all ready!
+  batch_set($batch);
+}
+
+/**
+ * Go through all the nodes
+ */
+function pmg_reltw_batch_nodes($chunk, $tids) {
+
+  foreach ($chunk as $nid => $info) {
+    $node = node_load($nid);
+    $field_name = $info[1];
+
+    if (!isset($node->$field_name)) {
+      continue;
+    }
+
+    foreach ($node->{$field_name}['und'] as $id => $field) {
+      if (isset($tids[$field['tid']])) {
+        unset($node->{$field_name}['und'][$id]);
+      }
+    }
+
+    ksort($node->{$field_name}['und']);
+    $node->{$field_name}['und'] = array_merge(array(), $node->{$field_name}['und']);
+
+    node_save($node);
+  }
+
+  $context['message'] = t('Finished first batch of nodes');
+}
+
+function pmg_reltw_batch_finished($success, $results, $operations) {
+  //Let the user know we have finished!
+  $context['message'] = t('Finished importing!');
+}
+
+function _pmg_reltw_taxonomy_get_children_all($tid, $vid = 0, $key = 'tid') {
+  $result = array();
+  $c = taxonomy_get_children($tid, $vid, $key);
+  foreach ($c as $t => $d) {
+    $result[$t] = $d;
+    $below = _pmg_reltw_taxonomy_get_children_all($t, $vid, $key);
+    if (!empty($below)) {
+      foreach ($below as $nt => $nd) {
+        $result[$nt] = $nd;
+      }
+    }
+  }
+  return $result;
+}
+
+/**
+ * Function for changing the header of the Sponsored Articles
+ */
+function pmg_reltw_change_sponored_css() {
+
+  drupal_add_css('#sidebar-left #block-pmg_reltw-pmg_reltw-default h3.title {background: url("http://www.packworld.com/sites/default/themes/pw960/css/images/sidebar_left_header_bg.png") repeat-x scroll center top transparent !important;}', $option['type'] = 'inline');
+  drupal_add_js('jQuery(document).ready(function($) { $("#block-pmg_reltw-pmg_reltw-default h3.title").html("SPONSORED LINKS"); });', 'inline');
+
+}

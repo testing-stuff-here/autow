@@ -1,0 +1,337 @@
+<?php
+/**
+ * @author Albert Jankowski <ajanmowski@summitmediagroup.com>
+ *
+ * @file
+ * Main file for forwarding newsletter
+ */
+
+
+/**
+ * Implements hook_menu()
+ */  
+function aw_newsletter_forward_menu() {
+  
+  $items['sendpage.php'] = array(
+    'page callback' => 'aw_newsletter_forward_handler',
+    'type' => MENU_CALLBACK,
+    'access callback' => TRUE,
+  );
+  $items['getpage.php'] = array(
+    'page callback' => 'aw_newsletter_forward_pagetoget_handler',
+    'type' => MENU_CALLBACK,
+    'access callback' => TRUE,
+  );
+  return $items;
+}
+
+/**
+ * Handler for redirecting to Omeda Newsletter Sign Up
+ */
+function aw_newsletter_forward_handler() {
+	
+  global $base_url; 
+  $show_form = 1;
+
+  if(isset($_REQUEST['id'])) {
+    $ar_idset = $_REQUEST['id']; 	
+  }
+  else {
+	$ar_ideset = NULL;
+  }
+
+  if(isset($_GET['desturl'])) {
+	$destUrl = $_GET['desturl'];
+  }
+  else {
+	$destUrl = NULL;
+  }
+
+  if(isset($_GET['emailfrom'])) {
+    $email_reply = $_GET['emailfrom']; 	
+  }
+  else {
+	$email_reply = NULL;
+  }
+
+  if(isset($_GET['emailto'])) {
+	$to  = $_GET['emailto'];
+  }
+  else {
+	$to = NULL;
+  }
+
+  if(isset($_GET['send'])) {
+    $sendemail = $_GET['send'];	
+  }
+  else {
+	$sendemail = NULL;
+  }
+
+  if(isset($_GET['comment'])) {
+	$comment = $_GET['comment'];
+  }
+  else {
+	$comment = NULL;
+  }
+  
+  if($ar_idset && $sendemail) {
+	
+	$error = "";
+
+	if(!$email_reply) {
+		$error .= "Please enter your email address below.<br />";
+	}
+	if(!$to) { 
+		$error .= "Please enter the email of the person you would like to send this article to.<br />";
+	}
+	/*
+	
+	if(!$_GET['emailsubject']) {
+		$error .= "You must fill out the Subject field.<br />";
+	}
+	if(!$_GET['comment']) { 
+		$error .= "You must fill out the Comment field.<br />";
+	}
+	
+	*/
+
+	if($error){
+		drupal_set_message($error);
+	}
+
+   else {
+
+  // formulate the subject and comments based on ar_id
+  
+    switch ($ar_idset) {
+	    case 1:
+        $subject    = "Automation World Newsletter";
+        $basedomain = "http://www.automationworld.com/";
+        $fromName   = "Automation World";
+	      break;
+
+      case 2:
+        $subject    = "Automation World Webcast";
+        $basedomain = "http://www.automationworld.com/";
+        $fromName   = "Automation World";
+        break;
+
+      case 3:
+        $subject    = "Automation World Podcast";
+        $basedomain = "http://www.automationworld.com/";
+        $fromName   = "Automation World";
+        break;
+
+      case 4:
+        $subject    = "Automation World White Paper";
+        $basedomain = "http://www.automationworld.com/";
+        $fromName   = "Automation World";
+        break;
+
+      case 5:
+        $subject    = "Automation World Video";
+        $basedomain = "http://www.automationworld.com/";
+        $fromName   = "Automation World";
+        break;
+			}
+	   
+	  $desturl = $basedomain . $_GET['desturl'];
+
+    // message
+    $message = file($base_url . '/getpage.php?pagetoget='.urlencode($desturl));
+    //echo '<!-- '. print_r('http://www.summitpublish.com/getpage.php?pagetoget='.urlencode($desturl), 1) .' -->';
+
+    $rows = count($message);
+    preg_match("/^(http:\/\/)?([^\/]+)/i",$desturl, $matches);
+    $url = "http://".$matches[2];
+
+
+    for($i = 0; $i < $rows; $i++){
+
+  	 $tag[0] = "background";
+	   $tag[1] = "href";
+	   $tag[2] = "src";
+
+   	   $tags = count($tag);
+
+	   $message[$i] = str_replace('="https://','x_https_x',$message[$i]);
+	   $message[$i] = str_replace('="http://','x_http_x',$message[$i]);
+	   $message[$i] = str_replace("url\(http",'x_url_x',$message[$i]);
+	   $message[$i] = str_replace("url\(",'url('.$url,$message[$i]);
+
+	   for($j = 0; $j < $tags; $j++){
+
+	     $message[$i] = str_replace($tag[$j].'="/',$tag[$j].'="'.$url.'/',$message[$i]);
+   	     $message[$i] = str_replace('="http://','x_http_x',$message[$i]);
+	     $message[$i] = str_replace($tag[$j].'="',$tag[$j].'="'.$url.'/',$message[$i]);
+	     $message[$i] = str_replace('="http://','x_http_x',$message[$i]);
+   	 }
+
+	   $message[$i] = str_replace('"/',('"'.$url.'/'),$message[$i]);
+	   $message[$i] = str_replace('x_https_x','="https://',$message[$i]);
+	   $message[$i] = str_replace('x_http_x','="http://',$message[$i]);
+   	   $message[$i] = str_replace('x_url_x','url(http',$message[$i]);
+
+	  // $message[$i] = ereg_replace('<body(.*)>','<body\\1><div id="blarg" style="margin:0 auto; text-align:center;"><div style="width:500px; margin:0px; background-color:#FFFFFF; display:compact; text-align: left; margin: 10px; border:solid 3px #999999; padding:3px;">'.nl2br(htmlspecialchars($_GET['comment'])).'</div></div>',$message[$i]);
+    }
+
+    $message = implode("\n",$message);
+
+    $message = '<div style="height:100px; margin:0px; background-color:#FFFFFF; display:compact; text-align: center; margin: 10px; border:solid 3px #999999; padding:3px;color:#000000"> <B>The following email was forwarded to you by '. $email_reply . '. The sender has not been verified:<BR></b>'.htmlspecialchars($comment)."</div><br /><div>".$message."</div>";
+
+    aw_newsletter_forward_send_mail($_GET['emailto'],$email_reply, $subject, $message, "",$cc_to="",$bcc_to="g5complete@gmail.com",$fromName);
+
+    //echo $message ;
+
+		
+
+    $output = '<div class="newsletter-forward"><p>Thank you! Your email has been sent.<?/*?><br /><a href="' . $base_url . '">Click here to return to Automation World!</a></p></div>';
+
+    $show_form = 0;
+
+    return $output;
+    }
+  }
+
+  if($show_form == 1) {
+
+  $output = '
+	<form name="sendpage" id="sendpage" method="GET">
+		<table>
+			<tr>
+				<td colspan="2"><h2 style="font-size:24px; line-height:24px;">Forward this e-mail</h2></td>
+			</tr>
+			<tr>
+				<td colspan="2">Type in the email address of person(s) you want to send this to.</td>
+			</tr>
+
+			<tr>
+				<td>To email:</td>
+				<td><input type="text" class="inputbox" size="60" name="emailto" value="' . check_plain($to) . '" /></td>
+			</tr>
+
+			<tr>
+				<td>Your email:</td>
+				<td><input type="text" class="inputbox" size="60" name="emailfrom" value="' . check_plain($email_reply) . '" /></td>
+			</tr>
+
+			<tr>
+				<td valign="top">Forward w/ comment:</td>
+				<td><textarea style="background-color: #ffffff;" name="comment" cols="51" rows="5" class="inputbox">' . check_plain($comment) . '</textarea></td>
+			</tr>
+
+			<tr>
+				<td valign="top">&nbsp;</td>
+				<td align="right"><input type="submit" class="button" name="send" value="Send" /></td>
+			</tr>
+		</table>
+	<input type=hidden name=id value="' . check_plain($ar_idset) . '">
+	<input type="hidden" name="desturl" value="' . check_plain($destUrl) . '">
+	</form>';
+	
+  return $output;
+  }
+}
+
+
+/**
+ * Function created by M29 for sending email
+ */
+function aw_newsletter_forward_send_mail($to_email, $from_email, $subject, $html_content, $text_content="",$cc_to="",$bcc_to="",$from_name="") {
+   if (!$text_content) $text_content = $html_content; 
+   $boundry = "----=MIME_BOUNDRY_main_message"; 
+  # $headers  = "To: $to_email\n";
+   $headers  = "From: $from_email <noreply@automationworld.com>\n";
+   if ($cc_to) $headers .= "Cc: $cc_to\n";
+   if ($bcc_to) $headers .= "Bcc: $bcc_to\n";  
+   $headers .= "Reply-To: $from_email\n";  
+   $headers .= "MIME-Version: 1.0\n";
+   $headers .= "Content-Type: multipart/alternative;\n";
+   $headers .= "      boundary=\"$boundry\"\n";
+   $headers .= "X-Sender: noreply@automationworld.com\n";
+   $headers .= "X-Mailer: PHP4\n"; //mailer
+   $headers .= "X-Priority: 3\n"; //1 UrgentMessage, 3 Normal
+   $headers .= "Return-Path: <noreply@automationworld.com>\n";
+   $headers .= "This is a multi-part message in MIME format.";
+   
+   //plaintext section begins
+   $message = "--$boundry\n";
+   $message .= "Content-Type: text/plain;\n";
+   $message .= "     charset=\"iso-8859-1\"\n";
+   $message .= "Content-Transfer-Encoding: quoted-printable\n\n";
+   
+   // your text goes here
+   $message .= "$text_content\n";
+   
+   // html section begins
+   $message .= "--$boundry\n";
+   $message .= "Content-Type: text/html;\n";
+   $message .= "     charset=\"iso-8859-1\"\n";
+   $message .= "Content-Transfer-Encoding: quoted-printable\n\n";
+   
+   $message .= "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\">\n";
+    $message .= aw_newsletter_forward_qp_encoding($html_content);
+   
+   // this ends the message part
+   $message .= "--$boundry--\n";
+   mail($to_email, $subject, $message, $headers); 
+}
+
+/**
+ * Function created by M29 for encoding the message
+ */
+function aw_newsletter_forward_qp_encoding($Message) {
+
+   //Build (most polpular) Extended ASCII Char/Hex 
+   //MAP (characters >127 & <255) 
+
+   for ($i=0; $i<127; $i++) {
+      $CharList[$i] = "/".chr($i+128)."/";
+      $HexList[$i] = "=".strtoupper(bin2hex(chr($i+128)));
+   }
+
+   //Encode equal sign & 8-bit characters as equal signs followed 
+   //by their hexadecimal values 
+
+   $Message = str_replace("=", "=3D", $Message);
+   $Message = preg_replace($CharList, $HexList, $Message);
+
+   //Lines longer than 76 characters (size limit for quoted-printable
+   //Content-Transfer-Encoding) will be cut after character 75 and an equals 
+   //sign is appended to these lines.  
+ 
+   $MessageLines = explode("\n", $Message);
+   $Message_qp = "";
+   while(list(, $Line) = each($MessageLines)) {
+     if (strlen($Line) > 75) {
+       $Pointer = 0; 
+         while ($Pointer <= strlen($Line)) {
+           $Offset = 0;
+            if (preg_match("/^=(3D|([8-9A-F]{1}[0-9A-F]{1}))$/", substr($Line, ($Pointer+73), 3))) $Offset=-2;
+            if (preg_match("/^=(3D|([8-9A-F]{1}[0-9A-F]{1}))$/", substr($Line, ($Pointer+74), 3))) $Offset=-1;
+            $Message_qp.= substr($Line, $Pointer, (75+$Offset))."=\n";
+            if ((strlen($Line) - ($Pointer+75)) <= 75) { 
+$Message_qp.= substr($Line, ($Pointer+75+$Offset))."\n";
+               break 1;
+            }
+            $Pointer+= 75+$Offset;
+         }
+      } 
+      else {
+         $Message_qp.= $Line."\n";
+      }
+   } 
+   return $Message_qp;
+}
+
+/**
+ * Function created by M29 for returning the newsletter
+ */
+function aw_newsletter_forward_pagetoget_handler() {
+	$url = $_GET['pagetoget'];
+	
+	$page = file_get_contents($url);
+	
+	echo $page;	
+}

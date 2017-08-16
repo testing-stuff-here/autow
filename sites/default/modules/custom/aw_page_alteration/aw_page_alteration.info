@@ -1,0 +1,5 @@
+;$Id$
+name = aw_page_alteration
+description = Some page alteration
+package = "custom"
+core = 7.x

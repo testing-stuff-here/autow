@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Company Content Type feature.
+ */
+
+include_once('company_content_type.features.inc');

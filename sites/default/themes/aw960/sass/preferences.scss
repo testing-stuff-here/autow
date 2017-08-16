@@ -1,0 +1,163 @@
+#personality-tabs-wrapper-5, #nav, #header-top-wrapper, #header-block {
+  display:none !important;
+}
+
+#node-17506, h1 {
+  font-family: 'PT Sans', sans-serif !important;
+}
+h1 {
+  font-weight: 700 !important;
+  font-size: 35px !important;
+}
+.preference-wrapper {
+  .preference-headings {
+    border: none !important;
+  }
+  .question {
+    color: #1A1A1A;
+    font-size: 20px;
+    font-weight: 700;
+    padding-top: 30px;
+    padding-bottom: 15px !important;
+  }
+  margin-right: auto;
+  margin-left: auto;
+  width: 800px;
+  background-repeat: repeat-x;
+  padding: 0px 0px 40px 30px;
+  margin-top: 0px;
+  .preference-header{
+    border-bottom: 1px dotted #1A1A1A;
+    color: #00446a;
+    font-size: 18px;
+    font-weight: 700;
+    padding-top: 10px;
+    .playbook-describe {
+      font-size: 15px;
+      font-weight: 400;
+      font-style: italic;
+      line-height: 1.3em;
+    }
+  }
+  .section {
+    display: inline-block;
+    width: 100%;
+  }
+  .preference-line {
+    border-bottom: 1px dotted #AAAAAA;
+    width: 95%;
+    display: block;
+    .title {
+      width: 25%;
+      color: #1A1A1A;
+      font-size: 17px;
+      font-weight: 700;
+      padding: 0px 0px;
+      margin: 0px 0px;
+      vertical-align: middle;
+      display: inline-block;
+    }
+    .frequency {
+      width: 15%;
+      color: #1A1A1A;
+      font-size: 15px;
+      font-weight: 400;
+      padding: 0px 0px;
+      margin: 0px 0px;
+      vertical-align: middle;
+      display: inline-block;
+    }
+    .blurb {
+      width: 40%;
+      color: #1A1A1A;
+      font-weight: 400;
+      font-size: 15px;
+      font-style: italic;
+      padding: 5px 0px;
+      margin: 0px 0px;
+      vertical-align: middle;
+      display: inline-block;
+    }
+    .heading {
+      text-decoration: underline;
+      font-style: normal !important;
+      font-weight: bold;
+      font-size: 19px;
+    }
+    .yes-no {
+      padding: 0px 0px;
+      margin: 0px 0px;
+      vertical-align: middle;
+      display: inline-block;
+      .form-item{
+        margin: 0 !important;
+        float: left;
+      }
+    }
+  }
+  .preference-header {
+    clear:both;
+    width: 100%;
+    display: inline-block;
+    float: left;
+    margin: 1em 0 0 0 !important;
+  }
+  .preference-small-print {
+    padding-bottom: 20px;
+    font-weight: 400;
+    padding-left: 110px;
+    padding-right: 110px;
+    color: #999999;
+  }
+  #webform-component-discontinuing-one-or-more-newsletters {
+    font-size: 17px;
+    font-weight: 700;
+  }
+  #webform-component-automation-world-may-continue {
+    font-size: 17px;
+    font-weight: 700;
+  }
+}
+
+#edit-submit {
+  margin-top: 20px;
+  margin-bottom: 5px;
+  background: url('http://www.packworld.com/sites/default/files/forms/manageprefs_button_submit.png') no-repeat scroll 0 0 transparent;
+  width: 85px;
+  height: 27px;
+  display: block;
+  color: #FFF;
+  border: 0px;
+}
+
+input.email {
+  background-color: white;
+}
+
+h1.preferences {
+  color: #00446a;
+  font-size: 20px;
+  font-weight: 700;
+  margin-left: 80px;
+  font-size: 35px;
+  font-weight: 700;
+  padding-top: 30px;
+}
+
+#content .node .content {
+  margin: 0 !important;
+  line-height: initial !important;
+}
+
+address {
+  text-align: center;
+}
+
+.email {
+  width: 400px !important;
+  font-weight:400 !important;
+}
+
+label.option, input.form-text {
+  font-size:15px !important;
+}

@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the PMG API v2 Service feature.
+ */
+
+include_once 'pmg_api_v2_service.features.inc';

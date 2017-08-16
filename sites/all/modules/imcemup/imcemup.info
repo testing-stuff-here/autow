@@ -1,0 +1,6 @@
+name = "IMCE Multiple Upload"
+description = "Allows users select and upload multiple files with IMCE."
+core = "7.x"
+package = "Media"
+version = "7.x-1.0"
+dependencies[] = "imce"

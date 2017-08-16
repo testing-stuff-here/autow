@@ -1,0 +1,15 @@
+name = PMG YouTube Feed Video
+description = PMG YouTube Feed Video Entity Type
+core = 7.x
+
+dependencies[] = entity
+dependencies[] = views
+dependencies[] = system_stream_wrapper
+
+files[] = pmg_youtube_feed_video.admin.inc
+files[] = pmg_youtube_feed_video_type.admin.inc
+files[] = views/pmg_youtube_feed_video.views.inc
+files[] = views/pmg_youtube_feed_video_handler_link_field.inc
+files[] = views/pmg_youtube_feed_video_handler_delete_link_field.inc
+files[] = views/pmg_youtube_feed_video_handler_edit_link_field.inc
+files[] = views/pmg_youtube_feed_video_handler_pmg_youtube_feed_video_operations_field.inc

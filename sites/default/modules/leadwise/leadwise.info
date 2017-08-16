@@ -1,0 +1,5 @@
+;$Id$
+name = leadwise
+description = this will add the leadwise functionality 
+package = "custom"
+core = 7.x

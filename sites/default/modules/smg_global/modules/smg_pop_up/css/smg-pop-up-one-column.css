@@ -1,0 +1,62 @@
+div.ctools-modal-content.one-column-layout {
+  overflow: visible; }
+  div.ctools-modal-content.one-column-layout .modal-content {
+    width: 95% !important;
+    padding-right: 20px;
+    padding-left: 20px;
+    margin-bottom: 10px; }
+    div.ctools-modal-content.one-column-layout .modal-content .form-item.webform-component-radios .form-radios {
+      display: block;
+      width: 100%px;
+      margin: 0 auto;
+      text-align: center; }
+    div.ctools-modal-content.one-column-layout .modal-content .form-item.webform-component {
+      float: left;
+      display: inline;
+      margin-top: .03em;
+      margin-bottom: .03em; }
+      div.ctools-modal-content.one-column-layout .modal-content .form-item.webform-component > label {
+        text-align: center;
+        width: 100% !important; }
+    div.ctools-modal-content.one-column-layout .modal-content .form-item.form-type-radio input {
+      float: none; }
+    div.ctools-modal-content.one-column-layout .modal-content .form-item input {
+      max-width: 100%; }
+    div.ctools-modal-content.one-column-layout .modal-content .smg-pop-up-element.radios .form-item .form-type-radio {
+      float: none !important;
+      display: inline; }
+    div.ctools-modal-content.one-column-layout .modal-content .form-actions input.form-submit {
+      width: 80% !important; }
+    div.ctools-modal-content.one-column-layout .modal-content input[type="text"], div.ctools-modal-content.one-column-layout .modal-content input[type="email"] {
+      width: 100% !important; }
+  div.ctools-modal-content.one-column-layout .modal-header-text {
+    font-size: 18px; }
+  div.ctools-modal-content.one-column-layout .smg-pop-up-element {
+    width: 100%;
+    margin-bottom: 10px; }
+    div.ctools-modal-content.one-column-layout .smg-pop-up-element button {
+      text-align: center; }
+  div.ctools-modal-content.one-column-layout #sp-full-name-wrapper {
+    font-size: 15px; }
+  div.ctools-modal-content.one-column-layout .smg-pop-up-column {
+    float: left; }
+    div.ctools-modal-content.one-column-layout .smg-pop-up-column#smg-pop-up-column-1 {
+      width: 100%; }
+  div.ctools-modal-content.one-column-layout #modal-content {
+    overflow: visible; }
+  div.ctools-modal-content.one-column-layout .modal-scroll {
+    max-width: 100%; }
+  div.ctools-modal-content.one-column-layout .popups-container {
+    overflow: visible;
+    height: auto; }
+
+div.ctools-modal-content * {
+  box-sizing: border-box; }
+
+div.ctools-modal-content .webform-client-form {
+  max-width: 100%; }
+
+div.ctools-modal-content #smg-pop-up-column-1 {
+  max-width: 100%; }
+
+/*# sourceMappingURL=smg-pop-up-one-column.css.map */

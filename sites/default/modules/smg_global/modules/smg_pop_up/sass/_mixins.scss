@@ -1,0 +1,315 @@
+// @file
+// Custom sass mixins
+//
+// Define the custom mixins for your project here.
+// http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html#defining_a_mixin
+
+// Makes an element visually hidden, but accessible.
+// @see http://snook.ca/archives/html_and_css/hiding-content-for-accessibility
+@mixin element-invisible {
+  position: absolute !important;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  @if $legacy-support-for-ie6 or $legacy-support-for-ie7 {
+    clip: rect(1px 1px 1px 1px); // IE6 and IE7 use the wrong syntax.
+  }
+  clip: rect(1px, 1px, 1px, 1px);
+}
+
+// Turns off the element-invisible effect.
+@mixin element-invisible-off {
+  position: static !important;
+  clip: auto;
+  height: auto;
+  width: auto;
+  overflow: auto;
+}
+
+// Makes an element visually hidden by default, but visible when focused.
+@mixin element-focusable {
+  @include element-invisible;
+
+  &:active,
+  &:focus {
+    @include element-invisible-off;
+  }
+}
+
+@mixin border-box() {
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+@mixin box-shadow($value...) {
+  -moz-box-shadow: $value;
+  -webkit-box-shadow: $value;
+  -ms-box-shadow: $value;
+  box-shadow: $value;
+}
+
+@mixin border-radius($r) {
+  -moz-border-radius: $r;
+  -webkit-border-radius: $r;
+  border-radius: $r;
+}
+
+@mixin pmmi-flex() {
+  /*display: -webkit-box;*/
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+}
+
+@mixin flex-row() {
+  @include pmmi-flex();
+  -webkit-flex-direction: row;
+  -moz-flex-direction: row;
+  flex-direction: row;
+  -ms-flex-direction:row;
+}
+
+@mixin flex-row-stretch() {
+  @include flex-row();
+  -webkit-align-items: stretch;
+  align-items: stretch;
+  -ms-flex-pack: justify;
+}
+
+@mixin flex-row-align($align) {
+  @include flex-row();
+  -webkit-align-items: $align;
+  align-items: $align;
+  -ms-flex-pack: $align;
+}
+
+@mixin flex-row-end() {
+  @include flex-row();
+  -webkit-align-items: flex-end;
+  align-items: flex-end;
+}
+
+@mixin flex-wrap() {
+  -webkit-flex-wrap: wrap;
+  flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+}
+
+@mixin flex-justify($justify) {
+  @if ($justify == 'flex-end') {
+    -ms-flex-pack: end;
+  }
+  @elseif ($justify == 'flex-start') {
+    -ms-flex-pack: start;
+  }
+  @elseif ($justify == 'space-between') {
+    -ms-flex-pack: justify;
+  }
+  @elseif ($justify == 'center') {
+    -ms-flex-pack: center;
+  }
+  @else {
+    -ms-flex-align: $justify;
+  }
+
+  -webkit-justify-content: $justify;
+  justify-content: $justify;
+}
+
+@mixin flex-align($align) {
+  @if ($align == 'flex-end') {
+    -ms-flex-align: end;
+  }
+  @if ($align == 'flex-start') {
+    -ms-flex-align: start;
+  }
+  @else {
+    -ms-flex-align: $align;
+  }
+
+  -webkit-align-items: $align;
+
+  align-items: $align;
+}
+
+@mixin flex-align-content($align) {
+  -webkit-align-content: $align;
+  align-content: $align;
+}
+
+@mixin flex-align-self($align) {
+  @if ($align == 'flex-start') {
+    -ms-flex-item-align: start;
+  }
+  @if ($align == 'flex-end') {
+    -ms-flex-item-align: end;
+  }
+  @else {
+    -ms-flex-item-align: $align;
+  }
+
+  -webkit-align-self: $align;
+  align-self: $align;
+}
+
+
+
+@mixin flex-column() {
+  @include pmmi-flex();
+  -webkit-flex-direction: column;
+  -moz-flex-direction: column;
+  flex-direction: column;
+  -ms-flex-direction: column;
+}
+
+@mixin flex-val($val) {
+  -webkit-flex: $val;
+  -ms-flex: $val;
+  flex: $val;
+}
+
+@mixin flex-order($val) {
+  -webkit-order: $val;
+  -ms-flex-order: $val;
+  order: $val;
+}
+
+@mixin flex-direction($val) {
+  -webkit-flex-direction: $val;
+  -moz-flex-direction: $val;
+  flex-direction: $val;
+  -ms-flex-direction: $val;
+}
+
+
+@keyframes spin {
+  from {
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    -ms-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(359deg);
+    -moz-transform: rotate(359deg);
+    -o-transform: rotate(359deg);
+    -ms-transform: rotate(359deg);
+    transform: rotate(359deg);
+  }
+}
+
+@-moz-keyframes spin {
+  from {
+    -moz-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -moz-transform: rotate(359deg);
+    transform: rotate(359deg);
+  }
+
+}
+
+@-webkit-keyframes spin {
+  from {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(359deg);
+    transform: rotate(359deg);
+  }
+
+}
+
+@-ms-keyframes spin {
+  from {
+    -ms-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -ms-transform: rotate(359deg);
+    transform: rotate(359deg);
+  }
+
+}
+
+@-o-keyframes spin {
+  from {
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -o-transform: rotate(359deg);
+    transform: rotate(359deg);
+  }
+
+}
+
+@mixin spin($time) {
+  -webkit-animation: spin $time infinite linear;
+  -moz-animation: spin $time infinite linear;
+  -ms-animation: spin $time infinite linear;
+  -o-animation: spin $time infinite linear;
+  animation: spin $time infinite linear;
+}
+
+@mixin transition($t...) {
+  -moz-transition: $t;
+  -webkit-transition: $t;
+  -o-transition: $t;
+  -ms-transition: $t;
+  transition: $t;
+}
+
+@mixin transform($t) {
+  -webkit-transform: $t;
+  -moz-transform: $t;
+  -ms-transform: $t;
+  transform: $t;
+}
+
+@mixin transition-delay($d) {
+  -webkit-transition-delay: $d;
+  -moz-transition-delay: $d;
+  -o-transition-delay: $d;
+  transition-delay: $d;
+}
+
+@mixin popupTrans($popTransitionSpeed, $popupTransProps, $timing: ease , $extra: ()) {
+  $popupTrans: ();
+  $mozTrans: ();
+  $webkitTrans: ();
+  $msTrans: ();
+  @each $prop in $popupTransProps {
+    @if index((transform), $prop) {
+      $webkitTrans: append($popupTrans, -webkit-#{$prop} $popTransitionSpeed $timing, comma);
+      $mozTrans: append($popupTrans, -moz-#{$prop} $popTransitionSpeed $timing, comma);
+      $msTrans: append($popupTrans, -ms-#{$prop} $popTransitionSpeed $timing, comma);
+    }
+    @else {
+      $webkitTrans: append($popupTrans, $prop $popTransitionSpeed $timing, comma);
+      $mozTrans: append($popupTrans, $prop $popTransitionSpeed $timing, comma);
+      $msTrans: append($popupTrans, $prop $popTransitionSpeed $timing, comma);
+    }
+    $popupTrans: append($popupTrans, $prop $popTransitionSpeed $timing, comma);
+  }
+  $popupTrans: append($popupTrans, $extra, comma);
+
+  -moz-transition: $mozTrans;
+  -webkit-transition: $webkitTrans;
+  -o-transition: $popupTrans;
+  -ms-transition: $msTrans;
+  transition: $popupTrans;
+}
+
+@mixin transformOrigin($transform) {
+  -webkit-transform-origin: $transform;
+  -moz-transform-origin: $transform;
+  -ms-transform-origin: $transform;
+  transform-origin: $transform;
+}
+

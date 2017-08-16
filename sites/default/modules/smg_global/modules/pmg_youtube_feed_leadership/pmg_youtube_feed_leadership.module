@@ -1,0 +1,558 @@
+<?php
+/**
+ * @file
+ * Module for integrating PMG YouTube Feed videos into leadership.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function pmg_youtube_feed_leadership_permission() {
+  return array(
+    'admin_pmg_youtube_feed_leadership' => array(
+      'title' => t('administer pmg youtube feed leadership videos'),
+      'description' => t('Administer PMG YouTube Feed Leadership Videos.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function pmg_youtube_feed_leadership_menu() {
+  $items['admin/pmg_youtube_feed_leadership/download'] = array(
+    'title' => 'Test',
+    'page callback' => 'pmg_youtube_feed_leadership_download_videos',
+    'access arguments' => array('administer_leadership'),
+    'type' => MENU_CALLBACK,
+    'file' => 'pmg_youtube_feed_leadership.admin.inc',
+  );
+  $items['admin/pmg_youtube_feed_leadership/clear-cache'] = array(
+    'title' => 'Create JSON',
+    'page callback' => 'pmg_youtube_feed_leadership_clear_cache',
+    'access arguments' => array('administer_leadership'),
+    'type' => MENU_CALLBACK,
+    'file' => 'pmg_youtube_feed_leadership.admin.inc',
+  );
+  $items['admin/pmg_youtube_feed_leadership/update'] = array(
+    'title' => 'Update Leadership Videos',
+    'page callback' => 'pmg_youtube_feed_leadership_update_dashboard',
+    'access arguments' => array('admin_pmg_youtube_feed_leadership'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'pmg_youtube_feed_leadership.admin.inc',
+  );
+  $items['admin/leadership/pmg_youtube_feed'] = array(
+    'title' => 'PMG YouTube Feed Leadership Settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('pmg_youtube_feed_leadership_settings_form'),
+    'access arguments' => array('admin_pmg_youtube_feed_leadership'),
+    'file' => 'pmg_youtube_feed_leadership.admin.inc',
+  );
+  $items['admin/leadership/pmg_youtube_feed/settings'] = array(
+    'title' => 'Settings',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+  $items['admin/leadership/pmg_youtube_feed/usernames'] = array(
+    'title' => 'Update YouTube Usernames',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('pmg_youtube_feed_update_usernames'),
+    'access arguments' => array('admin_pmg_youtube_feed_leadership'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'pmg_youtube_feed_leadership.admin.inc',
+  );
+  // Perhaps use the js module in the future to improve performance on this.
+  $items['pmg_youtube_feed_leadership/get/json/%'] = array(
+    'title' => 'Get PMG YouTube Feed Leadership Company Data',
+    'delivery callback' => 'drupal_json_output',
+    'page callback'     => 'pmg_youtube_feed_leadership_get_company_video_json',
+    'page arguments' => array(3),
+    'access callback'   => true,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function pmg_youtube_feed_leadership_form_company_node_form_alter(&$form, &$form_state) {
+  if (array_key_exists('field_youtube_uploads_id', $form)) {
+    $form['field_youtube_uploads_id']['#access'] = FALSE;
+    $form['youtube_data'] = array(
+      '#type' => 'fieldset',
+      '#collapsible' => TRUE,
+      '#weight' => $form['field_youtube_username']['#weight'],
+      '#attributes' => array('style' => array('padding: 0')),
+    );
+    $form['youtube_data']['field_youtube_username'] = $form['field_youtube_username'];
+    $form['youtube_data']['field_youtube_username_override'] = $form['field_youtube_username_override'];
+    unset($form['field_youtube_username']);
+    unset($form['field_youtube_username_override']);
+  }
+}
+
+/**
+ * Implements hook_node_presave().
+ */
+function pmg_youtube_feed_leadership_node_presave($node) {
+
+  // Check to see if we need to add/update Company node's YouTube Uploads Playlist ID
+  if ($node->type == 'company'  && property_exists($node, 'field_youtube_username') && !empty($node->field_youtube_username)) {
+    // Check if YouTube username has been added or changed
+    $curr_username = $node->field_youtube_username['und'][0]['value'];
+    $orig_username = FALSE;
+    if (property_exists($node, 'original') && !empty($node->original->field_youtube_username)) {
+      $orig_username = $node->original->field_youtube_username['und'][0]['value'];
+    }
+    $username_new_or_has_changed = (!$orig_username || ($curr_username !== $orig_username));
+
+    // Check if YouTube username override field has been added or changed
+    $curr_override = !empty($node->field_youtube_username_override) ? $node->field_youtube_username_override['und'][0]['value'] : FALSE;
+    $orig_override = FALSE;
+    if (property_exists($node, 'original') && !empty($node->original->field_youtube_username_override)) {
+      $orig_override = $node->original->field_youtube_username_override['und'][0]['value'];
+    }
+    $override_new_or_has_changed = (!$orig_override || ($curr_override != $orig_override));
+
+    if (property_exists($node, 'field_youtube_uploads_id')) {
+      $upload_id = (!empty($node->field_youtube_uploads_id)) ? $node->field_youtube_uploads_id['und'][0]['value'] : FALSE;
+      if (!$upload_id || $username_new_or_has_changed || $override_new_or_has_changed) {
+        $api_key = variable_get('pmg_youtube_feed_leadership_youtube_api_key');
+        $api_url = "https://www.googleapis.com/youtube/v3/channels";
+        $api_query_params = array(
+          'part' => 'contentDetails',
+          'key' => $api_key,
+        );
+        if ($curr_override) {
+          $api_query_params['id'] = $curr_username;
+        }
+        else {
+          $api_query_params['forUsername'] = $curr_username;
+        }
+        $query_url = $api_url . '?' . http_build_query($api_query_params);
+        $api_request_result = drupal_http_request($query_url);
+        $request_response = json_decode($api_request_result->data, true);
+
+        if (isset($request_response['items'][0]['contentDetails']['relatedPlaylists']['uploads'])) {
+          $new_uploads_id = $request_response['items'][0]['contentDetails']['relatedPlaylists']['uploads'];
+          $node->field_youtube_uploads_id = array(
+            'und' => array(
+              0 => array('value' => $new_uploads_id),
+            ),
+          );
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Create video entities for all youtube amplify companies from the current
+ * session.
+ */
+function pmg_youtube_feed_leadership_create_entities_for_all_companies() {
+  $start_time = microtime(TRUE);
+  variable_set('pmg_youtube_feed_cron_start', $start_time);
+  $companies = pmg_youtube_feed_leadership_get_youtube_amplify_companies_from_current_session();
+
+  foreach ($companies as $company) {
+    $operations[] =  array('pmg_youtube_feed_leadership_process_api_content_batch', array($company));
+  }
+  if (!empty($operations)) {
+    $batch = array(
+      'operations' => $operations,
+      'finished' => 'pmg_youtube_feed_leadership_process_api_content_batch_finished', // runs after batch is finished
+      'title' => t('Get Videos'),
+      'init_message' => t('Import is starting.'),
+      'progress_message' => t('Processed @current out of @total.'),
+      'error_message' => t('Import has encountered an error.'),
+    );
+
+    batch_set($batch);
+    batch_process('admin/pmg_youtube_feed_leadership/update');
+  }
+  else {
+    drupal_set_message("No video for processing", 'warning');
+    drupal_goto('admin/pmg_youtube_feed_leadership/update');
+  }
+
+  return '';
+}
+
+/**
+ * Batch process function for pmg_youtube_feed_leadership_create_entities_for_all_companies().
+ *
+ * @param $company
+ * @param $context
+ */
+function pmg_youtube_feed_leadership_process_api_content_batch($company, &$context) {
+  // Get Videos
+  $api_key = variable_get('pmg_youtube_feed_leadership_youtube_api_key');
+  $context['message'] = t('Getting videos of "@title"', array('@title' => $company->title));
+
+  if ($company->field_youtube_username_value && $company->field_youtube_uploads_id_value) {
+    pmg_youtube_feed_leadership_process_api_content(variable_get('pmg_youtube_feed_leadership_importer_id'), $company->field_youtube_uploads_id_value, $company->nid, $api_key);
+    drupal_set_message(t('%company has been processed', array('%company' => $company->title), array('type' => 'success')));
+  }
+  else {
+    watchdog('pmg_youtube_feed_leadership', 'There wasn\'t a tag name or playlist id for Company: %company_name Nid: %nid', array(
+      '%company_name' => $company->title,
+      '%nid' => $company->nid,
+    ));
+  }
+  $context['results'][] = $company->title. 'has been processed';
+}
+
+/**
+ * Batch finished function.
+ */
+function pmg_youtube_feed_leadership_process_api_content_batch_finished($success, $results, $operations) {
+  $start_time = variable_get('pmg_youtube_feed_cron_start');
+  variable_del('pmg_youtube_feed_cron_start');
+  if ($success) {
+    $count = count($results);
+    $elapsed_time = 'Elapsed processing time is: ' . round((microtime(TRUE) - $start_time), 2) . ' seconds to process ' . $count . ' companies';
+    drupal_set_message(t($elapsed_time, array('type' => 'success')));
+    watchdog('pmg_youtube_feed_leadership', $elapsed_time);
+  }
+  else {
+    // An error occurred.
+    // $operations contains the operations that remained unprocessed.
+    $error_operation = reset($operations);
+    drupal_set_message(
+      t('An error occurred while processing @operation with arguments : @args',
+        array(
+          '@operation' => $error_operation[0],
+          '@args' => print_r($error_operation[0], TRUE),
+        )
+      ),
+      'error'
+    );
+  }
+}
+
+/**
+ * Get the companies from the current session that have youtube amplified
+ * checked.
+ *
+ * @return array $result
+ *  an array of objects that hold company fields.
+ */
+function pmg_youtube_feed_leadership_get_youtube_amplify_companies_from_current_session() {
+
+  // Get all company profiles in current session
+  $query = db_select('node', 'node')
+    ->fields('node', array('title', 'nid'))
+    ->condition('type', 'company')
+    ->condition('status', '1')
+    ->orderBy('title', 'asc');
+
+  $query->leftJoin('field_data_field_ld_session', 'session', 'node.nid = session.entity_id');
+  $query->condition('session.field_ld_session_tid', variable_get('leadership_session_term'));
+  $query->leftJoin('field_data_field_youtube_amplified', 'youtube_amplify', 'node.nid = youtube_amplify.entity_id');
+  $query->condition('youtube_amplify.field_youtube_amplified_value', 1);
+  $query->leftJoin('field_data_field_youtube_username', 'youtube_username', 'youtube_username.entity_id = node.nid');
+  $query->addField('youtube_username', 'field_youtube_username_value');
+  $query->leftJoin('field_data_field_youtube_uploads_id', 'uploads', 'uploads.entity_id = node.nid');
+  $query->addField('uploads', 'field_youtube_uploads_id_value');
+  $query->leftJoin('field_data_field_youtube_username_override', 'username_override', 'username_override.entity_id = node.nid');
+  $query->addField('username_override', 'field_youtube_username_override_value');
+  $result = $query->execute()->fetchAll();
+
+  return $result;
+}
+
+/**
+ * If a company has a YouTube username, but field_youtube_uploads_id isn't set,
+ * then we use YouTube's API to extract the Uploads Playlist ID for the given
+ * YouTube account
+ */
+function pmg_youtube_feed_leadership_get_uploads_playlist_id() {
+  $companies = pmg_youtube_feed_leadership_get_youtube_amplify_companies_from_current_session();
+  $api_key = variable_get('pmg_youtube_feed_leadership_youtube_api_key');
+  $api_url = "https://www.googleapis.com/youtube/v3/channels";
+
+  foreach ($companies as $company) {
+    if ($company->field_youtube_username_value && !$company->field_youtube_uploads_id_value) {
+      $api_query_params = array(
+        'part' => 'contentDetails',
+        'forUsername' => $company->field_youtube_username_value,
+        'key' => $api_key,
+      );
+      $query_url = $api_url . '?' . http_build_query($api_query_params);
+      $api_request_result = drupal_http_request($query_url);
+      $request_response = json_decode($api_request_result->data, true);
+
+      // look for "uploads" playlist id
+      if (isset($request_response['items'][0]['contentDetails']['relatedPlaylists']['uploads'])) {
+        $uploads_id = $request_response['items'][0]['contentDetails']['relatedPlaylists']['uploads'];
+        $company_node = node_load($company->nid);
+        $company_wrapper = entity_metadata_wrapper('node', $company_node);
+        $company_wrapper->field_youtube_uploads_id->set($uploads_id);
+        $company_wrapper->save();
+      }
+    }
+  }
+}
+
+/**
+ * Checks if a company has Youtube Amplified checked and it is in the current
+ * session.
+ *
+ * @param  integer $nid
+ *   node id.
+ * @return  boolean $has_youtube_amplify_checked
+ */
+function pmg_youtube_feed_leadership_is_youtube_amplify($nid) {
+  $query = new EntityFieldQuery();
+  $has_youtube_amplify_checked = $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'company')
+    ->propertyCondition('nid', $nid)
+    ->fieldCondition('field_youtube_amplified', 'value', 1)
+    ->fieldCondition('field_ld_session', 'tid', variable_get('leadership_session_term'))
+    ->count()
+    ->execute();
+
+  return $has_youtube_amplify_checked;
+}
+
+/**
+ * Generate API Content PMG YouTube Feedapi call using feeds programatically.
+ *
+ * @param  string $importer_id
+ *   The feed name.
+ * @param  string $playlist_id
+ *   The YouTube "Uploads" Playlist ID
+ * @param  integer $company_nid
+ *   The company node id of the video.
+ * @param  string  $api_key
+ *   YouTube API key
+ * @param  integer $page
+ *   The page number of the videos from PMG YouTube Feed.
+ * @param  integer|boolean $per_page
+ *   The number of videos you want PMG YouTube Feed to give you.
+ * @param  string $sort
+ *   The sort parameter.
+ */
+function pmg_youtube_feed_leadership_process_api_content(
+  $importer_id,
+  $playlist_id,
+  $company_nid,
+  $api_key,
+  $page = 1,
+  $per_page = FALSE,
+  $sort='recent'
+) {
+
+  // Set a default number of videos to be on a page.
+  if (!$per_page) {
+    $per_page =  variable_get('pmg_youtube_feed_leadership_widget_page_count');
+  }
+
+  // The PMG YouTube Feed url that is used for api calls.
+  $api_url = 'https://www.googleapis.com/youtube/v3/playlistItems';
+  // Query parameters that append to url.
+  $query = array(
+    'part' => 'id,snippet',
+    'maxResults' => $per_page,
+    'playlistId' => $playlist_id,
+    'key' => $api_key,
+  );
+  $source_url = $api_url . '?' . http_build_query($query);
+
+  $feeds_source = feeds_source($importer_id);
+  $config = $feeds_source->getConfig();
+  // Add source url and company node id to config.
+  $config['FeedsHTTPFetcher']['source'] = $source_url;
+  $config['FeedsHTTPFetcher']['company_nid'] = $company_nid;
+
+  $feeds_source->setConfig($config);
+  $feeds_source->save();  // Weird if you don't save it doesn't work.
+
+  while (FEEDS_BATCH_COMPLETE != $feeds_source->import());
+
+  // Clean up states.
+  $feeds_source->state(FEEDS_FETCH);
+  $feeds_source->state(FEEDS_PROCESS);
+  $feeds_source->state(FEEDS_PROCESS_CLEAR);
+}
+
+/**
+ * Create JSON strings into cache tables for each company.
+ */
+function pmg_youtube_feed_leadership_create_json() {
+  $companies = pmg_youtube_feed_leadership_get_youtube_amplify_companies_from_current_session();
+  pmg_youtube_feed_leadership_clear_all_cache();
+  $count = 0;
+  foreach ($companies as $company) {
+    $count++;
+    pmg_youtube_feed_leadership_save_cache($company);
+    drupal_set_message(t('%company has been processed', array('%company' => $company->title), array('type' => 'sucess')));
+  }
+
+  $message = t("%count companies have been processed!", array('%count' => $count), array('type' => 'success'));
+  drupal_set_message($message);
+  watchdog('pmg_youtube_feed_leadership', $message);
+
+  return TRUE;
+}
+
+/**
+ * Return a json structure that represents data about ALL the videos that are
+ * available for a given company
+ *
+ * @param $company_nid
+ *  The company node id
+ * @return array
+ *  An array that will be turned into a json object
+ */
+function pmg_youtube_feed_leadership_get_company_all_videos($company_nid) {
+  $company_videos = array();
+  $company = node_load($company_nid);
+  $pmg_youtube_feed_videos = pmg_youtube_feed_video_get_all($company_nid);
+
+  if (empty($pmg_youtube_feed_videos))
+    return false;
+
+  // For each video set up the main elements needed to display the video.
+  foreach ($pmg_youtube_feed_videos as $pmg_youtube_feed_video) {
+    $company_videos[] = array(
+      'name' => $pmg_youtube_feed_video->name,
+      'href' => $pmg_youtube_feed_video->video_url,
+      'thumbnail' => image_style_url("pmg_youtube_feed_video_widget_grid", $pmg_youtube_feed_video->field_pmg_youtube_feed_image['und'][0]['uri']),
+      'companyName' => $company->title,
+      'companyNid' => $company_nid,
+    );
+  }
+
+  // Get the total number of videos to be used for front end logic
+  $total_videos = count($company_videos);
+
+  // Create the json structure that will hold all of the data
+  $json_data = array(
+    'companyName' => $company->title,
+    'total_count' => $total_videos,
+    'videos' => $company_videos,
+  );
+
+  return $json_data;
+}
+
+/**
+ * Save companies' PMG YouTube Feed video entities into the cache table.
+ *
+ * @param object $company
+ *  company data from pmg_youtube_feed_leadership_get_youtube_amplify_companies_from_current_session().
+ */
+function pmg_youtube_feed_leadership_save_cache($company) {
+  $company_videos = array();
+  $pmg_youtube_feed_videos = pmg_youtube_feed_video_get_all($company->nid);
+
+  // For each video set up the main elements needed to display the video.
+  foreach ($pmg_youtube_feed_videos as $pmg_youtube_feed_video) {
+    if (isset($pmg_youtube_feed_video->field_pmg_youtube_feed_image['und'][0]['uri']))
+    $company_videos[] = array(
+      'companyName' => $company->title,
+      'companyNid' => $company->nid,
+      'name' => $pmg_youtube_feed_video->name,
+      'href' => $pmg_youtube_feed_video->video_url,
+      'thumbnail' => isset($pmg_youtube_feed_video->field_pmg_youtube_feed_image['und'][0]['uri']) ? image_style_url("pmg_youtube_feed_video_widget_thumbnail", $pmg_youtube_feed_video->field_pmg_youtube_feed_image['und'][0]['uri']) : '',
+    );
+  }
+
+  // Get the total number of videos to be used for front end logic
+  $total_videos = count($company_videos);
+
+  // Get the number of videos to split on. We have two separate counts because
+  // the datacard widget can have less videos than the widget on the node level.
+  $split_numbers = array(
+    'datacard' => variable_get('pmg_youtube_feed_leadership_widget_datacard_count'),
+    'node' => variable_get('pmg_youtube_feed_leadership_widget_node_count')
+  );
+
+  // Split up into a couple videos per array to be accessed by front end.
+  foreach ($split_numbers as $type => $split_number) {
+    $split_videos = array_chunk($company_videos, $split_number);
+    foreach ($split_videos as $key => $split) {
+      $page = $key + 1;
+      $json_data = array(
+        'companyName' => $company->title,
+        'page' => $page, // Page Number
+        'total_count' => $total_videos, // Total number of videos for this company
+        'page_count' => count($split), // Total number of videos for this page
+        'videos' => $split, // array of PMG YouTube Feed video data
+      );
+
+      // the json to cache table.  Cid will contain the company's node id and
+      // the page number. Example: company_100_page_2
+      cache_set('company_' . $company->nid . '_' . $type . '_' . $page, json_encode($json_data), 'cache_pmg_youtube_feed_leadership');
+    }
+  }
+}
+
+/**
+ * Get company video json.
+ *
+ * @param integer $company_nid
+ *  company node id.
+ * @param  string $type
+ *  type of data. Example: node or datacard
+ * @param integer $page
+ *  the page number of videos.
+ *
+ * @return mixed $json
+ *  either the json or an array of the companies videos.
+ */
+function pmg_youtube_feed_leadership_get_company_video_json($company_nid, $type = 'datacard', $page = 1, $jsonDecode = TRUE) {
+  $cache = cache_get('company_' . $company_nid . '_' . $type . '_' . $page, 'cache_pmg_youtube_feed_leadership');
+  $json = array();
+
+  if ($cache) {
+    if ($jsonDecode) {
+      $json = json_decode($cache->data);
+    }
+    else {
+      $json = $cache->data;
+    }
+  }
+  return $json;
+}
+
+/**
+ * Clear the pmg_youtube_feed_leadership cache
+ */
+function pmg_youtube_feed_leadership_clear_all_cache() {
+  cache_clear_all('company', 'cache_pmg_youtube_feed_leadership', TRUE);
+}
+
+/**
+ * Adds the videos to to the Drupal.settings.pmg_youtube_feed_leadership object. If
+ * videos were already added in a previous call it will look up the static
+ * variable and update it.
+ *
+ * @param array $videos
+ *   an array of company data that contains videos.
+ */
+function pmg_youtube_feed_leadership_add_videos_to_drupal_settings_object($videos) {
+  $js = &drupal_static('drupal_add_js');
+  $run_drupal_add_js = TRUE;
+  if (isset($js['settings']['data'][0])) {
+    foreach ($js['settings']['data'] as $key => $data) {
+      if (isset($js['settings']['data'][$key]['pmg_youtube_feed_leadership'])) {
+        $run_drupal_add_js = FALSE;
+        foreach ($videos as $nid => $data) {
+          if (!isset($js['settings']['data'][$key]['pmg_youtube_feed_leadership'][$nid])) {
+            $js['settings']['data'][$key]['pmg_youtube_feed_leadership'][$nid] = $data;
+          }
+        }
+      }
+    }
+  }
+
+  // Only run drupal_add_js if it never been run before (only for PMG YouTube Feed
+  // videos).
+  if ($run_drupal_add_js) {
+    drupal_add_js(array('pmg_youtube_feed_leadership' => $videos), 'setting');
+  }
+}

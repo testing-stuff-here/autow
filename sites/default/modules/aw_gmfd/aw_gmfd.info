@@ -1,0 +1,4 @@
+name = Automation World Get My Free Downloads
+description = Handles logic for get my free download blocks
+package = SMG
+core = 7.x

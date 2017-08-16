@@ -1,0 +1,55 @@
+<?php
+/**
+ * @author Albert Jankowski <ajankowski@summitmediagroup.com>
+ */
+
+/**
+ * Implements of hook_menu().
+ */
+function quantcast_menu() {
+  $items['admin/config/system/quantcast'] = array(
+    'title' => 'Quantcast',
+    'description' => 'Change the setting configuration when using Quantcast.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('quantcast_admin_settings'),
+    'access arguments' => array('administer quantcast settings'),
+    'file' => 'quantcast.admin.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function quantcast_permission() {
+  return array(
+    'administer quantcast settings' => array(
+      'title' => t('Administer Quantcast settings'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_page_alter().
+ */
+function quantcast_page_alter(&$page) {
+  $qid = variable_get('quantcast_id', '');
+  if (!empty($qid)) {
+    $output = <<<EOT
+
+	<!-- Start Quantcast tag -->
+	<script type="text/javascript">
+	_qoptions={
+	qacct:"$qid"
+	};
+	</script>
+	<script type="text/javascript" src="http://edge.quantserve.com/quant.js"></script>
+	<noscript>
+	<img src="http://pixel.quantserve.com/pixel/$qid.gif" style="display: none;" border="0" height="1" width="1" alt="Quantcast"/>
+	</noscript>
+	<!-- End Quantcast tag -->
+	
+EOT;
+    $page['page_bottom']['quantcast'] = array('#markup' => $output);
+  }
+}

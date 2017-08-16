@@ -1,0 +1,6 @@
+name = ReadyTalk
+description = Provides webform integration with ReadyTalk meetings.
+core = 7.x
+
+dependencies[] = webform
+dependencies[] = user

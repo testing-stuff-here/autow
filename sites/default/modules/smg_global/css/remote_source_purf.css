@@ -1,0 +1,35 @@
+/* line 1, ../sass/remote_source_purf.scss */
+#legal {
+  display: none;
+}
+
+/* line 2, ../sass/remote_source_purf.scss */
+html, body {
+  background: none;
+  height: 100%;
+  min-height: 800px;
+}
+
+/* line 3, ../sass/remote_source_purf.scss */
+#edit-links {
+  padding-top: 20px;
+}
+/* line 5, ../sass/remote_source_purf.scss */
+#edit-links #edit-node {
+  display: inline-block;
+  width: 71px;
+  font-size: 17px;
+  background-color: #999;
+  text-align: center;
+}
+/* line 6, ../sass/remote_source_purf.scss */
+#edit-links #edit-node a {
+  display: inline-block;
+  color: #FFFFFF;
+  width: 71px;
+}
+
+/* line 9, ../sass/remote_source_purf.scss */
+#remote-source-purf-wrapper {
+  height: 100%;
+}

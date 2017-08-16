@@ -1,0 +1,13 @@
+diff --git a/src/Google/autoload.php b/src/Google/autoload.php
+index 8b49301..eb435f0 100644
+--- a/src/Google/autoload.php
++++ b/src/Google/autoload.php
+@@ -5,7 +5,7 @@
+  *
+  * If you were not already including this file in your project, please ignore it
+  */
+-
++return;
+ $file = __DIR__ . '/../../vendor/autoload.php';
+ 
+ if (!file_exists($file)) {

@@ -1,0 +1,9 @@
+name = AW Common
+description = Custom functionallity for site
+package = Custom
+core = 7.x
+version = 7.x-1.x
+interface translation project = FALSE
+
+;files[] =
+;dependencies[] = 

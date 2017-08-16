@@ -1,0 +1,4 @@
+name = Automation World Newsletter Forwarding
+description = Sends users to a forwarding form from a newsletter
+package = "custom"
+core = 7.x

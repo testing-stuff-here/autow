@@ -1,0 +1,9 @@
+/* line 1, ../sass/expoCountdown_ie8_pw2.scss */
+.expo-countdown-container {
+  display: none;
+}
+
+/* line 4, ../sass/expoCountdown_ie8_pw2.scss */
+.expo-countdown .expo-countdown-logo {
+  left: 5%;
+}

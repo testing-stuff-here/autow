@@ -1,0 +1,125 @@
+@import "variables";
+
+$flip-height: 42px;
+$flip-width: $flip-height - 15px;
+$flip-line-height: $flip-height - 2px;
+$flip-divider: $flip-line-height / 2;
+$flip-font-size: $flip-height * (2/3);
+
+$flip-max-800: 44px;
+$flip-max-800-width: $flip-max-800 - 15px;
+$flip-max-800-line-height: $flip-max-800 - 2px;
+$flip-max-800-divider: $flip-max-800-line-height / 2;
+$flip-max-800-font-size: $flip-max-800 * (2/3);
+
+#container.expo-countdown {padding-top:4px;}
+#container .expo-countdown {overflow: auto; width:100%; background: #FFFFFF; z-index: 900; border-bottom: 1px solid;}
+.pack-expo-east {
+  .expo-countdown-banner {margin-bottom: 45px;}
+}
+.expo-countdown-banner { display: inline-block; padding: 5px 15px 5px 12%; background: #0C56A4; color: #FFFFFF; font-weight: bold; margin:14px 0 8px; font-size: 145%; position: relative; height: 21px; float:left;
+  &:after {
+    content:""; width: 0; height: 0; border-top: 15px solid transparent; border-bottom: 15px solid transparent; border-left: 7px solid #0C56A4; position: absolute; left: 100%; top: 1px;
+  }
+}
+.expo-countdown-logo {position: absolute; top: 9px; max-width: 64px;}
+.expo-countdown-banner-text {font-size: 93%;}
+.expo-countdown-time-count {display: inline-block; float:left; margin-top: 3px;
+  &:first-child { margin-left: 1.5em;
+
+  }
+}
+.expo-countdown-days-count {
+  .flip-clock-wrapper {margin-left:1.6em;}
+}
+.expo-countdown-flip-title {display: block; text-align: center; font-weight: bold; font-size: 110%; color: #000000;}
+.expo-countdown-register {display:inline-block; vertical-align: middle; margin-top: 20px;
+  a {
+    @include button(#FDB239, #B96C00, #B96C00);
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#FDB239', endColorstr='#B96C00',GradientType=0);
+    &:hover {
+      @include buttonHover(#FDB239, #B96C00);
+      filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#B96C00', endColorstr='#FDB239',GradientType=0);
+      text-decoration: none;
+    }
+    position: relative;
+    padding-right: 16px;
+  }
+}
+
+.expo-countdown-register a { color: white !important; }
+/* Flip clock overrides */
+.flip-clock-wrapper {
+  margin: 0.4em 1em;
+  ul {
+    width: $flip-width; height: $flip-height; line-height: $flip-line-height; margin: 2px;
+    li {padding-bottom: 0;
+      a {
+        div {
+          &.up {
+            &:after {
+              top:$flip-divider;
+              background-color: #000000;
+            }
+          }
+          div.inn {font-size: $flip-font-size; color: #FFFFFF;}
+        }
+      }
+    }
+  }
+}
+
+
+/* Responsive */
+
+@media (max-width: 650px) {
+  .flip-clock-wrapper {margin: 0.4em 0.5em;}
+}
+@media (min-width: 480px) {
+  .expo-countdown-register {
+    a {
+      &:after {
+        content: "";
+        display: inline-block;
+        height: 0;
+        width: 0;
+        border-top: 4px solid transparent;
+        border-bottom: 4px solid transparent;
+        border-left: 4px solid #FFFFFF;
+        position: absolute;
+        top: 50%;
+        margin-top: -5px;
+        margin-left: 5px;
+      }
+    }
+  }
+  .expo-countdown-logo {left:2%;}
+}
+@media (max-width: 480px) {
+  .expo-countdown-logo {left:2%;}
+  .expo-countdown-days-count {clear:both;}
+  .expo-countdown-register {float:left; margin: 15px 0 0 8px;}
+  .expo-countdown-banner {padding-left: 24%; margin-bottom: 20px;}
+  .pack-expo-east {
+    .expo-countdown-banner {margin-bottom: 32px;}
+  }
+
+  .expo-countdown-time-count {float:none;}
+  #expo-countdown-timer {display:-webkit-flex; display:flex; width:100%; justify-content:center; -webkit-justify-content:center; margin-bottom:10px;}
+  .expo-countdown-min-count {display:none;}
+  .expo-countdown-time-count {
+    &:first-child {margin-left:0;}
+  }
+  .expo-countdown-days-count .flip-clock-wrapper {margin-left:0;}
+}
+
+@media screen and (max-width: 480px) {
+  .expo-countdown-container .expo-countdown-banner { font-size: 100%; margin-top: 30px;}
+}
+
+@media screen and (max-width: 325px) {
+  .expo-countdown-banner-text {
+    font-size: 70%;
+    padding-left: 15px;
+  }
+}

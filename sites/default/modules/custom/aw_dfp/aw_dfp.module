@@ -1,0 +1,32 @@
+<?php
+
+/**
+ * Implements hook_dfp_tag_load_alter()
+ */
+function aw_dfp_dfp_tag_load_alter(&$tag) {
+
+  // DFP AW Ticket #2531
+  // Adding each term in node as a target value to native ad unit.
+  if ($tag->adunit == 'aw_native') {
+    if (arg(0) == 'node' && is_numeric(arg(1))) {
+      $node = node_load(arg(1));
+    }
+    foreach ($node->field_allterms as $terms) {
+      foreach ($terms as $term) {
+        // Technologies vid == 13.
+        if ($term['vid'] == '13') {
+          $term = taxonomy_term_load($term['tid']);
+          $term_name = preg_replace('/\_\_+/', '_', str_replace("/", '', preg_replace('/[^a-zA-Z0-9\']/', '_', $term->name)));;
+          $tag->settings['targeting'][] = array('target' => 'searchterm', 'value' => strtolower($term_name));
+        }
+      }
+      shuffle($tag->settings['targeting']);
+    }
+  }
+
+  // Adding value targeting to csia view page, because it does not have a csia coverage type.
+  if (current_path() == 'csia') {
+    $tag->settings['targeting'][] = array('target' => 'page', 'value' => 'csia');
+  }
+}
+

@@ -1,0 +1,184 @@
+/* Resize */
+.wrapper-outer .wrapper-inner { width: 100%; }
+#content-top-wrapper-inner #content-top {width: 100%;}
+#content-top .block-menu  {width: inherit !important; height:auto !important;}
+#content-top .block-menu ul.menu li{display: inline-block !important;  float: none !important;}
+#content-top .block-menu ul.menu {display: inline !important;  float: none !important; }
+
+.wrapper-outer #container-inner { width: auto; }
+.wrapper-outer .one-sidebar #main { width: auto; }
+.wrapper-outer #block-views-main-story-block { width: 65%; margin-right: 0; }
+.wrapper-outer #block-menu-menu-stories { width: 65%; }
+.wrapper-outer #block-views-news-block { width: 30%; }
+.wrapper-outer #block-views-main-story-block img { width: 100%;height: auto; }
+.wrapper-outer #block-views-news-block .attachment-after .views-field-field-image img { height: auto; width: 100%; }
+.wrapper-outer #block-views-news-block .attachment-after .views-field-field-image .alt-text { font-size: 160%; margin: 0 !important; padding: 14% 0 0; width: 100%; }
+
+.wrapper-outer #block-views-main-story-block .views-field-field-image { margin-right: 0; }
+.wrapper-outer #block-views-main-story-block .views-field-title a { font-size: 200%; }
+.one-sidebar .wrapper-outer #main { width: 99%; }
+
+#block-system-main .view-category-part-1 .views-row-1 { clear: both; }
+
+.wrapper-outer #footer .block { padding: 15px 10px; }
+#block-menu-menu-footer-link-3, #block-block-4, #block-menu-menu-footer-link-4{display:none}
+
+#content .view-category-main-story { width: 65%; }
+#content .view-category-main-story .views-field-field-image img { width: 100%;height:auto; }
+#content #block-views-category-news-block-1,
+#content #block-views-category-news-block-2,
+#content #block-views-category-news-block-3,
+#content #block-views-category-news-block-4,
+#content #block-views-category-news-block-6,
+#content #block-views-category-news-block-7,
+#content #block-views-category-news-block-5{ width: 32%; }
+
+#header-block-wrapper-inner #header-block { position: static !important; margin: 0 auto; width: auto; padding: 20px 0 0; }
+#header-block-wrapper-inner #header-block iframe,
+#header-block-wrapper-inner #header-block embed,
+#header-block-wrapper-inner #header-block img { width: 92% !important; }
+
+#header-block .content { text-align: center; }
+#container-inner { padding: 20px; width: 728px; }
+#content .node .group-right { width: 500px; }
+#content .node .field-name-field-term-industry { float: left; width: 500px; }
+#content .node.node-blog .field-name-field-term-industry { width: auto; }
+
+.wrapper-outer .page-node .field-name-field-term-subtype, .page-node .node-type { position: relative;}
+.block-front-main-content .content .view-content { width: 470px; }
+.block-front-main-content .content .view-content .views-field-image-470 { display: block; margin-bottom: 15px; }
+.block-front-main-content .content .view-content .views-field-image-360 { display: none; }
+.block-front-main-content .content .view-content .views-field-image-230 { display: none; }
+
+.block-category-main-content .content .view-content { width: 470px; }
+.block-category-main-content .content .view-content .views-field-image-470 { display: block; margin-bottom: 15px; }
+.block-category-main-content .content .view-content .views-field-image-360 { display: none; }
+.block-category-main-content .content .view-content .views-field-image-230 { display: none; }
+
+#footer-wrapper .wrapper-inner { padding: 20px; width: 95%; }
+.wrapper-outer #footer .block { padding: 15px 15px 0 0; }
+.wrapper-outer #footer .block-about-aw { width: 28%; padding: 15px 20px 0 10px; }
+#footer #block-menu-menu-footer-link-3  { padding: 15px 10px 0 20px; border-right: none; }
+.wrapper-outer #footer-links { width: 95%; }
+.wrapper-outer #footer-links-inner { width: 100%; }
+#footer-wrapper-bottom .block { overflow: hidden; }
+#content .block-follow-us-inside .content .twitter-content { width: 555px; }
+#content .block-follow-us-inside .content .twitter-content ul { width: 555px; }
+#content .block-follow-us-inside .content .twitter-content ul li { width: 250px; }
+#content .block-whats-new .content table td h4 { width: 190px; }
+#content .field-name-field-viddler-id img, 
+#content .field-name-field-image .field-item a { width: 40%; height: auto; display: block; margin-right: 20px; float: left; }
+#content .field-name-field-image .field-item a img { width: 100%; height: auto; }
+
+
+/* Hide */
+/* see redmine #14925 comment 10 why the 2 lines below was disabled. they should be displayed */
+/*.wrapper-outer #block-views-news-block .attachment .views-row-2,*/
+/*.wrapper-outer #block-menu-menu-stories,*/
+#content .block-quotable-component-control,
+#nav ul.menu li.menu-227,
+#nav ul.menu li.menu-518,
+.block-more-headlines,
+.block-recent-block-posts,
+#sidebar-second,
+#footer .block-image-footer,
+#block-block-43,
+#footer .block-last { display: none; }
+
+/*quote blocks*/
+#block-block-27,
+#block-block-26,
+#block-block-28,
+#block-block-29,
+#block-block-30,
+#block-block-32{ display: none; }
+
+/*RESPONSIVE DESIGN*/
+/*node*/
+/* #1926 .page-node #related-articles-container{display:none;}
+.page-node .responsive-design{display:block !important;}
+.page-node .responsive-design #related-articles-container{display:block !important;}
+.page-node .responsive-design #block-reltw-reltw-default-1 h3.title,#block-reltw-reltw-default h3.title{display:none;}
+.page-node #ads-300x600-container{ clear: right; display: block !important; float: right; margin-left: 5px; width: 40%;}
+.page-node #ads-300x600-container img { width: 100%; }
+.page-node #ads-300x600-container embed { width: 100%;}
+.page-node #ads-300x250-container {display: block; width: 40%;}
+.page-node #ads-300x250-container embed { width: 100%;}
+.page-node #ads-300x250-container img { width: 100%;}
+.page-node #ads-300x250-container iframe { width: 100%;}
+/*category and home*/
+/* #1926 .view #ads-300x250-container{display:block !important; display: block; width: 40%; float:right;clear:right; margin-left:10px;}
+.view #ads-300x250-container img { width: 100%;}
+.view #ads-300x250-container embed { width: 100%;}
+.view #ads-300x250-container-1{display:none !important;}
+.view #ads-300x600-container{display:block !important;clear: left; display: block; float: left;  margin-left: 5px; width: 40%;margin-right:10px;}
+.view #ads-300x600-container img { width: 100%;}
+.view #ads-300x600-container embed { width: 100%;} 
+#content .view .views-row-7, #content .first-page .view .views-row-8,#content .first-page .view .views-row-9 {float: right; width: 55%;clear:none;}
+#content .view .views-row-5{float: left; width: 55%;clear:none;}
+#content .view .views-row-6{clear:both;}
+.more-headlines #content .view .views-row-7,
+.more-headlines #content .first-page .view .views-row-8, 
+.more-headlines #content .first-page .view .views-row-9 {
+    clear: both;
+    float: none;
+    width: auto;
+}
+*/
+#block-views-recent-blog-post-block{display:none !important;}
+#content .block-content-ad-125x125 {clear: both;}
+
+.view-category-part-1 .headline-title,
+.view-category-part-1 .more-headlines {display: none;}
+
+.within-content-1, .within-content-3 {display: inline !important;}
+.within-content, .within-content-2 {display: none;}
+
+.view-whats-new .view-content {width: 48% !important;}
+.view-whats-new .view-content .views-field-title {width: 45% !important;}
+
+#ebStdBanner0, #ebStdBanner1 {width: 100% !important; height: 100% !important;}
+
+/* remove newsletter in the homepage only  */
+.page-node #content .block-newsletters {display: none;}
+
+/*related articles*/
+.maxwidth #block-reltw-reltw-default-1 .content .retlw-block, .maxwidth #block-reltw-reltw-default .content .retlw-block {min-height: 140px;width: 185px !important;}
+#block-reltw-reltw-default-1 { clear:none !important;}
+
+/*home fix*/
+.wrapper-outer #block-views-news-block .attachment-after .views-field-field-image .alt-text{width:inherit;right: 0;padding-top:20px;}
+
+/*
+* Blog Home Page
+* see https://projects.prometsupport.com/issues/16303
+*/
+#content .view-blog-home-page .views-row-7,#content .view-blog-home-page .views-row-5{ clear: both !important; float: none !important; width: auto !important;}
+
+/*main menu*/
+#nav .block-system-main-menu ul.menu > li a { padding: 0 5px !important; }
+#nav { width:800px !important; }
+#nav ul.menu li.top-level:nth-child(7) { display:none; }
+#nav ul.menu li.top-level:nth-child(8) { display:none; }
+
+/*theme update*/
+#header-top-wrapper,
+#header,
+#footer-wrapper ,
+#footer-wrapper-bottom,
+#container{width:100% !important;}
+/*trending*/
+#block-menu-menu-trending{display:none !important;}
+/* Image Rotator */
+#block-views-image-rotator-block {width:100% !important;}
+#block-views-image-rotator-block #view-gallery-minor {width: 30% !important;}
+#block-views-image-rotator-block #view-gallery-minor .views-row {min-height: auto !important;}
+#block-views-image-rotator-block #view-gallery-minor .views-field-field-image img {width:80% !important; height:auto !important;}
+#block-views-image-rotator-block #view-gallery-major {width:66% !important;}
+#block-views-image-rotator-block #view-gallery-major img {width: 100% !important;}
+/* Reg Form */
+.content-type-registration-form #block-system-main { min-width:1000px; }
+/* Three Sixty Gallery */
+#three-sixty-gallery-content { display:block !important; }
+.three-sixty-gallery-button, .three-sixty-gallery-instructions { display:none !important; }
+.node-type-360-package-spin-rotate .deckhead, #three-sixty-gallery .content { width:100% !important; }

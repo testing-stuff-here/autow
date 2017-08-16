@@ -1,0 +1,4 @@
+name = Newsletter Sign-up Redirect
+description = Redirects users to omeda from the Newsletter sign up form
+package = "custom"
+core = 7.x

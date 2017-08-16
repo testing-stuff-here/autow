@@ -1,0 +1,4 @@
+name = Kampyle
+description = Enable Kampyle on your site
+package = Other
+core = 7.x

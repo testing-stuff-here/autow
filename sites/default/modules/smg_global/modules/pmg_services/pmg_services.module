@@ -1,0 +1,384 @@
+<?php
+/**
+ * @file
+ * Contains Services hooks for enhancing services to PMG.
+ */
+
+module_load_include('php', 'smg_global', 'libraries/silverpop/EngagePod');
+module_load_include('php', 'smg_global', 'libraries/silverpopToSalesforce/SilverpopToSalesforce');
+
+/**
+ * Implements hook_permission().
+ */
+function pmg_services_permission() {
+  return [
+    'administer_pmg_services' => [
+      'title' => t('Administer PMG Services'),
+      'description' => t('Perform administration tasks on PMG Services module.'),
+    ],
+  ];
+}
+
+/**
+ * Implements hook_menu().
+ */
+function pmg_services_menu() {
+  $items['admin/pmg-services/silverpop/post-forms'] = [
+    'title' => 'PMG Services Silverpop Post Forms',
+    'description' => 'Lists all the forms submitted via Silverpop API Post',
+    'page callback' => 'pmg_services_silverpop_forms',
+    'access arguments' => ['administer_pmg_services'],
+    'weight' => 12,
+    'file' => 'pmg_services.admin.inc',
+  ];
+  $items['admin/pmg-services/silverpop/form/%'] = [
+    'title' => 'PMG Services Silverpop Post Forms',
+    'description' => 'Lists submisssions for a form',
+    'page callback' => ['pmg_services_form_submissions'],
+    'page arguments' => [4],
+    'access arguments' => ['administer_pmg_services'],
+    'file' => 'pmg_services.admin.inc',
+  ];
+  $items['admin/pmg-services/silverpop/submission/%'] = [
+    'title' => 'PMG Services Silverpop Post Forms',
+    'description' => 'Lists submisssions for a form',
+    'page callback' => ['pmg_services_submission'],
+    'page arguments' => [4],
+    'access arguments' => ['administer_pmg_services'],
+    'file' => 'pmg_services.admin.inc',
+  ];
+
+  return $items;
+}
+
+/**
+ * Implements hook_services_resources().
+ */
+function pmg_services_services_resources() {
+  $api = [
+    'silverpop' => [
+      'operations' => [
+        'retrieve' => [
+          'help' => 'Retrieve Silverpop Info',
+          'callback' => '_pmg_services_silverpop_retrieve',
+          'access callback' => 'user_access',
+          'access arguments' => ['access content'],
+          'access arguments append' => FALSE,
+          'args' => [
+            // We don't really need the id but we need to have it in in order to
+            // work properly.
+            [
+              'name' => 'id',
+              'type' => 'int',
+              'description' => 'ID',
+              'source' => ['path' => '1'],
+              'optional' => TRUE,
+              'default' => '0',
+            ],
+             [
+              'name' => 'spUserID',
+              'type' => 'int',
+              'description' => 'Silverpop User Id that would be in the url if user clicked on a newsletter',
+              'source' => ['param' => 'spUserID'],
+              'optional' => TRUE,
+              'default' => '0',
+             ],
+          ],
+        ],
+      ],
+      'actions' => [
+        'post' => [
+          'help' => 'Post to Silverpop',
+          'callback' => '_pmg_services_silverpop_post',
+          'access callback' => 'user_access',
+          'access arguments' => ['access content'],
+          'access arguments append' => FALSE,
+          'args' => [
+            [
+              'name' => 'data',
+              'type' => 'array',
+              'description' => 'The Silverpop post object',
+              'source' => 'data',
+              'optional' => FALSE,
+            ],
+          ],
+        ],
+      ],
+    ],
+  ];
+
+  return $api;
+}
+
+/**
+ * Retrieve call back function for getting Silverpop data.
+ *
+ * @param int $id
+ *   Not used. Just in so it works.
+ * @param string $spUserID
+ *   The value sent in the SpUserId parameter.
+ *
+ * @return array
+ */
+function _pmg_services_silverpop_retrieve($id, $spUserID) {
+  $contactInfo = [];
+  $contact = FALSE;
+
+  $engage = pmg_services_silverpop_authenticate();
+
+  // If a Silverpop User Id was in the url paramater that means that user just
+  // clicked from a newsletter.
+  if ($spUserID) {
+    $contact = $engage->getContact(variable_get('silverpop_database_id'), $spUserID, 'ENCODED_RECIPIENT_ID');
+  }
+  // Checking if user has a reader_token cookie. The reader_token cookie
+  // ideally only gets set on stage 2 forms, playbooks.
+  else if (isset($_COOKIE['reader_token'])) {
+    // Get email address from token.
+    $email = playbook_fields_get_email_from_cookie($_COOKIE['reader_token']);
+
+    // Search Silverpop for info.
+    $contact = $engage->getContact(variable_get('silverpop_database_id'), $email);
+  }
+
+  // If no reader_token cookie search silverpop cookie.
+  if (!$contact && isset($_COOKIE['com_silverpop_iMA_uid'])) {
+    $contact = $engage->getContact(variable_get('silverpop_database_id'), $_COOKIE['com_silverpop_iMA_uid'], 'ENCODED_RECIPIENT_ID');
+  }
+
+  // Convert the columns results into array.
+  if (isset($contact['COLUMNS']['COLUMN'][0])) {
+    // Set email to what is in Silverpop. (Just in case there is a
+    // difference).
+    $contactInfo['Email'] = $contact['EMAIL'];
+
+    // Clean silverpop post.
+    pmg_services_clean_silverpop_response($contact, $contactInfo);
+
+    return $contactInfo;
+  }
+  else {
+    return services_error(t('Silverpop user could not be found'), 404);
+  }
+}
+
+/**
+ * Callback function for creating data to Silverpop.
+ *
+ * @param array $data
+ *   Values sent by the post array.
+ *
+ * @return array
+ */
+function _pmg_services_silverpop_post($data) {
+  // Email is required. Failing if it isn't present.
+  if (!isset($data['Email']) && !$data['Email']) {
+    return services_error(t('Email field is required!'), 404);
+  }
+
+  $post_to_ringlead = FALSE;
+
+  $data = pmg_services_field_name_fix($data);
+
+  $existing_contact = null;
+
+  $engage = pmg_services_silverpop_authenticate();
+
+  // If the user already exists need to get some.
+  $contact = $engage->getContact(variable_get('silverpop_database_id'), $data['Email']);
+
+  // Convert the columns results into array.
+  if (isset($contact['COLUMNS']['COLUMN'][0])) {
+    pmg_services_clean_silverpop_response($contact, $existing_contact);
+  }
+
+  // Check if Contact Prepare parameter is set.
+  $prepare_contact = isset($data['Contact Prepare']) ? $data['Contact Prepare'] : FALSE;
+  // Only run through this function if Contact Prepare was set to TRUE. Reason
+  // is that are forms that we will want to control newsletters,brand,etc... and
+  // if we run this function it may not set everything correctly. For example if
+  // a NL field is set to NO it won't ever update it anymore.
+  if ($prepare_contact) {
+    $data = playbook_fields_add_contact_prepare($data, $existing_contact);
+  }
+  else {
+    // Setting the Registration History to "form id" value.
+    $data['Registration History'] = trim($data['form id']);
+
+    if (isset($existing_contact['Registration History']) && $existing_contact['Registration History']) {
+      // Appending Registration History Value to the previous Registration
+      // History Value. Just in case there are more than the limit (limit is
+      // 4000 but going less just to be safe.) I am not appending but starting
+      // from scratch.
+      if (strlen($existing_contact['Registration History'] . $data['form id']) <= 3500) {
+        $data['Registration History'] = trim($data['form id']) .  " " . $existing_contact['Registration History'];
+      }
+    }
+  }
+
+  if ($registrationID = $engage->addContact(variable_get('silverpop_database_id'), TRUE, $data)) {
+    // Check if stage one form.
+    $is_stage_one = FALSE;
+    if (isset($data['Stage One Form'])) {
+      $is_stage_one = TRUE;
+    }
+
+    // Save cookie.
+    playbook_fields_set_cookie($data['Email'], $is_stage_one);
+
+    // Get the spUserID.
+    $result['spUserID'] = pmg_services_convert_registration_id_to_spuserid($registrationID);
+
+    // Log full submission data.
+    if (isset($data['form id'])) {
+      db_insert('pmg_services_silverpop_post_log')
+        ->fields([
+          'form_id' => $data['form id'],
+          'email' => $data['Email'],
+          'date' => REQUEST_TIME,
+          'data' => json_encode($data),
+        ])
+        ->execute();
+    }
+
+    // PP OEM Subscription form - Decide if we should post to ring lead. (Yes
+    // value means they do want it.)
+    if (isset($data['NL PP OEM Digital Edition'])) {  // TODO: Review Mag Edition variable
+      // If they were previously singed up and now they don't want the magazine
+      // need to update Salesforce.
+      if (isset($existing_contact['NL PP OEM Digital Edition']) &&
+        $existing_contact['NL PP OEM Digital Edition'] == 'Yes' &&
+        $data['NL PP OEM Digital Edition'] == 'No') {
+        $post_to_ringlead = TRUE;
+      }
+      // If they did want the magazine.
+      else if ($data["NL PP OEM Digital Edition"] == 'Yes') {
+        $post_to_ringlead = TRUE;
+      }
+    }
+
+    // Post to ringlead.
+    if ($post_to_ringlead) {
+      // #803 - Default the Audit Touch Points value to Web.
+      $data['Audit Touch Points'] = "Web";
+      $salesforce = new SilverpopToSalesforce();
+      $salesforce->postToRingLead($data);
+    }
+
+    return $result;
+  }
+  else {
+    return services_error(t('Could not save!'), 404);
+  }
+}
+
+/**
+ * Clean Silverpop response.
+ *
+ * @param array $contact
+ *   Response from Silverpop.
+ * @param array $contactInfo
+ *   The cleaned up response.
+ */
+function pmg_services_clean_silverpop_response($contact, &$contactInfo) {
+  foreach ($contact['COLUMNS']['COLUMN'] as $column) {
+    $value = $column['VALUE'] ? $column['VALUE'] : '';
+    // Replace Non UTF-8 apostrophe to UTF8.
+    $value = str_replace('’', "'", $value);
+    $contactInfo[$column['NAME']] = $value;
+  }
+}
+
+/**
+ * Athenticate to Silverpop.
+ *
+ * @return object $engage
+ *   The EngagePod object.
+ */
+function pmg_services_silverpop_authenticate() {
+  $engage = new EngagePod(
+    [
+      'username' => variable_get('silverpop_username'),
+      'password' => variable_get('silverpop_password'),
+      'engage_server' => variable_get('silverpop_engage_server'),
+    ]
+  );
+
+  return $engage;
+}
+
+/**
+ * A lot of our fields in Silverpop have spaces in them but PHP converts them
+ * to underscores. This function will convert them.
+ *
+ * @param array $data
+ *   Post array passed from an api call.
+ *
+ * @param array $converted
+ *   The converted array.
+ */
+function pmg_services_field_name_fix($data) {
+  $converted = [];
+
+  foreach ($data as $fieldName => $value) {
+    // These are fields that already have underscores. Don't want to update
+    // these.
+    switch ($fieldName) {
+      case 'Email_Medium':
+      case 'PMMI_OptOut':
+      case 'Permission_AW_Batch_Process_Playbook':
+      case 'Permission_AW_Beckoff_Webinar':
+      case 'Permission_AW_CoBranded_Newsletters':
+      case 'Permission_AW_Continuous_Process_Playbook':
+      case 'Permission_AW_Dive_Deep_Video':
+      case 'Permission_AW_Factory_and_Machine_Automation_Playbook':
+      case 'Permission_AW_GE_Webinar':
+      case 'Permission_AW_NI_Video':
+      case 'Permission_AW_SICK_Machine_Safety_Newsletter':
+      case 'Permission_AW_ShowDaily_Schneider':
+      case 'Permission_AW_SpecialEnhancedContent:':
+      case 'Permission_AW_specialevents':
+      case 'Permission_HCP_LifeScienceMaterials_Playbook':
+      case 'Permission_HCP_Serialization_Playbook':
+      case 'Permission_HCP_SpecialEnhancedContent':
+      case 'Permission_PW_CalPoly_Webinar':
+      case 'Permission_PW_SpecialEnhancedContent':
+      case 'Permission_PW_ThermoFisher_Webinar':
+      case 'Permissions_AW Survey':
+      case 'Permissions_PW_TechMin':
+        $converted[$fieldName] = $value;
+        break;
+
+      // These have a mixture of space and underscores. (FYI there are more but
+      // the others look like they won't be used anymore).
+      case 'Permission_AW_TIA_Automotive_Edition':
+        $converted[$fieldName] = $value;
+        break;
+
+      case 'Permissions_PW_Survey':
+        $converted[$fieldName] = $value;
+        break;
+
+      // This one simply replaces spaces with underscores.
+      default:
+        $fieldName = str_replace('_', ' ', $fieldName);
+        $converted[$fieldName] = $value;
+        break;
+    }
+  }
+
+  return $converted;
+}
+
+/**
+ * Converts a Silverpop Registration ID to a base 64 encoded string. This is
+ * the way Silverpop returns it to us.
+ */
+function pmg_services_convert_registration_id_to_spuserid($registration_id) {
+  $base64_id = base64_encode($registration_id);
+  $base64_id = preg_replace('/([^=]+)$/', '${1}S0', $base64_id);
+  $base64_id = preg_replace('/([^=]+)=$/', '${1}S1', $base64_id);
+  $base64_id = preg_replace('/([^=]+)==$/', '${1}S2', $base64_id);
+
+  return $base64_id;
+}

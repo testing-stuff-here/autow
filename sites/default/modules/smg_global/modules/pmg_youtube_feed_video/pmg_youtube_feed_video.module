@@ -1,0 +1,489 @@
+<?php
+
+/**
+ * @file
+ * Module for the PMG YouTube Feed Video Entity.
+ */
+
+/**
+ * Implement hook_entity_info().
+ */
+function pmg_youtube_feed_video_entity_info() {
+  $return['pmg_youtube_feed_video'] = array(
+    'label' => t('PMG YouTube Feed Video'),
+    // The entity class and controller class extend the classes provided by the
+    // Entity API
+    'entity class' => 'PmgYoutubeFeedVideo',
+    'controller class' => 'PmgYoutubeFeedVideoController',
+    'base table' => 'pmg_youtube_feed_video',
+    'fieldable' => TRUE,
+    'entity keys' => array(
+        'id' => 'id',
+        'bundle' => 'type',
+    ),
+    // Bundles are defined by the PMG YouTube Feed video types below
+    'bundles' => array(),
+    // Bundle keys tell the FieldAPI how to extract information from the bundle objects
+    'bundle keys' => array(
+      'bundle' => 'type',
+    ),
+    'label callback' => 'entity_class_label',
+    'uri callback' => 'entity_class_uri',
+    'creation callback' => 'pmg_youtube_feed_video_create',
+    'access callback' => 'pmg_youtube_feed_video_access',
+    'module' => 'pmg_youtube_feed_video',
+    // The information below is used by the PmgYoutubeFeedVideoUIController (which extends the EntityDefaultUIController)
+    'admin ui' => array(
+      'path' => 'admin/content/pmg_youtube_feed_videos',
+      'file' => 'pmg_youtube_feed_video.admin.inc',
+      'controller class' => 'PmgYoutubeFeedVideoUIController',
+      'menu wildcard' => '%pmg_youtube_feed_video',
+    ),
+  );
+  // The entity that holds information about the entity types
+  $return['pmg_youtube_feed_video_type'] = array(
+    'label' => t('PMG YouTube Feed Video Type'),
+    'entity class' => 'PmgYoutubeFeedVideoType',
+    'controller class' => 'PmgYoutubeFeedVideoTypeController',
+    'base table' => 'pmg_youtube_feed_video_type',
+    'fieldable' => FALSE,
+    'bundle of' => 'pmg_youtube_feed_video',
+    'exportable' => TRUE,
+    'entity keys' => array(
+      'id' => 'id',
+      'name' => 'type',
+      'label' => 'label',
+    ),
+    'access callback' => 'pmg_youtube_feed_video_type_access',
+    'module' => 'pmg_youtube_feed_video',
+    // Enable the entity API's admin UI.
+    'admin ui' => array(
+      'path' => 'admin/structure/pmg_youtube_feed_video_types',
+      'file' => 'pmg_youtube_feed_video_type.admin.inc',
+      'controller class' => 'PmgYoutubeFeedVideoTypeUIController',
+    ),
+  );
+
+  return $return;
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function pmg_youtube_feed_video_entity_info_alter(&$entity_info) {
+  foreach (pmg_youtube_feed_video_get_types() as $type => $info) {
+    $entity_info['pmg_youtube_feed_video']['bundles'][$type] = array(
+      'label' => $info->label,
+      'admin' => array(
+        'path' => 'admin/structure/pmg_youtube_feed_video_types/manage/%pmg_youtube_feed_video_type',
+        'real path' => 'admin/structure/pmg_youtube_feed_video_types/manage/' . $type,
+        'bundle argument' => 4,
+        'access arguments' => array('administer pmg youtube feed video types'),
+      ),
+    );
+  }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function pmg_youtube_feed_video_permission() {
+  // We set up permisssions to manage entity types, manage all entities and the
+  // permissions for each individual entity
+  $permissions = array(
+    'administer pmg youtube feed video types' => array(
+      'title' => t('Administer PMG YouTube Feed video types'),
+      'description' => t('Create and delete fields for PMG YouTube Feed video types, and set their permissions.'),
+    ),
+    'administer pmg youtube feed videos' => array(
+      'title' => t('Administer PMG YouTube Feed videos'),
+      'description' => t('Edit and delete all PMG YouTube Feed videos'),
+    ),
+  );
+
+  //Generate permissions per PMG YouTube Feed video
+  foreach (pmg_youtube_feed_video_get_types() as $type) {
+    $type_name = check_plain($type->type);
+    $permissions += array(
+      "edit any $type_name pmg youtube feed video" => array(
+        'title' => t('%type_name: Edit any PMG YouTube Feed video', array('%type_name' => $type->label)),
+      ),
+      "view any $type_name pmg youtube feed video" => array(
+        'title' => t('%type_name: View any PMG YouTube Feed video', array('%type_name' => $type->label)),
+      ),
+    );
+  }
+  return $permissions;
+}
+
+/**
+ * Determines whether the given user has access to a pmg_youtube_feed_video.
+ *
+ * @param string $op
+ *   The operation being performed. One of 'view', 'update', 'create', 'delete'
+ *   or just 'edit' (being the same as 'create' or 'update').
+ * @param object $pmg_youtube_feed_video
+ *   Optionally a PMG YouTube Feed video or a PMG YouTube Feed video type to check access for. If nothing is
+ *   given, access for all PMG YouTube Feed videos is determined.
+ * @param string $account
+ *   The user to check for. Leave it to NULL to check for the global user.
+ *
+ * @return boolean
+ *   Whether access is allowed or not.
+ */
+function pmg_youtube_feed_video_access($op, $pmg_youtube_feed_video = NULL, $account = NULL) {
+  if (user_access('administer pmg_youtube_feed_videos', $account)) {
+    return TRUE;
+  }
+  if (isset($pmg_youtube_feed_video->type) && $type_name = $pmg_youtube_feed_video->type) {
+    $op = ($op == 'view') ? 'view' : 'edit';
+    if (user_access("$op any $type_name pmg_youtube_feed_video", $account)) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Access callback for the entity API.
+ */
+function pmg_youtube_feed_video_type_access($op, $type = NULL, $account = NULL) {
+  return user_access('administer pmg youtube feed video types', $account);
+}
+
+/**
+ * Gets an array of all PMG YouTube Feed video types, keyed by the type name.
+ *
+ * @param string $type_name
+ *   If set, the type with the given name is returned.
+ * @return PmgYoutubeFeedVideoType[]
+ *   Depending whether $type isset, an array of PMG YouTube Feed video types or a single one.
+ */
+function pmg_youtube_feed_video_get_types($type_name = NULL) {
+  // entity_load will get the Entity controller for our PMG YouTube Feed video entity and call the load
+  // function of that object - we are loading entities by name here.
+  $types = entity_load_multiple_by_name('pmg_youtube_feed_video_type', isset($type_name) ? array($type_name) : FALSE);
+  return isset($type_name) ? reset($types) : $types;
+}
+
+/**
+ * Implements hook_entity_property_info_alter().
+ */
+function pmg_youtube_feed_video_entity_property_info_alter(&$info) {
+  foreach($info['pmg_youtube_feed_video']['properties'] as $field_name => $data) {
+    $info['pmg_youtube_feed_video']['properties'][$field_name]['setter callback'] = 'entity_property_verbatim_set';
+  }
+  foreach($info['pmg_youtube_feed_video_type']['properties'] as $field_name => $data) {
+    $info['pmg_youtube_feed_video_type']['properties'][$field_name]['setter callback'] = 'entity_property_verbatim_set';
+  }
+}
+
+/**
+ * Menu argument loader; Load a PMG YouTube Feed video type by string.
+ *
+ * @param $type
+ *   The machine-readable name of a PMG YouTube Feed video type to load.
+ * @return
+ *   A PMG YouTube Feed video type array or FALSE if $type does not exist.
+ */
+function pmg_youtube_feed_video_type_load($type) {
+  return pmg_youtube_feed_video_get_types($type);
+}
+
+/**
+ * fetch a PMG YouTube Feed video object. make sure that the wildcard you choose
+ * in the PMG YouTube Feed video entity definition fits the function name here.
+ *
+ * @param int $id
+ *   integer specifying the PMG YouTube Feed id.
+ * @param $reset
+ *   a boolean indicating that the internal cache should be reset.
+ * @return
+ *   a fully-loaded $pmg_youtube_feed_video object or false if it cannot be loaded.
+ *
+ * @see pmg_youtube_feed_video_load_multiple()
+ */
+function pmg_youtube_feed_video_load($id, $reset = FALSE) {
+  $pmg_youtube_feed_videos = pmg_youtube_feed_video_load_multiple(array($id), array(), $reset);
+  return reset($pmg_youtube_feed_videos);
+}
+
+/**
+ * Load multiple PMG YouTube Feed videos based on certain conditions.
+ *
+ * @param $ids
+ *   An array of PMG YouTube Feed video IDs.
+ * @param $conditions
+ *   An array of conditions to match against the {pmg_youtube_feed_video} table.
+ * @param $reset
+ *   A boolean indicating that the internal cache should be reset.
+ * @return
+ *   An array of pmg_youtube_feed_video objects, indexed by id.
+ *
+ * @see entity_load()
+ * @see pmg_youtube_feed_video_load()
+ */
+function pmg_youtube_feed_video_load_multiple($ids = array(), $conditions = array(), $reset = FALSE) {
+  return entity_load('pmg_youtube_feed_video', $ids, $conditions, $reset);
+}
+
+/**
+ * Deletes a pmg_youtube_feed_video.
+ *
+ * @param  object $pmg_youtube_feed_video
+ */
+function pmg_youtube_feed_video_delete(PmgYoutubeFeedVideo $pmg_youtube_feed_video) {
+  $pmg_youtube_feed_video->delete();
+}
+
+/**
+ * Create a PMG YouTube Feed video object.
+ */
+function pmg_youtube_feed_video_create($values = array()) {
+  return entity_get_controller('pmg_youtube_feed_video')->create($values);
+}
+
+/**
+ * Saves a PMG YouTube Feed video to the database.
+ *
+ * @param $pmg_youtube_feed_video
+ *   The PMG YouTube Feed video object.
+ */
+function pmg_youtube_feed_video_save(PmgYoutubeFeedVideo $pmg_youtube_feed_video) {
+  return $pmg_youtube_feed_video->save();
+}
+
+/**
+ * Saves a PMG YouTube Feed video type to the db.
+ */
+function pmg_youtube_feed_video_type_save(PmgYoutubeFeedVideoType $type) {
+  $type->save();
+}
+
+/**
+ * Deletes a PMG YouTube Feed video type from the db.
+ */
+function pmg_youtube_feed_video_type_delete(PmgYoutubeFeedVideoType $type) {
+  $type->delete();
+}
+
+/**
+ * URI callback for PMG YouTube Feed videos.
+ */
+function pmg_youtube_feed_video_uri(PmgYoutubeFeedVideo $pmg_youtube_feed_video){
+  return array(
+    'path' => 'pmg_youtube_feed_video/' . $pmg_youtube_feed_video->id,
+  );
+}
+
+/**
+ * Delete multiple PMG YouTube Feed videos.
+ *
+ * @param array $ids
+ *   An array of PMG YouTube Feed video IDs.
+ */
+function pmg_youtube_feed_video_delete_multiple(array $ids) {
+  entity_get_controller('pmg_youtube_feed_video')->delete($ids);
+}
+
+/**
+ * Menu title callback for showing individual entities
+ */
+function pmg_youtube_feed_video_page_title(PmgYoutubeFeedVideo $pmg_youtube_feed_video){
+  return $pmg_youtube_feed_video->name;
+}
+
+/**
+ * Sets up content to show an individual PMG YouTube Feed video.
+ *
+ * @param int $pmg_youtube_feed_video
+ *   the PMG YouTube Feed video id.
+ * @param string $view_mode
+ *   the view mode of the entity.
+ *
+ * @return  object $content
+ *   the content object.
+ */
+function pmg_youtube_feed_video_page_view($pmg_youtube_feed_video, $view_mode = 'full') {
+  $controller = entity_get_controller('pmg_youtube_feed_video');
+  $content = $controller->view(array($pmg_youtube_feed_video->id => $pmg_youtube_feed_video));
+  drupal_set_title($pmg_youtube_feed_video->name);
+  return $content;
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function pmg_youtube_feed_video_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'pmg_youtube_feed_video') . '/views',
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function pmg_youtube_feed_video_theme() {
+  return array(
+    'pmg_youtube_feed_video_add_list' => array(
+      'variables' => array('content' => array()),
+      'file' => 'pmg_youtube_feed_video.admin.inc',
+    ),
+    'pmg_youtube_feed_video' => array(
+      'render element' => 'elements',
+      'template' => 'pmg-youtube-feed-video',
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ */
+function pmg_youtube_feed_video_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  if ($root_path == 'admin/content/pmg_youtube_feed_videos') {
+    $item = menu_get_item('admin/content/pmg_youtube_feed_videos/add');
+    if ($item['access']) {
+      $data['actions']['output'][] = array(
+        '#theme' => 'menu_local_action',
+        '#link' => $item,
+      );
+    }
+  }
+}
+
+/**
+ * Get PMG YouTube Feed videos
+ *
+ * @param  int $node_id
+ *  Node Id.
+ *
+ * @return array $pmg_youtube_feed_videos
+ *  PMG YouTube Feed video entities.
+ */
+function pmg_youtube_feed_video_get_all($node_id = NULL) {
+  $pmg_youtube_feed_videos = array();
+
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'pmg_youtube_feed_video');
+  if ($node_id) {
+    $query->propertyCondition('node_id', $node_id);
+  }
+  $result = $query->execute();
+
+  if (isset($result['pmg_youtube_feed_video'])) {
+    $entity_ids = array_keys($result['pmg_youtube_feed_video']);
+    $pmg_youtube_feed_videos = entity_load('pmg_youtube_feed_video', $entity_ids);
+  }
+  
+  return $pmg_youtube_feed_videos;
+}
+
+/**
+ * The class used for PMG YouTube Feed video entities.
+ */
+class PmgYoutubeFeedVideo extends Entity {
+
+  public function __construct($values = array()) {
+    parent::__construct($values, 'pmg_youtube_feed_video');
+  }
+
+  protected function defaultLabel() {
+    return $this->name;
+  }
+
+  protected function defaultUri() {
+    return array('path' => 'pmg_youtube_feed_video/' . $this->id);
+  }
+
+}
+
+/**
+ * The class used for PMG YouTube Feed video type entities
+ */
+class PmgYoutubeFeedVideoType extends Entity {
+
+  public $type;
+  public $label;
+
+  public function __construct($values = array()) {
+    parent::__construct($values, 'pmg_youtube_feed_video_type');
+  }
+
+}
+
+/**
+ * The Controller for PMG YouTube Feed video entities.
+ */
+class PmgYoutubeFeedVideoController extends EntityAPIController {
+  public function __construct($entityType) {
+    parent::__construct($entityType);
+  }
+
+  /**
+   * Create a PMG YouTube Feed video - we first set up the values that are specific
+   * to our PMG YouTube Feed video schema but then also go through the EntityAPIController
+   * function.
+   *
+   * @param $type
+   *   The machine-readable type of the PMG YouTube Feed video.
+   *
+   * @return
+   *   A PMG YouTube Feed video object with all default fields initialized.
+   */
+  public function create(array $values = array()) {
+    // Add values that are specific to our PMG YouTube Feed Video
+    $values += array(
+      'id' => '',
+      'title' => '',
+      'node_id' => '',
+      'created' => '',
+      'changed' => '',
+      'data' => '',
+    );
+
+    $pmg_youtube_feed_video = parent::create($values);
+    return $pmg_youtube_feed_video;
+  }
+
+  /**
+   * Overriding the buldContent function to add entity specific fields
+   */
+  public function buildContent($entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
+    $content = parent::buildContent($entity, $view_mode, $langcode, $content);
+    return $content;
+  }
+
+}
+
+/**
+ * The Controller for PMG YouTube Feed Video entities.
+ */
+class PmgYoutubeFeedVideoTypeController extends EntityAPIControllerExportable {
+  public function __construct($entityType) {
+    parent::__construct($entityType);
+  }
+
+   /**
+   * Create a PMG YouTube Feed video type - we first set up the values that are specific
+   * to our PMG YouTube Feed video type schema but then also go through the EntityAPIController
+   * function.
+   *
+   * @param $type
+   *   The machine-readable type of the PMG YouTube Feed video.
+   *
+   * @return
+   *   A PMG YouTube Feed video type object with all default fields initialized.
+   */
+  public function create(array $values = array()) {
+    // Add values that are specific to our PMG YouTube Feed video.
+    $values += array(
+      'id' => '',
+      'is_new' => TRUE,
+      'data' => '',
+    );
+    $pmg_youtube_feed_video_type = parent::create($values);
+    return $pmg_youtube_feed_video_type;
+  }
+
+}

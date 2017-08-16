@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Download Node Type View feature.
+ */
+
+include_once('download_node_type_view.features.inc');

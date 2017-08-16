@@ -1,0 +1,124 @@
+<?php
+
+/**
+ * Implements hook_block_info()
+ */
+function aw_blocks_block_info() {
+  $blocks['aw_nl_stage_one'] = [
+    'info' => t('AW Newsletter stage one form'),
+    'status' => TRUE,
+    'theme' => 'awbs',
+    'region' => 'content',
+    'weight' => '9',
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  ];
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function aw_blocks_block_view($delta='') {
+
+  switch($delta) {
+    case 'aw_nl_stage_one' :
+      $block['content'] = aw_nl_stage_one_html();
+      break;
+  }
+
+  return $block;
+}
+
+/**
+ * Returns form HTML.
+ */
+function aw_nl_stage_one_html() {
+
+  return '<div class="col-xs-12 awbs-newsletters-megabox">
+  <form action="/newsletter-registration" method="get">
+    <div class="row">
+      <div class="col-xs-12 awbs-newsletters-megabox-header">' . t('Newsletters') . '</div>
+      <div class="col-xs-12 awbs-newsletters-megabox-cta">
+        <div class="top-text">' . t('Don\'t miss intelligence crucial to your job and business!') . '</div>
+        <div class="bottom-text">' . t('Select your interest areas below to sign up for Automation World newsletters.') . '
+          <br />
+          <a href="/automation-world-newsletters"><u>' . t('View newsletter archive »') . '</u></a>
+        </div>
+      </div>
+    </div>
+    <div class="row awbs-newsletters-megabox-top">
+      <div class="col-xs-12 col-sm-6 col-md-4">
+        <div class="row awbs-newsletters-box-layout">
+          <div class="col-xs-10 awbs-newsletters-box-text">
+            <div class="row">
+              <div class="col-xs-10 box-text-name"> ' . t('Automation News and Trends') . '</div>
+            </div>
+          </div>
+          <div class="col-xs-2 awbs-newsletters-box-box">
+            <input name="AW_NewsandTrends" type="checkbox" value="Yes" />
+          </div>
+        </div>
+      </div>
+      <div class="col-xs-12 col-sm-6 col-md-4">
+        <div class="row awbs-newsletters-box-layout">
+          <div class="col-xs-10 awbs-newsletters-box-text">
+            <div class="row">
+              <div class="col-xs-10 box-text-name">' . t('Continuous Processing') . '</div>
+            </div>
+          </div>
+          <div class="col-xs-2 awbs-newsletters-box-box">
+            <input name="AW_ContinuousProcessing" type="checkbox" value="Yes" />
+          </div>
+        </div>
+      </div>
+      <div class="col-xs-12 col-sm-6 col-md-4">
+        <div class="row awbs-newsletters-box-layout">
+          <div class="col-xs-10 awbs-newsletters-box-text">
+            <div class="row">
+              <div class="col-xs-10 box-text-name">' . t('Food, Beverage and Pharma') . '</div>
+            </div>
+          </div>
+          <div class="col-xs-2 awbs-newsletters-box-box">
+            <input name="AW_FoodBevPharma" type="checkbox" value="Yes" />
+          </div>
+        </div>
+      </div>
+      <div class="col-xs-12 col-sm-6 col-md-4">
+        <div class="row awbs-newsletters-box-layout">
+          <div class="col-xs-10 awbs-newsletters-box-text">
+            <div class="row">
+              <div class="col-xs-10 box-text-name">' . t('Factory Automation') . '</div>
+            </div>
+          </div>
+          <div class="col-xs-2 awbs-newsletters-box-box">
+            <input name="AW_FactoryAutomation" type="checkbox" value="Yes" />
+          </div>
+        </div>
+      </div>
+      <div class="col-xs-12 col-sm-6 col-md-4">
+        <div class="row awbs-newsletters-box-layout">
+          <div class="col-xs-10 awbs-newsletters-box-text">
+            <div class="row">
+              <div class="col-xs-10 box-text-name">' . t('System Integrators') . '</div>
+            </div>
+          </div>
+          <div class="col-xs-2 awbs-newsletters-box-box">
+            <input name="AW_SystemIntegrator" type="checkbox" value="Yes" />
+          </div>
+        </div>
+      </div>
+      <div class="visible-sm visible-md visible-lg visible-xl col-sm-6 col-md-4">
+        <div class="row awbs-newsletters-box-layout">&nbsp;</div>
+      </div>
+    </div>
+    <div class="row awbs-newsletters-megabox-footer">
+      <div class="col-xs-12 col-md-12 footer-cta">' . t('Each newsletter ranges in frequency from once per month 
+        to a few times per month at most.') . '</div>
+      <div class="awbs-newsletters-box-inputbox">
+        <button class="button btn btn-sm btn-block awbs-btn" type="submit" value="SIGN UP">' . t('Sign up') . '</button>
+      </div>
+    </div>
+  </form>
+</div>';
+
+}

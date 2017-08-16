@@ -1,0 +1,13 @@
+/* IEs are also putting shadow on background image */
+#navigation #menubar-main-menu ul.menu>li.last>a { filter: none; }
+/* Main Menu Submenu 
+#nav #menubar-main-menu ul.menu ul li {width:161px;background:#fff; border-left:1px solid #ccc;border-right:1px solid #ccc;}
+#nav #menubar-main-menu ul.menu ul {width:161px;}
+#nav #menubar-main-menu ul.menu ul li a {padding: 10px 0;}
+#nav #menubar-main-menu ul.menu ul li.last {width:161px;background:#fff;border: 1px solid #ccc; border-top:0;}
+#nav #menubar-main-menu ul.menu ul {background: url("images/menutopbg-ie.png") no-repeat scroll center top transparent;}
+#nav #menubar-main-menu ul.menu ul li:hover {background:#fff;}
+#nav #menubar-main-menu ul.menu ul li.last:hover{background:#fff;}*/
+#nav #menubar-main-menu ul.menu ul li a { filter:;}
+/* fix sidebar overlap with content submenus*/
+#main{z-index:2;}

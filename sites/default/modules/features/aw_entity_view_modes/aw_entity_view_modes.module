@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the AW Entity View Modes feature.
+ */
+
+include_once 'aw_entity_view_modes.features.inc';

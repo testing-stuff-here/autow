@@ -1,0 +1,46 @@
+@import "variables";
+
+#sidebar-second #block-leadership-leadership-data-card-block {
+  .content { border:none; }
+}
+#block-leadership-leadership-data-card-block {
+  .block-inner { border: 1px solid #ccc; }
+  .ld-header { padding:2px 15px 10px 15px; color:#4D4D4d; border-bottom:1px dotted gray; }
+  .ld-header-top-text { font-size:17px; font-weight:bold; }
+  .ld-header-bottom-text { font-size:14px; }
+  h4 { font-size: 18px; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid; margin: 10px 20px 0px 20px; padding: 0px; color: #e63448; line-height: 21px; text-align: left; text-overflow:ellipsis; overflow:hidden; }
+  .leadership-menu li { margin-left:10px; }
+  .leadership-menu li .link-section a { color:#1791bf; font-size:18px; }
+}
+.dataCard-view-profile-button { @include button(#105b77, #1791bf, #073445); line-height: 16px;
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#105b77', endColorstr='#1791bf',GradientType=0);
+  padding:0 9px; font-size: 91%; font-family: 'Open Sans', sans-serif; font-weight: 600; letter-spacing: 0.07em; border: 1px solid #073445; text-transform: uppercase;
+  &:hover {@include buttonHover(#105b77, #1791bf);
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#1791bf', endColorstr='#105b77',GradientType=0);
+  }
+  &:active {@include buttonActive;}
+  a {vertical-align: middle; vertical-align: -webkit-baseline-middle; }
+}
+.dataCard-visit-site { vertical-align: sub;
+  a {color:#E73649;}
+}
+.dataCard-product-photo {
+  a {color: #1791bf;}
+}
+.dataCard-top {
+  .dataCard-company-teaser {
+    &:before {
+      color: #f69a39; font-size: 110%;
+    }
+  }
+}
+
+.dataCard {
+  font-size: 12.5px; line-height: 15px;
+  a {text-decoration: none;}
+  .full {
+    .videoWidget-widget-title {
+      margin-left: 16px;
+    }
+  }
+}

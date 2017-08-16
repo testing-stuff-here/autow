@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the WIR content type feature.
+ */
+
+include_once 'wir_content_type.features.inc';

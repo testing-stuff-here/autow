@@ -1,0 +1,78 @@
+<?php
+function reltw_blocks_reltw_related_node_search($delta, $query) {
+  if ($delta == 'reltw_default') {
+    // sponsored
+    $fieldname = 'field_term_source_type';
+    $query->leftJoin('field_data_'.$fieldname, $fieldname, 'node.nid = '.$fieldname.'.entity_id
+  		AND node.vid = '.$fieldname.'.revision_id');
+    $query->condition($fieldname.'_tid', 141);
+
+    $fieldname = 'field_sponsor_expiration';
+    $query->leftJoin('field_data_'.$fieldname, $fieldname, 'node.nid = '.$fieldname.'.entity_id
+  		AND node.vid = '.$fieldname.'.revision_id');
+    $query->condition($fieldname.'_value', date('Y-m-d H:i:s'), '>=');
+
+    $fieldname = 'field_legacy';
+      $query->leftJoin('field_data_'.$fieldname, $fieldname, 'node.nid = '.$fieldname.'.entity_id
+    		AND node.vid = '.$fieldname.'.revision_id');
+      $query->condition($fieldname.'_value', '0');
+  }
+  else if ($delta == 'reltw_default_1') {
+    // not sponsored
+    $fieldname = 'field_term_source_type';
+    $query->leftJoin('field_data_'.$fieldname, $fieldname, 'node.nid = '.$fieldname.'.entity_id
+  		AND node.vid = '.$fieldname.'.revision_id');
+    $query->condition($fieldname.'_tid', 141, '!=');
+
+    $fieldname = 'field_legacy';
+    $query->leftJoin('field_data_'.$fieldname, $fieldname, 'node.nid = '.$fieldname.'.entity_id
+  		AND node.vid = '.$fieldname.'.revision_id');
+    $query->condition($fieldname.'_value', '0');
+  }
+}
+
+function reltw_blocks_process_reltw_block(&$variables) {
+  $links = array();
+  $nodes = $variables['nodes'];
+  $count = 1;
+  if ($nodes) {
+    foreach ($nodes as $node) {
+      $content = '';
+      if (isset($node->field_image[$node->language])) {
+        $item = $node->field_image[$node->language][0];
+
+        if(empty($item['alt']) || !isset($item['alt'])){
+          $item['alt'] = $node->title;
+        }
+        if(empty($item['title']) || !isset($item['title'])){
+          $item['title'] = $node->title;
+        }
+
+  			$image = array(
+          'path' => $item['uri'],
+          'alt' => $item['alt'],
+          'title' => $item['title'],
+        );
+
+
+        $image['style_name'] = 'thumbnail';
+        //$content = '<div class="retlw-block-image">' . theme('image_style', $image) . '</div>';
+        $image['path'] = image_style_url($image['style_name'], $image['path']);
+        $content = '<div class="retlw-block-image"><img ' . 'src = "' . $image['path'] .'"' . ' >' . '</div>';
+      }
+      $onclick_event = "ga('send', 'event', 'Sponsored Links', 'Position $count', 'Clicked');";
+      $viewed_event = "ga('send', 'event', 'Sponsored Links', 'Position $count', 'Viewed', 0, {'nonInteraction': 1});";
+      $content .= "<script type=\"text/javascript\">$viewed_event</script>";
+      $content .= '<div class="retlw-block-link">' . l($node->title, 'node/' . $node->nid,array('attributes' => array('onclick' => $onclick_event))) . '</div>';
+      if ($variables['display_options'] == 'teaser') {
+        $content = '<div class="retlw-block-teaser">' . $node->teaser . '</div>';
+      }
+      $links[] =  '<div class="retlw-block">' . $content . '</div>';
+      $count++;
+    }
+    $variables['items'] = implode('', $links);
+  }
+  else {
+    $variables['items'] = "";
+  }
+}

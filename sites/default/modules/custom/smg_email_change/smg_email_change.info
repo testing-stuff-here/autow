@@ -1,0 +1,4 @@
+name = SMG Email Change
+description = Change Email Sender address
+package = SMG
+core = 7.x

@@ -1,0 +1,7 @@
+
+name = "Taxonomy Map"
+description = "Map Taxonomy Terms to paths or to other taxonomy terms"
+core = 7.x
+package = Taxonomy
+configure = admin/config/user-interface/taxonomy-map
+dependencies[] = taxonomy

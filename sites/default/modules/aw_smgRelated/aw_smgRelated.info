@@ -1,0 +1,6 @@
+name = AW SMG Related
+description = Uses SMG Related api hooks for aw specific results
+core = 7.x
+package = SMG Related
+dependencies[] = smgRelated
+configure = admin/config/content/smgRelated

@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Playbook feature.
+ */
+
+include_once('playbook.features.inc');

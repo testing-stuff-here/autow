@@ -1,0 +1,53 @@
+<?php
+/**
+ * @file
+ *  Handles installation/uninstallation.
+ */
+
+/**
+ * Add silverpop post log table.
+ */
+function pmg_services_update_7001() {
+  $schema = array(
+    'description' => 'Table that contains logs of silverpop posts.',
+    'fields' => array(
+      'sid' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique Submission ID.',
+      ),
+      'email' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Email Address.',
+      ),
+      'form_id' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Form id.',
+      ),
+      'data' => array(
+        'type' => 'text',
+        'not null' => TRUE,
+        'size' => 'big',
+        'description' => 'Will store JSON string of submitted data.',
+      ),
+      'date' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Unix timestamp of the request when the event occurred.',
+      ),
+    ),
+    'primary key' => array('sid'),
+    'indexes' => array(
+      'form_id' => array('form_id'),
+    ),
+  );
+
+  db_create_table('pmg_services_silverpop_post_log', $schema);
+}

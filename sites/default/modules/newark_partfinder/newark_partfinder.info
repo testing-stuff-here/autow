@@ -1,0 +1,4 @@
+name = Newark Part Finder
+description = Custom Part Finder Blocks for Newark
+package = SMG
+core = 7.x

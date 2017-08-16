@@ -1,0 +1,4 @@
+name = Relate by Term's Weight Views Integration
+description = Views integration
+package = Other
+core = 7.x

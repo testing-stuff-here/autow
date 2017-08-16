@@ -1,0 +1,172 @@
+<?php
+/**
+ * @file
+ * This module alters some views
+ */
+
+/**
+ * Implement hook views_query_alter()
+ * Basically this is used only to exclude the contents of a block view from a page view
+ * Both the block and page view appear in the same path
+ */
+function aw_view_alteration_views_query_alter(&$view, &$query) {
+  // path /home or frontpage
+  // alter views admin/structure/views/view/home_river_of_content/edit
+  // and admin/structure/views/view/image_rotator/edit/block
+  if(($view->name=='home_river_of_content')&&($view->display_handler->display->id=='page')){
+    $nids = aw_view_alteration_get_nid('image_rotator','block');
+    foreach ($nids as $nid) {
+      $query->where[0]['conditions'][$nid]= Array( 'field' => 'node.nid', 'value' => $nid,'operator' => '!=');
+  	  $query->where[0]['type']='AND'; 
+    }
+  //dsm($query->where);
+  //dsm($view);
+  }
+  
+  if($view->name=='category_part_1'){
+    switch($view->display_handler->display->id) {        
+      case 'page_7':
+        //path /suppliernews (also known as aw channels)
+        //nids based in admin/structure/views/view/category_news/edit/block_5
+        //and admin/structure/views/view/category_main_story/edit/block_5
+        $nids = array_merge(aw_view_alteration_get_nid('category_news','block_5'), aw_view_alteration_get_nid('category_main_story','block_5'));
+        //alter views admin/structure/views/view/category_part_1/edit/page_7
+        break;
+			case 'page_25':
+        //path /opconnect
+        //nids based in admin/structure/views/view/category_news/edit/block_9
+        //and admin/structure/views/view/category_main_story/edit/block_9
+        $nids = array_merge(aw_view_alteration_get_nid('category_news','block_9'), aw_view_alteration_get_nid('category_main_story','block_9'));
+        //alter views admin/structure/views/view/category_part_1/edit/page_25
+        break;
+			case 'page_26':
+        //path /manufacturing-intelligence
+        //nids based in admin/structure/views/view/category_news/edit/block_10
+        //and admin/structure/views/view/category_main_story/edit/block_10
+        $nids = array_merge(aw_view_alteration_get_nid('category_news','block_10'), aw_view_alteration_get_nid('category_main_story','block_10'));
+        //alter views admin/structure/views/view/category_part_1/edit/page_26
+        break;
+
+
+    }
+    if(!empty($nids)){
+      foreach ($nids as $nid) {
+        $query->where[0]['conditions'][$nid]= Array( 'field' => 'node.nid', 'value' => $nid,'operator' => '!=');
+				$query->where[0]['type']='AND'; 
+      }
+    }
+    /*
+     "Industry trends", "Manufacturing" and "Innovations" tabs query alter.
+     This will alter the views query assuming that the views display has existing and similar filters.
+     If $taxonomy_table==2 It means taxonomy_index tables used twice in the query, one for the exposed filter and 1 for the views hidden filter
+     It also means that the exposed filter (hidden by css and populated by javascript - see aw rivertabs module) has values. 
+     Start
+     dsm($query->where[0]['conditions']);
+    */
+    $taxonomy_table = 0;
+    foreach ($query->table_queue as $data) {
+       if($data['table']=='taxonomy_index') {
+          $taxonomy_table++;
+       }
+    }
+
+		$view_name = $view->display_handler->display->id;
+		
+    foreach ($query->where[1]['conditions'] as $key => $field) {
+      if(is_string($field['field'])&&($taxonomy_table >=2 )){
+        if($field['field']=='taxonomy_index.tid'){
+           unset($query->where[1]['conditions'][$key]);
+           unset($query->tables['node']['taxonomy_index']);
+           unset($query->table_queue['taxonomy_index']);
+         }
+        if($field['field']=='field_data_field_term_subtype.field_term_subtype_tid'){
+           unset($query->where[1]['conditions'][$key]);
+           unset($query->tables['node']['field_data_field_term_subtype']);
+           unset($query->table_queue['field_data_field_term_subtype']);
+        }
+        if($field['field']=='node.type'){
+          $query->where[1]['conditions'][$key]['value'] = array('article','blog','podcast','video');
+        }
+      }
+			//Supplier News - changing source type to original content
+			if(is_string($field['field'])&&($view_name == 'page_7' )&&($taxonomy_table ==1 )){
+				if($field['field']=='field_data_field_term_source_type.field_term_source_type_tid'){
+		      $query->where[1]['conditions'][$key]['value'] = 138;
+		    }
+				if($field['field']=='field_data_field_term_subtype.field_term_subtype_tid'){
+           unset($query->where[1]['conditions'][$key]);
+           unset($query->tables['node']['field_data_field_term_subtype']);
+           unset($query->table_queue['field_data_field_term_subtype']);
+        }
+			}	
+    }	
+
+		// Noticed that if it had an AND group it would still show up incorrectly
+		if(isset($query->where[2]['conditions'])) {
+			foreach ($query->where[2]['conditions'] as $key => $field) {
+	      if(is_string($field['field'])&&($taxonomy_table >=2 )){
+	        if($field['field']=='taxonomy_index2.tid'){
+	           unset($query->where[2]['conditions'][$key]);
+	           unset($query->tables['node']['taxonomy_index']);
+	           unset($query->table_queue['taxonomy_index']);
+	         }
+	      }
+	    }
+	  }
+
+    /*
+    dsm($query);
+    End
+    */
+  }
+
+  if ($view->name == 'fdt_coverage' && $view->current_display == 'page') {
+    $nids = aw_view_alteration_get_nid('fdt_coverage','block_1');
+    foreach ($nids as $nid) {
+      $query->where[0]['conditions'][$nid]= Array( 'field' => 'node.nid', 'value' => $nid,'operator' => '!=');
+  	  $query->where[0]['type']='AND'; 
+    }
+  }
+}
+
+/**
+ * Implements hook_views_pre_render
+ */
+/*function aw_view_alteration_views_pre_render(&$view) {
+  if ($view->name == 'image_rotator') {
+    foreach($view->result as &$res) {
+      $deckhead = &$res->field_field_deckhead[0]['rendered']['#markup'];
+      if (strlen($deckhead) > 150) {
+        $deckhead = preg_replace('/^(.{1,150} ).*$/','$1...', $deckhead, 1);
+      }
+    }
+  }
+}*/
+
+// get node id this is based on the news block contents
+/*
+function aw_view_alteration_get_nid($sql){
+  $result = db_query($sql);
+  $records = $result->fetchAll();  
+  $ids = array();
+  foreach ($records as $record) {
+   $ids[] = $record->nid;
+  }
+  //dsm($ids);
+  return $ids;
+}
+*/
+
+function aw_view_alteration_get_nid($view_name,$display_name){
+  $view = views_get_view($view_name);
+  $view->set_display($display_name); // like 'block_1'    
+  $view->render();
+  $result = $view->result;
+  
+ $ids = array();
+  foreach  ($result as $row){
+    $ids[] = $row->nid;
+  }  
+//dsm($view->result);
+return $ids;
+}

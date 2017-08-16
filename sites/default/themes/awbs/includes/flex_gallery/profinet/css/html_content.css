@@ -1,0 +1,76 @@
+a.thumblink:link    {color: aqua;text-decoration: none;}
+a.thumblink:visited {color: aqua;text-decoration: none;}
+a.thumblink:hover   {color: aqua;text-decoration: none;}
+a.thumblink:active  {color: aqua;text-decoration: none;}
+.thumblink {
+  padding-left:10px;
+}
+.thumbHolder {
+  background-color:#fff;
+  width:100%;
+  height:100%;
+}
+h6.thumbTitle {
+  font-size:20px;
+}
+.thumbDescription {
+  font-family: 'Effra', sans-serif; !important;
+	background: black;
+  color: white;
+  font-size: 17px;
+}
+.thumbDiv{
+
+}
+.thumb1P{
+	width:230px;
+	padding-left:135px;
+	padding-top:27px;
+}
+.thumb1Title {
+  padding-left:135px;
+  padding-top:10px;
+}
+/* Bottom caption box*/
+
+.thumbDiv{
+  position: relative;
+  background-color:#fff;
+  width:100%;
+  height:100%;
+}
+.thumbCaptionTop{
+  padding: 10px;
+  width: 90%;
+  position: absolute;
+  left: 10px;
+  Top: 8px;
+}
+.thumbCaptionBottom{
+  padding: 10px;
+  width: 90%;
+  position: absolute;
+  left: 10px;
+  bottom: 8px;
+}
+.thumbCaptionLeft{
+  padding: 10px;
+  width: 32%;
+  position: absolute;
+  left: 10px;
+  bottom: 4px;
+}
+.thumbCaptionRight{
+  padding: 10px;
+  width: 32%;
+  position: absolute;
+  right: 10px;
+  top: 8px;
+}
+.thumbCaptionBottomRight{
+  padding: 10px;
+  width: 32%;
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+}

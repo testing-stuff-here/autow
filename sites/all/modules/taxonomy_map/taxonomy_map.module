@@ -1,0 +1,212 @@
+<?php
+/**
+ * @file
+ * Taxonomy Map allows you to map taxonomy term to paths or to other taxonomy
+ * terms.
+ *
+ * @author Albert Jankowski
+ *  @see http://drupal.org/user/1327432
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function taxonomy_map_permission() {
+  return array(
+    'administer taxonomy map' => array(
+      'title' => t('Administer taxonomy map'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function taxonomy_map_menu() {
+  $items = array();
+  $items['admin/config/user-interface/taxonomy-map'] = array(
+    'title' => 'Taxonomy Map',
+    'description' => 'Set up rules to map taxonomy terms to paths or other taxonomy terms',
+    'access callback' => 'user_access',
+    'access arguments' => array('administer taxonomy map'),
+    'file' => 'taxonomy_map.admin.inc',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('taxonomy_map_mapping_form'),
+  );
+  $items['admin/config/user-interface/taxonomy-map/properties/delete/%'] = array(
+    'title' => 'Delete Taxonomy Map Property',
+    'page callback' => 'taxonomy_map_property_delete',
+    'page arguments' => array(6),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer taxonomy map'),
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function taxonomy_map_theme() {
+  $items = array(
+    'taxonomy_map_mapping_form' => array(
+      'file' => 'taxonomy_map.admin.inc',
+      'render element' => 'form',
+    ),
+  );
+  return $items;
+}
+
+/**
+ * Loads all the Taxonomy Mappings from the database
+ *
+ * @param $id
+ *  the id of database field. Default is false.
+ *
+ * @param $tid
+ *  the term id of the term that you need mapped. Default is false.
+ *
+ * @param $path
+ *  the path you need mapped. Default is false.
+ *
+ * @param $mapped_tid
+ *  the already mapped tid. Default is false.
+ *
+ * @return
+ *  sorted array containg all the Mappings
+ */
+function taxonomy_map_load_mapping($id = FALSE, $tid = FALSE, $path = FALSE, $mapped_tid = FALSE) {
+  $properties = array();
+
+  $query = db_select('taxonomy_map_properties', 'tm')
+    ->fields('tm')
+    ->orderBy('id', 'asc');
+  if ($id) {
+    $query->condition('id', $id);
+  }
+  if ($tid) {
+    $query->condition('tid', $tid);
+  }
+  if ($path) {
+    $query->condition('path', $path);
+  }
+  if ($mapped_tid) {
+    $query->condition('mapped_tid', $mapped_tid);
+  }
+  $result = $query->execute();
+
+  foreach($result as $item) {
+    $properties[$item->id] = get_object_vars($item);
+  }
+
+  return $properties;
+}
+
+/**
+ * Deletes a taxonomy mapping from the database
+ *
+ * @param $id
+ *  id of the mapping being deleted from the database
+ */
+function taxonomy_map_property_delete($id) {
+  $result = db_delete('taxonomy_map_properties')
+    ->condition('id', $id)
+    ->execute();
+  if (!$result) {
+    drupal_set_message(check_plain(t('Error!  Problem deleting item!')));
+  }
+  else {
+    drupal_set_message(check_plain(t('Item has been deleted!')));
+    drupal_goto('admin/config/user-interface/taxonomy-map');
+  }
+}
+
+/**
+ * Stores the mapping in the database
+ *
+ * @param $item
+ *  referenct to an assosciateve array containing this structure:
+ *    - id
+ *    - tid
+ *    - path
+ *    - mapped_tid
+ */
+function taxonomy_map_set_mapping(&$item) {
+  if (isset($item['id'])) {
+    drupal_write_record('taxonomy_map_properties', $item, 'id');
+  }
+  else {
+    drupal_write_record('taxonomy_map_properties', $item, array());
+  }
+}
+
+/**
+ * Gets the mapped taxonomy term id
+ *
+ * @param $map
+ *  the the taxonomy term id or the path of the mapping
+ *
+ * @return $mapped_tid
+ *  return an array of taxonomy term ids that you wanted to
+ *  map to.
+ */
+function taxonomy_map_get_mapping($map) {
+  $mapped_tid = array();
+  $query = db_select('taxonomy_map_properties', 'tm')
+    ->fields('tm')
+    ->orderBy('id', 'asc');
+  if (is_numeric($map)) {
+    $query->condition('tid', $map);
+  }
+  else {
+    $query->condition('path', $map);
+  }
+  $result = $query->execute();
+
+  foreach($result as $item) {
+    $mapped_tid[] = $item->mapped_tid;
+  }
+
+  return $mapped_tid;
+}
+
+/**
+ * Creates an array of all taxonomy terms to be used in a form
+ *
+ * @return $options
+ *  the options that will be used in a form
+ */
+function taxonomy_map_get_all_taxonomy_form_options() {
+  $options[0] = '';
+  $vocabs_raw = taxonomy_get_vocabularies();
+  foreach ($vocabs_raw as $vid => $vocab) {
+    $options[$vid . 'Vocab'] = check_plain($vocab->name);
+    $taxonomies = taxonomy_get_tree($vid);
+    foreach($taxonomies as $term) {
+      $options[$term->tid] = taxonomy_map_get_all_taxonomy_form_options_name($term);
+    }
+  }
+
+  return $options;
+}
+
+/**
+ * Creates the taxonomy name string based what the depth of the term is
+ *
+ * @param $term
+ *  the term object
+ *
+ * @param $indenter
+ *  the string that will be included in front of the term name. Default is '-'
+ *
+ * @return $term_name
+ *  the indenter and the term name
+ */
+function taxonomy_map_get_all_taxonomy_form_options_name($term, $indenter = '-') {
+  $multiplier = $term->depth + 1;
+  $term_indenter = str_repeat($indenter, $multiplier);
+  $term_name = $term_indenter . $term->name;
+
+  return $term_name;
+}

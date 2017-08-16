@@ -1,0 +1,6 @@
+name = PMG YouTube Feed Leadership Integration
+description = Integrate PMG YouTube Feed with Leadership
+core = 7.x
+package = SMG
+dependencies[] = pmg_youtube_feed_video
+dependencies[] = pmg_youtube_feed_processor

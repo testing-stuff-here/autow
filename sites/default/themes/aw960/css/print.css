@@ -1,0 +1,27 @@
+/*hide admin menu*/
+#admin-menu {display:none;}
+/*default print css*/
+.print-page-wrapper { color: #1A1A1A;  font-family: 'PT Sans',sans-serif;  line-height: 1.5em;  font-size:.9em;}
+.print-page-wrapper a{color: #1A1A1A;text-decoration:none;}
+.print-page-wrapper ul{margin:0;padding-left: 20px;}
+/*wrapper*/
+.print-page-wrapper {max-width: 800px; margin: auto;}
+/*Fields*/
+.print-page-wrapper h1#page-title{line-height:1.1em;}
+.print-page-wrapper .print-logo img#logo{width:250px;margin-bottom: 5px;}
+.print-page-wrapper .print-logo{margin-bottom: -20px;}
+.print-site_name{float:right;font-weight:bold;}
+.print-page-wrapper hr.print-hr{clear:both;}
+.print-page-wrapper .deckhead{display: block; font-style: italic; font-weight: bold; margin-bottom: 20px;}
+.print-page-wrapper .submitted-author{font-weight:bold;}
+.print-page-wrapper .field-name-body{}
+.print-page-wrapper #companies{margin:20px 0;}
+.print-page-wrapper #companies .type {margin-top:5px;}
+.print-page-wrapper .field-name-field-term-subtype {float:left;margin-right:3px;text-transform:uppercase;}
+.print-page-wrapper .print-source_url img{float: left; margin:3px 10px 0px 30px;}
+.print-page-wrapper .print-source_url strong{font-size: .9em;}
+.print-page-wrapper .field-name-field-viddler-id{margin:20px;}
+.print-page-wrapper .node-type,.print-page-wrapper .submitted{text-transform:uppercase;}
+.print-page-wrapper .print-copyright { margin-left:30px; }
+.print-page-wrapper .print-copyright a { color:#006E97; }
+.print-content .field-name-field-term-column-type, .print-content .field-name-field-term-column-type div {float:left; font-style:italic; font-size:100%; margin-left:1px; margin-right:2px;}

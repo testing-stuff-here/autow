@@ -1,0 +1,19 @@
+.newark-search-button { background-color: #F17C0E; border: 2px solid #9a9a9a; color:#fff; }
+.newark-text-field { border: 2px solid #9a9a9a; }
+.newark-title { color:#b7b932; font-size:28px; padding:5px 0 5px 0; }
+.newark-description { color:#128099; border-bottom:3px solid #b7b932; font-size:12px; padding-bottom:10px; padding-left:5px; font-weight:bold; padding-top:5px; letter-spacing:-0.5px; padding-top:15px; padding-bottom:7px; }
+.newark-category { color:#128099; padding:10px; font-weight:bold; font-size:14px;}
+.newark-product-photo { padding:10px 10px 20px 0px; float:left; }
+.newark-sponsored-by { clear:both; font-size:11px; text-align:center; }
+/* IMU Block */
+#block-newark-partfinder-newark-imu { font-family:Arial, Helvetica, sans-serif; }
+#block-newark-partfinder-newark-imu .content { padding:10px 5px 10px 23px !important; }
+#block-newark-partfinder-newark-imu .block-inner { border:2px solid #b7b932 !important; background-color:#fff !important; }
+#block-newark-partfinder-newark-imu .newark-text-field { height:16px; width:200px; padding-left:5px; padding-bottom:3px; vertical-align:top; }
+#block-newark-partfinder-newark-imu .newark-search-button { height:24px; margin-left:-5px; padding-left:5px; vertical-align:top; }
+/* Adding padding to images so the right side doesn't float left */
+#block-newark-partfinder-newark-imu  .Semiconductors---Discretes, 
+#block-newark-partfinder-newark-imu .Crystals--Oscillators,
+#block-newark-partfinder-newark-imu .Cable-Wire--Assemblies { padding-bottom:50px; }
+#block-newark-partfinder-newark-imu .Static-Control--Site-Safety,
+#block-newark-partfinder-newark-imu .Tools--Production-Supplies { padding-bottom:35px; }

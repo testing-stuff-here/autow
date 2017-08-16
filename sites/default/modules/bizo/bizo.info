@@ -1,0 +1,5 @@
+name = Bizo
+description = Module for Bizo Service
+package = Statistics
+core = 7.x
+configure = admin/config/system/bizo

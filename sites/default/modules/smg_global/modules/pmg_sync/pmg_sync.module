@@ -1,0 +1,541 @@
+<?php
+/**
+ * @file
+ *   Module for synchronizing nodes across PMG sites.
+ *
+ * @TODO
+ * - This module should eventually move to smg_global.
+ */
+
+const PMG_SYNC_PW = 1;
+const PMG_SYNC_AW = 2;
+const PMG_SYNC_HCP = 3;
+const PMG_SYNC_PP_OEM = 4;
+const PMG_SYNC_LSL = 5;
+const PMG_SYNC_PFW = 6;
+const PMG_SYNC_SC = 7;
+
+/**
+ * Implements hook_services_resources().
+ */
+function pmg_sync_services_resources() {
+  $api = array(
+    'node_uuid_search' => array(
+      'operations' => array(
+        'retrieve' => array(
+          'help' => 'Search node by uuid',
+          'callback' => '_pmg_sync_node_uuid_search',
+          'access callback' => 'user_access', // @TODO change permissions.
+          'access arguments' => array('access content'), // @TODO change permissions.
+          'access arguments append' => FALSE,
+          'args' => array(
+            array(
+             'name' => 'node_type',
+             'description' => t('The Node type.'),
+             'type' => 'string',
+             'optional' => FALSE,
+             'source' => array('path' => 0),
+            ),
+            array(
+             'name' => 'uuid',
+             'description' => t('The Node uuid.'),
+             'type' => 'string',
+             'optional' => FALSE,
+             'source' => array('path' => 1),
+            ),
+          ),
+        ),
+      ),
+    ),
+    'pmg_sync' => array(
+      'actions' => array(
+        'post' => array(
+          'help' => 'Create/Update entity',
+          'callback' => '_pmg_sync_post',
+          'access callback' => 'user_access', // @TODO change permissions.
+          'access arguments' => array('access content'), // @TODO change permissions.
+          'access arguments append' => FALSE,
+          'args' => array(
+            array(
+             'name' => 'entity_type',
+             'description' => t('The entity type.'),
+             'type' => 'string',
+             'optional' => FALSE,
+             'source' => array('path' => 1),
+            ),
+            array(
+              'name' => 'data',
+              'type' => 'array',
+              'description' => t('The entity object to save.'),
+              'source' => 'data',
+              'optional' => FALSE,
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  return $api;
+}
+
+/**
+ * Retrieve call back function for getting Silverpop data.
+ *
+ * @param int $id
+ *   Not used. Just in so it works.
+ * @param string $spUserId
+ *   The value sent in the SpUserId paramaeter.
+ */
+function _pmg_sync_post($entity_type, $data) {
+  $node = new stdClass();
+  foreach ($data as $key => $value) {
+    $node->{$key} = $data[$key];
+  }
+
+  // Replace uuids with ids on fields.
+  pmg_sync_replace_field_uuids($node);
+
+  // Set tids based on taxonomy_name and vocabulary_name strings.
+  pmg_sync_add_term_ids_to_node_by_name($node);
+
+  // Check if author exists and if it doesn't recreate it.
+  if (isset($node->author_user_object)) {
+    $uid = entity_get_id_by_uuid('user', array($node->author_user_object['uuid']));
+    if ($uid) {
+      $node->field_author[LANGUAGE_NONE][0]['uid'] = $uid[$node->author_user_object['uuid']];
+    }
+    else {
+      // Removing userid so it creates a new one.
+      unset($node->author_user_object['uid']);
+      // Removing roles because they will have different role ids accross sites.
+      // @TODO map these up.
+      unset($node->author_user_object['roles']);
+
+      $user = user_save((object)$node->author_user_object);
+      if ($user) {
+        $node->field_author[LANGUAGE_NONE][0]['uid'] = $user->uid;
+      }
+    }
+  }
+
+  // Save the node.
+  node_save($node);
+
+  // Add alias on response.
+  $node->alias = drupal_get_path_alias('node/' . $node->nid);
+
+  return $node;
+}
+
+/**
+ * Search for nodes with uuid.
+ *
+ * @param string $node_type
+ *   Node type.
+ * @param string $uuid
+ *  Node uuid.
+ */
+function _pmg_sync_node_uuid_search($node_type, $uuid) {
+  $nid = db_query('
+    SELECT nid FROM {node}
+    WHERE uuid = :uuid
+    AND type = :type', array(
+      ':uuid' => $uuid,
+      ':type' => $node_type)
+  )->fetchField();
+
+  if ($nid) {
+    return node_load($nid);
+  }
+  else {
+    return services_error(t('Node with uuid @uuid could not be found!', array('@uuid' => $uuid)), 404);
+  }
+}
+
+/**
+ * In order to easily map taxonomies, users, nodes from site to site I replaced
+ * tid, nids, and uids with tid-uuid, nid-uuid, uid-uuid.
+ * @see pmg_sync_add_uuid_to_field().
+ *
+ * @param object $node
+ *   Node object.
+ */
+function pmg_sync_replace_field_uuids(&$node) {
+  $uuidTypes = array(
+    'tid-uuid' => array(
+      'name' => 'tid',
+      'entity_type' => 'taxonomy_term',
+      'uuids' => array(),
+      'ids' => array(),
+      'vocabs' => array(),
+    ),
+    'uid-uuid' => array(
+      'name' => 'uid',
+      'entity_type' => 'user',
+      'uuids' => array(),
+      'ids' => array(),
+    ),
+    'nid-uuid' => array(
+      'name' => 'nid',
+      'entity_type' => 'node',
+      'uuids' => array(),
+      'ids' => array(),
+    ),
+  );
+
+  // Check if UUID was used in the field name.
+  foreach ($node as $property => $propertyValues) {
+    if (isset($node->{$property}[LANGUAGE_NONE]) && is_array($node->{$property}[LANGUAGE_NONE])) {
+      foreach ($node->{$property}[LANGUAGE_NONE] as $key => $fieldValues) {
+        foreach ($fieldValues as $name => $value) {
+          // If field is one of the uuidTypes add to the uuids array.
+          if (isset($uuidTypes[$name])) {
+            $uuidTypes[$name]['uuids'][] = $value;
+          }
+        }
+      }
+    }
+  }
+
+  // For all the uuids set look up the ids.
+  foreach ($uuidTypes as $name => $type) {
+    if ($type['uuids']) {
+      $ids = entity_get_id_by_uuid($type['entity_type'], $type['uuids']);
+      $uuidTypes[$name]['ids'] = $ids;
+
+      // If taxonomy term // Get corresponding vocabs.
+      if ($type['entity_type'] == 'taxonomy_term') {
+        $uuidTypes[$name]['vocabs'] = db_query('
+          SELECT tid, vid
+          FROM {taxonomy_term_data}
+          WHERE tid IN (:tids)', array(':tids' => array_values($ids))
+        )->fetchAllKeyed();
+      }
+    }
+  }
+
+  // Replace uuids with tids, uuid, nids and remove tid-uuid, nid-uuid,
+  // uid-uuid.
+  foreach ($node as $property => $propertyValues) {
+    if (isset($node->{$property}[LANGUAGE_NONE]) && is_array($node->{$property}[LANGUAGE_NONE])) {
+      foreach ($node->{$property}[LANGUAGE_NONE] as $key => $fieldValues) {
+        foreach ($fieldValues as $name => $value) {
+          if (isset($uuidTypes[$name])) {
+            // Update the tid, uid, nid fields.
+            $node->{$property}[LANGUAGE_NONE][$key][$uuidTypes[$name]['name']] = $uuidTypes[$name]['ids'][$value];
+            // Remove the unwanted field.
+            unset($node->{$property}[LANGUAGE_NONE][$key][$name]);
+
+            // Set the corresponding vocabulary id.
+            if ($uuidTypes[$name]['entity_type'] == 'taxonomy_term') {
+              $tid = $uuidTypes[$name]['ids'][$value];
+              $node->{$property}[LANGUAGE_NONE][$key]['vid'] = isset($uuidTypes[$name]['vocabs'][$tid]) ? $uuidTypes[$name]['vocabs'][$tid] : NULL;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Just incase there are any uuids that were replace we need to remove them
+  // because they will cause errors.
+  foreach ($node as $property => $propertyValues) {
+    if (isset($node->{$property}[LANGUAGE_NONE]) && is_array($node->{$property}[LANGUAGE_NONE])) {
+      foreach ($node->{$property}[LANGUAGE_NONE] as $key => $fieldValues) {
+        foreach ($fieldValues as $name => $value) {
+          if (isset($uuidNames[$name])) {
+            unset($node->{$property}[LANGUAGE_NONE][$key][$name]);
+          }
+        }
+      }
+    }
+  }
+
+}
+
+/**
+ * Configuration.
+ *
+ * @return array
+ *  Congiuration array.
+ */
+function pmg_sync_configuration() {
+  return array(
+    PMG_SYNC_PW => array(
+      'name' => 'Packaging World',
+      'url' => 'www.packworld.com',
+      'protocal' => 'https://',
+    ),
+    PMG_SYNC_AW => array(
+      'name' => 'Automation World',
+      'url' => 'www.automationworld.com',
+      'protocal' => 'http://',
+    ),
+    PMG_SYNC_HCP => array(
+      'name' => 'Healthcare Packaging',
+      'url' => 'www.healthcarepackaging.com',
+      'protocal' => 'http://',
+    ),
+    PMG_SYNC_PP_OEM => array(
+      'name' => 'PP OEM',
+      'url' => '//www.pp-oem.com',
+      'protocal' => 'http://',
+    ),
+    PMG_SYNC_LSL => array(
+      'name' => 'Logistics for the Life Sciences',
+      'url' => '//dev.logisticsforthelifesciences.com',
+      'protocal' => 'http://',
+    ),
+    PMG_SYNC_PFW => array(
+      'name' => 'PP OEM',
+      'url' => '//staging.profoodworld.com',
+      'protocal' => 'http://',
+    ),
+    PMG_SYNC_SC => array(
+      'name' => 'Serialization Countdown',
+      'url' => 'www.serializationcountdown.com',
+      'protocal' => 'http://',
+    )
+  );
+}
+
+/**
+ * Create files on synched site.
+ *
+ * @param object $api
+ *   PmgApiConsumer object.
+ * @param object $node
+ *   Node object.
+ * @param string $fieldName
+ *   Field name of the field that holds the file.
+ */
+function pmg_sync_create_field_files($api, $node, $fieldName, $multiple = FALSE) {
+  $fileArray = array();
+
+  // Has no files.
+  if (!isset($node->{$fieldName}['und'])) {
+    return FALSE;
+  }
+
+  // Get File Ids.
+  foreach ($node->{$fieldName}['und'] as $key => $file) {
+    $ids[] = $file['fid'];
+  }
+
+  // Get UUIDs for all the fids.
+  $uuids = entity_get_uuid_by_id('file', $ids);
+
+  $files = file_load_multiple($ids, array());
+
+  // Add the UUIDs to the file arrays.
+  foreach ($node->{$fieldName}['und'] as $key => $file) {
+    if (isset($uuids[$file['fid']])) {
+      $node->{$fieldName}['und'][$key]['uuid'] = $uuids[$file['fid']];
+    }
+  }
+
+  $maxKey = count($node->{$fieldName}['und']) - 1;
+  foreach ($node->{$fieldName}['und'] as $key => $oldFile) {
+    $fileObject = $files[$oldFile['fid']];
+    // Get full path of file.
+    $filePath = file_create_url($fileObject->uri);
+
+    // Set up based 64 encoded file to be used in file create api.
+    $file = array(
+      //'filesize' => is_file($filePath) ? filesize($filePath) : 0,
+      'filename' => basename($filePath),
+      'file' => base64_encode(file_get_contents($filePath)),
+      'uid'  => 1,  // @TODO This should change it by the user who use the service.
+      'uuid' => $oldFile['uuid'],
+      'filemime' => $fileObject->filemime,
+      'filesize' => $fileObject->filesize,
+    );
+
+    // Create the file.
+    $response = $api->createFile($oldFile['uuid'], $file);
+
+    if ($response && isset($response->fid)) {
+      if (!$multiple) {
+        $node->{$fieldName}['und'][$key]['fid'] = $response->fid;
+        $fileArray = $node->{$fieldName}['und'][$key];
+        $fileArray['_weight'] = $key;
+        $fileArray['display'] = 1;
+      }
+      else {
+        $node->{$fieldName}['und'][$key]['fid'] = $response->fid;
+        $fileArray[$key] = $node->{$fieldName}['und'][$key];
+        $fileArray[$key]['_weight'] = $key;
+        $fileArray[$key]['display'] = 1;
+      }
+    }
+  }
+
+  return $fileArray;
+}
+
+/**
+ * Add uuid to the entities array.
+ *
+ * @param object $node
+ *   The node object.
+ * @param string $fieldName
+ *   The field name.
+ * @param string $entity_type
+ *   The entity type we should be dealing with.
+ */
+function pmg_sync_add_uuid_to_field(&$node, $fieldName, $entity_type) {
+  $ids = array();
+
+  switch($entity_type) {
+    case 'node':
+      $idName = 'nid';
+      break;
+
+    case 'user':
+      $idName = 'uid';
+      break;
+
+    case 'taxonomy_term':
+      $idName = 'tid';
+      break;
+
+  }
+
+  if (is_array($node->{$fieldName})) {
+    // Get all the ids from the field.
+    foreach ($node->{$fieldName}['und'] as $key => $fieldData) {
+      if (isset($fieldData[$idName])) {
+        $ids[] = $fieldData[$idName];
+      }
+    }
+
+    // Get the UUIDs.
+    $uuids = entity_get_uuid_by_id($entity_type, $ids);
+
+    // Add idName-uuid to the field array.
+    foreach ($node->{$fieldName}['und'] as $key => $fieldData) {
+      if (isset($fieldData[$idName]) && isset($uuids[$fieldData[$idName]])) {
+        $node->{$fieldName}['und'][$key]["$idName-uuid"] = $uuids[$fieldData[$idName]];
+      }
+    }
+  }
+}
+
+/**
+ * Adds a field called taxonomies to the node object which holds taxonomy names
+ * and vocabulary names so other sites can map to since they will have different
+ * tids and vids. Also adds taxonomy_name and vocabulary_name to the array.
+ *
+ * @param object $node
+ *   The node object.
+ */
+function pmg_sync_add_taxonomy_names_to_node(&$node) {
+  $tids = array();
+
+  // Get tids from all fields that have taxonomy terms.
+  foreach ($node as $property => $propertyValues) {
+    if (is_array($node->{$property}) && isset($node->{$property}[LANGUAGE_NONE]) && is_array($node->{$property}[LANGUAGE_NONE])) {
+      foreach ($node->{$property}[LANGUAGE_NONE] as $key => $fieldValues) {
+        foreach ($fieldValues as $name => $value) {
+          // If field is one of the uuidTypes add to the uuids array.
+          if ($name == 'tid') {
+            $tids[] = $value;
+          }
+        }
+      }
+    }
+  }
+
+  // Find taxonomy names and vocabulary names that are associated to terms.
+  if ($tids) {
+    $result = db_query('
+      SELECT t.tid, t.name AS taxonomy_name, v.name as vocabulary_name
+      FROM {taxonomy_term_data} t
+      LEFT JOIN {taxonomy_vocabulary} v ON v.vid = t.vid
+      WHERE t.tid IN (:tids)', array(':tids' => array_values($tids))
+    )->fetchAllAssoc('tid');
+
+    // Add taxonomy_name and vocabulary_name to the taxonomy array.
+    foreach ($node as $property => $propertyValues) {
+      if (is_array($node->{$property}) && isset($node->{$property}[LANGUAGE_NONE]) && is_array($node->{$property}[LANGUAGE_NONE])) {
+        foreach ($node->{$property}[LANGUAGE_NONE] as $key => $fieldValues) {
+          foreach ($fieldValues as $name => $value) {
+            if ($name == 'tid') {
+              if (isset($result[$value])) {
+                $node->{$property}[LANGUAGE_NONE][$key]['taxonomy_name'] = $result[$value]->taxonomy_name;
+                $node->{$property}[LANGUAGE_NONE][$key]['vocabulary_name'] = $result[$value]->vocabulary_name;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if ($result) {
+      $node->taxonomies = $result;
+    }
+  }
+}
+
+/**
+ * Add the taxonomy term ids to the node based on the names.
+ *
+ * @param object $node
+ *   The node object.
+ */
+function pmg_sync_add_term_ids_to_node_by_name(&$node) {
+  $term_names = array();
+
+  // Get tids from all fields that have taxonomy terms.
+  if (!empty($node->taxonomies)) {
+    foreach ($node->taxonomies as $tid => $taxonomy_data) {
+      $term_names[] = $taxonomy_data['taxonomy_name'];
+    }
+  }
+
+  if ($term_names) {
+    $result = db_query('
+      SELECT t.tid, t.vid, t.name AS taxonomy_name, v.name as vocabulary_name
+      FROM {taxonomy_term_data} t
+      LEFT JOIN {taxonomy_vocabulary} v ON v.vid = t.vid
+      WHERE t.name IN (:names)', array(':names' => $term_names)
+    )->fetchAllAssoc('tid');
+
+    if ($result) {
+      // Set the correct tid based on the taxonomy name and vocabulary name.
+      foreach ($node as $property => $propertyValues) {
+        if (isset($node->{$property}[LANGUAGE_NONE]) && is_array($node->{$property}[LANGUAGE_NONE])) {
+          foreach ($node->{$property}[LANGUAGE_NONE] as $key => $fieldValues) {
+            if (isset($fieldValues['tid'])) {
+              foreach ($result as $tid => $term_data) {
+                if ($term_data->taxonomy_name == $fieldValues['taxonomy_name'] &&
+                    $term_data->vocabulary_name == $fieldValues['vocabulary_name']) {
+                  $node->{$property}[LANGUAGE_NONE][$key]['tid'] = $tid;
+                  $node->{$property}[LANGUAGE_NONE][$key]['vid'] = $term_data->vid;
+                  unset($node->{$property}[LANGUAGE_NONE][$key]['taxonomy_name']);
+                  unset($node->{$property}[LANGUAGE_NONE][$key]['vocabulary_name']);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // If taxonomy_name is still in the array that means there wasn't a match
+  // so unset it.
+  foreach ($node as $property => $propertyValues) {
+    if (isset($node->{$property}[LANGUAGE_NONE]) && is_array($node->{$property}[LANGUAGE_NONE])) {
+      foreach ($node->{$property}[LANGUAGE_NONE] as $key => $fieldValues) {
+        if (isset($fieldValues['taxonomy_name'])) {
+          unset($node->{$property}[LANGUAGE_NONE][$key]);
+        }
+      }
+    }
+  }
+
+  // Remove because it isn't an actual node value.
+  unset($node->taxonomies);
+}

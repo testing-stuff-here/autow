@@ -1,0 +1,46 @@
+@media (max-width: 640px) {
+  #modalContent {
+    left:0 !important;
+    .ctools-modal-content {width:95% !important; margin:0 auto; box-sizing:border-box; -ms-box-sizing:border-box; -webkit-box-sizing:border-box; -moz-box-sizing:border-box;}
+  }
+  div.ctools-modal-content {
+    #modal-content {
+      .webform-client-form {  margin-bottom:120px; float:none !important;  }
+      &:after {
+        content: " ";
+        clear: both;
+        display: block;
+        height: 0;
+      }
+    }
+    .modal-scroll {/*float:none !important;*/}
+    .smg-pop-up-column {float:none !important; width:100% !important;}
+    .modal-header {
+      padding-top:10px !important;
+      #modal-title {font-size:180% !important;}
+    }
+    &.one-column-layout {
+      .popups-container {overflow:visible;}
+    }
+    .modal-header-text {font-size:18px !important; margin-bottom:4px !important;}
+    #sp-full-name-wrapper {
+      margin-top:-3px !important; width:100%;
+      #not-sp-user {float:none;}
+    }
+    .modal-content {
+      .form-actions {
+        input.form-submit {margin-top: 30px; height: 45px;}
+        input.form-submit {width:90% !important; font-size:150% !important;}
+      }
+      .form-item {
+        &.webform-component {
+          > label, > label .form-required {
+            font-size:130% !important; -webkit-text-size-adjust: 100%;
+          }
+        }
+      }
+    }
+  }
+  html {-webkit-text-size-adjust: 100%;}
+}
+

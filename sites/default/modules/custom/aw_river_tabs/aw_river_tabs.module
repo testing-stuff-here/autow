@@ -1,0 +1,100 @@
+<?php
+/**
+ * @file
+ * This will add tabs to the homepage and main category pages
+ * I used this to modify the views filter
+ */
+
+function aw_river_tabs_form_alter(&$form, &$form_state, $form_id){
+
+  if(arg(0)!='admin'){
+    switch($form['#theme'][0]){
+      //main nav
+      case 'views_exposed_form__home_river_of_content__page':
+      case 'views_exposed_form__category_part_1__page_1':
+      case 'views_exposed_form__category_part_1__page_2':
+      case 'views_exposed_form__category_part_1__page_3':
+      case 'views_exposed_form__category_part_1__page_4':
+      case 'views_exposed_form__category_part_1__page_5':
+      case 'views_exposed_form__category_part_1__page_6':
+      case 'views_exposed_form__category_part_1__page_7':
+      //sub nav
+      case 'views_exposed_form__category_part_1__page_8':
+			case 'views_exposed_form__category_part_1__page_9':
+			case 'views_exposed_form__category_part_1__page_10':
+			case 'views_exposed_form__category_part_1__page_11':
+			case 'views_exposed_form__category_part_1__page_12':
+			case 'views_exposed_form__category_part_1__page_13':
+			case 'views_exposed_form__category_part_1__page_14':
+			case 'views_exposed_form__category_part_1__page_15':
+			case 'views_exposed_form__category_part_1__page_16':
+			case 'views_exposed_form__category_part_1__page_17':
+			case 'views_exposed_form__category_part_1__page_18':
+			case 'views_exposed_form__category_part_1__page_19':
+			case 'views_exposed_form__category_part_1__page_20':
+			case 'views_exposed_form__category_part_1__page_21':
+			case 'views_exposed_form__category_part_1__page_22':
+			case 'views_exposed_form__category_part_1__page_23':
+			case 'views_exposed_form__category_part_1__page_24':
+			case 'views_exposed_form__category_part_1__page_28':
+			//Demo Interstitial
+			case 'views_exposed_form__home_river_of_content__page_1':
+
+			  $industry_trends = "ga('send', 'event', 'Home Tab Filter', 'Industry Trends');";
+			  $innovation = "ga('send', 'event', 'Home Tab Filter', 'Innovation');";
+			  $manufacturing = "ga('send', 'event', 'Home Tab Filter', 'Manufacturing');";
+			  $leadership = "ga('send', 'event', 'Home Tab Filter', 'Leadership');";
+			  $finance = "ga('send', 'event', 'Home Tab Filter', 'Finance');";
+
+
+          $exposed_filter_identifier = 'tab_filter';
+          $tabs = '<ul class="menu">
+              <li class="expanded"><a class="parent"></a>
+                <ul class="menu" style="">
+                  <li class="sub first"><a onclick="' . $industry_trends . '" class="" title="" href="/automation-strategies/industry-trends">Industry Trends</a></li>
+                  <li class="sub"><a onclick="' . $innovation . '" title="" href="/automation-strategies/innovation">Innovation</a></li>
+                  <li class="sub"><a onclick="' . $manufacturing . '" title="" href="/automation-strategies/manufacturing">Manufacturing</a></li>
+                  <li class="sub"><a onclick="' . $leadership . '" title="" href="/automation-strategies/leadership">Leadership</a></li>
+                  <li class="sub last"><a onclick="' . $finance . '" title="" href="/automation-strategies/finance">Finance</a></li>
+                </ul>
+              </li>
+              </ul>';
+            $form['submit_1'] = array(
+              '#type' => 'submit',
+              '#value' => t(''),
+              '#attributes' => array('onlick' => "ga('send', 'event', 'Home Tab Filter', 'All Articles');"),
+            );
+            $form['submit_2'] = array(
+              '#type' => 'submit',
+              '#value' => t('Workforce'),
+              '#attributes' => array('onlick' => "ga('send', 'event', 'Home Tab Filter', 'Workforce');"),
+            );
+            $form['submit_3'] = array(
+              '#type' => 'submit',
+              '#value' => t('Acquisitions'),
+              '#attributes' => array('onlick' => "ga('send', 'event', 'Home Tab Filter', 'Acquisitions');"),
+            );
+            $form['submit_4'] = array(
+              '#type' => 'submit',
+              '#value' => t('Event Coverage'),
+              '#attributes' => array('onlick' => "ga('send', 'event', 'Home Tab Filter', 'Event Coverage');"),
+            );
+            $form['html'] = array(
+              '#type' => 'markup',
+              '#markup' => $tabs,
+            );
+            $form['info'] = array(
+              '#type' => 'markup',
+              '#markup' => '<div class="filter-info">' .t('Click on the topics above to filter contents below!') .'</div>',
+            );
+
+            //$form['submit']['#prefix'] = '<h1 class="filter-title">Topics:</h1>';
+            $form[$exposed_filter_identifier]['#prefix'] = '<div style="display:none;">';
+
+            $form[$exposed_filter_identifier]['#suffix'] = '</div>';
+            drupal_add_js(drupal_get_path('module', 'aw_river_tabs').'/aw_river_tabs.js');
+            drupal_add_css(drupal_get_path('module', 'aw_river_tabs') . '/css/aw_river_tabs.css');
+      break;
+    }
+  }
+}

@@ -1,0 +1,170 @@
+diff --git a/uuid_services/uuid_services.module b/uuid_services/uuid_services.module
+index b7883e6..1dcb7b9 100644
+--- a/uuid_services/uuid_services.module
++++ b/uuid_services/uuid_services.module
+@@ -30,7 +30,6 @@ function uuid_services_menu() {
+ function uuid_services_services_resources_alter(&$resources, &$endpoint) {
+   foreach (entity_get_info() as $entity_type => $entity_info) {
+     if (isset($entity_info['uuid']) && $entity_info['uuid'] == TRUE && (isset($resources[$entity_type]) || variable_get('uuid_services_support_all_entity_types', FALSE))) {
+-      unset($resources[$entity_type]['operations']['create']);
+ 
+       // Alter 'retrieve' method to use UUID enabled functions and arguments.
+       $resources[$entity_type]['operations']['retrieve']['help'] = t('Retrieve %label entities based on UUID.', array('%label' => $entity_info['label']));
+@@ -55,34 +54,69 @@ function uuid_services_services_resources_alter(&$resources, &$endpoint) {
+         ),
+       );
+ 
+-      // Alter 'update' method to use UUID enabled functions and arguments.
+-      $resources[$entity_type]['operations']['update']['help'] = t('Update or create %label entities based on UUID. The payload must be formatted according to the <a href="!url">OData protocol</a>.', array('%label' => $entity_info['label'], '!url' => 'http://www.odata.org/developers/protocols'));
+-      $resources[$entity_type]['operations']['update']['callback'] = '_uuid_services_entity_update';
+-      $resources[$entity_type]['operations']['update']['access callback'] = '_uuid_services_entity_access';
+-      $resources[$entity_type]['operations']['update']['access arguments'] = array('update');
+-      $resources[$entity_type]['operations']['update']['access arguments append'] = TRUE;
+-      $resources[$entity_type]['operations']['update']['args'] = array(
+-        // This argument isn't exposed in the service, only used internally..
+-        array(
+-          'name' => 'entity_type',
+-          'description' => t('The entity type.'),
+-          'type' => 'string',
+-          'default value' => $entity_type,
+-          'optional' => TRUE,
+-        ),
+-        array(
+-          'name' => 'uuid',
+-          'description' => t('The %label UUID.', array('%label' => $entity_info['label'])),
+-          'type' => 'text',
+-          'source' => array('path' => 0),
+-        ),
+-        array(
+-          'name' => 'entity',
+-          'description' => t('The %label entity object.', array('%label' => $entity_info['label'])),
+-          'type' => 'struct',
+-          'source' => 'data',
+-        ),
+-      );
++      if ($entity_type != 'file') {
++        unset($resources[$entity_type]['operations']['create']);
++
++        // Alter 'update' method to use UUID enabled functions and arguments.
++        $resources[$entity_type]['operations']['update']['help'] = t('Update or create %label entities based on UUID. The payload must be formatted according to the <a href="!url">OData protocol</a>.', array('%label' => $entity_info['label'], '!url' => 'http://www.odata.org/developers/protocols'));
++        $resources[$entity_type]['operations']['update']['callback'] = '_uuid_services_entity_update';
++        $resources[$entity_type]['operations']['update']['access callback'] = '_uuid_services_entity_access';
++        $resources[$entity_type]['operations']['update']['access arguments'] = array('update');
++        $resources[$entity_type]['operations']['update']['access arguments append'] = TRUE;
++        $resources[$entity_type]['operations']['update']['args'] = array(
++          // This argument isn't exposed in the service, only used internally..
++          array(
++            'name' => 'entity_type',
++            'description' => t('The entity type.'),
++            'type' => 'string',
++            'default value' => $entity_type,
++            'optional' => TRUE,
++          ),
++          array(
++            'name' => 'uuid',
++            'description' => t('The %label UUID.', array('%label' => $entity_info['label'])),
++            'type' => 'text',
++            'source' => array('path' => 0),
++          ),
++          array(
++            'name' => 'entity',
++            'description' => t('The %label entity object.', array('%label' => $entity_info['label'])),
++            'type' => 'struct',
++            'source' => 'data',
++          ),
++        );
++      }
++      else {
++        // Files work a little bit different from other entities.
++        // Alter 'create' method to use UUID enabled functions and arguments.
++        $resources[$entity_type]['operations']['create']['help'] = t('Create %label entities based on UUID. The payload must be formatted according to the <a href="!url">OData protocol</a>.', array('%label' => $entity_info['label'], '!url' => 'http://www.odata.org/developers/protocols'));
++        $resources[$entity_type]['operations']['create']['callback'] = '_uuid_services_file_create';
++        $resources[$entity_type]['operations']['create']['access callback'] = '_uuid_services_file_access';
++        $resources[$entity_type]['operations']['create']['access arguments'] = array('create');
++        $resources[$entity_type]['operations']['create']['access arguments append'] = TRUE;
++        $resources[$entity_type]['operations']['create']['args'] = array(
++          // This argument isn't exposed in the service, only used internally..
++          array(
++            'name' => 'entity_type',
++            'description' => t('The entity type.'),
++            'type' => 'string',
++            'default value' => $entity_type,
++            'optional' => TRUE,
++          ),
++          array(
++            'name' => 'uuid',
++            'description' => t('The %label UUID.', array('%label' => $entity_info['label'])),
++            'type' => 'text',
++            'source' => array('path' => 0),
++          ),
++          array(
++            'name' => 'entity',
++            'description' => t('The %label entity object.', array('%label' => $entity_info['label'])),
++            'type' => 'array',
++            'source' => 'data',
++          ),
++        );
++      }
+ 
+       // Alter 'delete' method to use UUID enabled functions and arguments.
+       $resources[$entity_type]['operations']['delete']['help'] = t('Delete %label entities based on UUID.', array('%label' => $entity_info['label']));
+@@ -128,6 +162,33 @@ function _uuid_services_entity_retrieve($entity_type, $uuid) {
+ }
+ 
+ /**
++ * Callback for the 'create' method for files.
++ */
++function _uuid_services_file_create($entity_type, $uuid, $entity) {
++  $file_id = entity_get_id_by_uuid('file', array($uuid));  $uuid = $entity['uuid'];
++
++  if (!empty($file_id)) {
++    // Remove existing file if present using the services callback to ensure
++    // uniqueness.
++    foreach ($file_id as $id) {
++      _file_resource_delete($id);
++    }
++  }
++  $response = _file_resource_create($entity);
++  if (!empty($response['fid'])) {
++    // Set the uuid.
++    $entities = entity_load('file', array($response['fid']));
++    $entity = reset($entities);
++    $entity->uuid = $uuid;
++    entity_save('file', $entity);
++    $response['uuid'] = $uuid;
++    $response['uri'] = services_resource_uri(array('file', $uuid));
++  }
++
++  return $response;
++}
++
++/**
+  * Callback for the 'update' method.
+  *
+  * @see entity_uuid_save()
+@@ -234,3 +295,25 @@ function _uuid_services_entity_access($op, $args) {
+     return services_error($exception, 406, $entity_type);
+   }
+ }
++
++/**
++ * Wraps _file_resource_access() to add uuid loading of files.
++ */
++function _uuid_services_file_access($op = 'view', $args = array()) {
++  $args_count = count($args);
++  $uuid = FALSE;
++  if ($args_count >= 2) {
++    $uuid = $args[1];
++  }
++  elseif ($args_count == 1 && !empty($args[0]['uuid'])) {
++    $uuid = $args[1]['uuid'];
++  }
++  if ($uuid) {
++    $file_id = entity_get_id_by_uuid('file', array($args[0]));
++    $args = array((array) current(entity_load('file', $file_id)));
++  }
++  else {
++    return services_error(new Exception("Missing uuid."), 406, 'file');
++  }
++  return _file_resource_access($op, $args);
++}

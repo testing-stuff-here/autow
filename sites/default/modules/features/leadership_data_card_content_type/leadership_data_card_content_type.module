@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Leadership Data Card Content Type feature.
+ */
+
+include_once('leadership_data_card_content_type.features.inc');

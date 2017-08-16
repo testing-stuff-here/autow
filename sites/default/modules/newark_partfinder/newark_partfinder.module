@@ -1,0 +1,358 @@
+<?php
+/**
+ * @author Albert Jankowski <ajankowski@summitmediagroup.com>
+ *
+ * @file
+ *  Newark Part Finder primary module file
+ */
+
+/**
+ * Implements hook_block_info()
+ */
+function newark_partfinder_block_info() {
+  $blocks['newark_imu'] = array(
+    'info' => t('Newark Part Finder IMU'), 
+    'cache' => DRUPAL_CACHE_PER_PAGE, 
+  );
+  
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function newark_partfinder_block_view($delta = '') {
+  switch($delta){
+		case 'newark_imu':
+	    $block['subject'] = t('');
+			$block['content'] = theme('newark_imu', array(
+				'delta' => $delta,
+				'product' => newark_partfinder_get_product(),
+	    ));
+	    break;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function newark_partfinder_theme() {
+  return array(
+    'newark_imu' =>  array(
+      'template' => 'newark-imu',
+      'variables' => array('product' => NULL),
+    ),
+  );   
+}
+
+/**
+ * Preprocess for IMU block
+ */
+function template_preprocess_newark_imu($vars) {
+  drupal_add_css(drupal_get_path('module', 'newark_partfinder') . '/css/newark-partfinder.css');
+  drupal_add_js(drupal_get_path('module', 'newark_partfinder') . '/js/newark-partfinder.js');
+}
+
+function newark_partfinder_get_product() {
+  $node = menu_get_object();
+  
+  if(isset($node->field_allterms['und'][0])) {
+    foreach($node->field_allterms['und'] as $term) {
+      switch($term['tid']) {
+        case 2114:
+          $part_categories[] = 'Connectors';
+          break;
+        case 1874:
+          $part_categories[] = 'Enclosures, Racks & Cabinets';
+          break;
+        case 2144:
+          $part_categories[] = 'Optoelectronics & Displays';
+          break;
+        case 2109:
+          $part_categories[] = 'Power & Line Protection';
+          break;
+        case 78:
+          $part_categories[] = 'Security & Audio Visual';
+          break;
+        case 28:
+          $part_categories[] = 'Sensors & Transducers';
+          break;
+      }
+    }
+  }
+  else {
+    // Map to Categories
+    $path = current_path();
+    switch($path) {
+      case 'products/hmi':
+        $part_categories[] = 'Optoelectronics & Displays';
+        break;
+      case 'engineering/sensors':
+      case 'products/sensors':
+        $part_categories[] = 'Sensors & Transducers';
+        break;
+      case 'topics/security':
+        $part_categories[] = 'Security & Audio Visual';
+        break;
+    }  
+  }
+  
+  if(isset($part_categories)) {
+    // select random category if there are more than one
+    shuffle($part_categories);
+  }
+    
+  if(!isset($part_categories)) {
+    // select random category
+    $categories = newark_partfinder_getCategories();
+    // select random category if there are more than one
+    shuffle($categories);
+    $part_categories[] = $categories[0];
+  }
+  
+  $mapping = newark_partfinder_Mapping();  
+  
+  return $mapping[$part_categories[0]];
+}
+
+/**
+ * Newark Categories
+ * Commented out categories are ones that Dave & Powers decided to be not displayed
+ *
+ * @return array
+ */
+function newark_partfinder_getCategories() {
+  return array(
+    'Automation & Process Control',
+    //'Batteries & Chargers',
+    'Cable, Wire & Assemblies',
+    //'Chemicals & Adhesives',
+    'Circuit Protection',
+    'Connectors',
+    //'Crystals & Oscillators',
+    'Electrical',
+    'Enclosures, Racks & Cabinets',
+    //'Fans, Heat Sinks & HVAC',
+    'Fasteners & Mechanical',
+    //'Office & Computer',
+    'Optoelectronics & Displays',
+    //'Passive Components',
+    'Power & Line Protection',
+    'Security & Audio Visual',
+    //'Semiconductors - Discretes',
+    //'Semiconductors - ICs',
+    //'Semiconductors - Modules',
+    //'Semiconductors - Tools',
+    'Sensors & Transducers',
+    'Static Control & Site Safety',
+    'Switches & Relays',
+    'Test, Measurement & Inspection',
+    //'Tools & Production Supplies',
+    'Transformers',
+  );
+}
+
+/**
+ * This is the mapping from newark.csv. You can run newark_partfinder_convert_csv_to_mapping_array() 
+ * to get the array
+ */
+function newark_partfinder_Mapping() {
+  return array(
+    'Automation & Process Control' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/4635656.jpg',
+      'Product Category' => 'Automation & Process Control',
+      'Category Copy' => 'Automation and Process Control components from industry leading manufacturers, in stock and ready to ship today.',
+      'Category URL' => 'http://www.newark.com/automation-process-control?CMP=AFF-AW-automation-process-control',
+    ),
+    'Batteries & Chargers' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/4854193.jpg',
+      'Product Category' => 'Batteries & Chargers',
+      'Category Copy' => 'Newark element14 offers a wide variety of batteries including alkaline, lithium, nickel cadmium, nickel metal hydride (NiMH), lead acid, and many special application batteries at a competitive price.',
+      'Category URL' => 'http://www.newark.com/batteries-chargers?CMP=AFF-AW-batteries-chargers',
+    ),
+    'Cable, Wire & Assemblies' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/5204412.jpg',
+      'Product Category' => 'Cable, Wire & Assemblies',
+      'Category Copy' => 'Newark element14 offers a wide variety of cable, assemblies and Single Wire Products.',
+      'Category URL' => 'http://www.newark.com/cable-wire-assemblies?CMP=AFF-AW-cable-wire-assemblies',
+    ),
+    'Chemicals & Adhesives' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/4472206.jpg',
+      'Product Category' => 'Chemicals & Adhesives',
+      'Category Copy' => 'We carry a full line of chemicals and adhesives such as dusters, cleaners, lubricants & cutting fluids, paints & coating and potting compounds & sealants.',
+      'Category URL' => 'http://www.newark.com/chemicals-adhesives?CMP=AFF-AW-chemicals-adhesives',
+    ),
+    'Circuit Protection' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/4807331.jpg',
+      'Product Category' => 'Circuit Protection',
+      'Category Copy' => 'Newark element14 carries the latest in circuit protection technologies from market leading manufacturers.',
+      'Category URL' => 'http://www.newark.com/circuit-protection?CMP=AFF-AW-circuit-protection',
+    ),
+    'Connectors' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/3770824.jpg',
+      'Product Category' => 'Connectors',
+      'Category Copy' => 'Newark element14 is your source for connectors with most of our connectors in stock everyday.',
+      'Category URL' => 'http://www.newark.com/connectors?CMP=AFF-AW-connectors',
+    ),
+    'Crystals & Oscillators' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/4965162.jpg',
+      'Product Category' => 'Crystals & Oscillators',
+      'Category Copy' => 'We offer crystals, oscillators and resonators to support every application.',
+      'Category URL' => 'http://www.newark.com/crystals-oscillators?CMP=AFF-AW-crystals-oscillators',
+    ),
+    'Electrical' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/5035345.jpg',
+      'Product Category' => 'Electrical',
+      'Category Copy' => 'Newark element14 is your source for electrical connectors from top manufacturers like Hubbell Wiring Devices, Thomas & Betts, Molex/Daniel Woodhead, Wago, Weidmuller, Neutrik, Amphenol and more.',
+      'Category URL' => 'http://www.newark.com/electrical?CMP=AFF-AW-electrical',
+    ),
+    'Enclosures, Racks & Cabinets' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/4970498.jpg',
+      'Product Category' => 'Enclosures, Racks & Cabinets',
+      'Category Copy' => 'Newark element14 stocks a wide variety of enclosure solutions for your application.',
+      'Category URL' => 'http://www.newark.com/enclosures-racks-cabinets?CMP=AFF-AW-enclosures-racks-cabinets',
+    ),
+    'Fans, Heat Sinks & HVAC' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/4573820.jpg',
+      'Product Category' => 'Fans, Heat Sinks & HVAC',
+      'Category Copy' => 'Newark element14 has a wide variety of fans, heatsinks and HVAC components for every application.',
+      'Category URL' => 'http://www.newark.com/fans-heat-sinks-hvac?CMP=AFF-AW-fans-heat-sinks-hvac',
+    ),
+    'Fasteners & Mechanical' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/4470026.jpg',
+      'Product Category' => 'Fasteners & Mechanical',
+      'Category Copy' => 'Newark element 14 is an authorized distributor of thousands of leading engineered fasteners and mechanical components.',
+      'Category URL' => 'http://www.newark.com/fasteners-mechanical?CMP=AFF-AW-fasteners-mechanical',
+    ),
+    'Office & Computer' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/4869031.jpg',
+      'Product Category' => 'Office & Computer',
+      'Category Copy' => 'Check out our fantastic range of office supplies at Newark element14',
+      'Category URL' => 'http://www.newark.com/office-computer?CMP=AFF-AW-office-computer',
+    ),
+    'Optoelectronics & Displays' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/5017043.jpg',
+      'Product Category' => 'Optoelectronics & Displays',
+      'Category Copy' => 'Newark element14 carries an extensive number of optoelectronics and display components to help with all of your lighting needs.',
+      'Category URL' => 'http://www.newark.com/optoelectronics-displays?CMP=AFF-AW-optoelectronics-displays',
+    ),
+    'Passive Components' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/4746822.jpg',
+      'Product Category' => 'Passive Components',
+      'Category Copy' => 'Find a full line of passive components at Neweark element14 including Antennas, Capacitors, EMC/RFI Suppression, Filters, Inductors, Chokes, Coils, Potentiometers, Resistors, Rheostats and much more.',
+      'Category URL' => 'http://www.newark.com/passive-components?CMP=AFF-AW-passive-components',
+    ),
+    'Power & Line Protection' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/5143877.jpg',
+      'Product Category' => 'Power & Line Protection',
+      'Category Copy' => 'Newark element14 carries the latest in power supplies and line protection, including switching (AC/DC) power supplies, DC/DC converters, inverters, uninterruptible power supplies and surge suppressors.',
+      'Category URL' => 'http://www.newark.com/power-line-protection?CMP=AFF-AW-power-line-protection',
+    ),
+    'Security & Audio Visual' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_GB/42421631.jpg',
+      'Product Category' => 'Security & Audio Visual',
+      'Category Copy' => 'Check out our fantastic range of Security products at Newark element14.',
+      'Category URL' => 'http://www.newark.com/security-audio-visual?CMP=AFF-AW-security-audio-visual',
+    ),
+    'Semiconductors - Discretes' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/4487680.jpg',
+      'Product Category' => 'Semiconductors - Discretes',
+      'Category Copy' => 'Check out our fantastic range of Semiconductors and Discretes at Newark element14',
+      'Category URL' => 'http://www.newark.com/semiconductors-discretes?CMP=AFF-AW-semiconductors-discretes',
+    ),
+    'Semiconductors - ICs' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/4243421.jpg',
+      'Product Category' => 'Semiconductors - ICs',
+      'Category Copy' => 'Newark element 14 has a wide variety of Semiconductor ICs for every application.',
+      'Category URL' => 'http://www.newark.com/semiconductors-ics?CMP=AFF-AW-semiconductors-ics',
+    ),
+    'Semiconductors - Modules' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/4579426.jpg',
+      'Product Category' => 'Semiconductors - Modules',
+      'Category Copy' => 'Newark element 14 carries the latest Semiconductor Modules including camera, communication and networking, interface, RF and RFID modules.',
+      'Category URL' => 'http://www.newark.com/semiconductors-modules?CMP=AFF-AW-semiconductors-modules',
+    ),
+    'Semiconductors - Tools' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/5008299.jpg',
+      'Product Category' => 'Semiconductors - Tools',
+      'Category Copy' => 'We carry CAD Tools, Compilers, Daughter Boards, Embedded Operating Systems, IC Adapters, Prototyping Boards, Prototyping Products, Simulation Tools, Single Board Computers, and more.',
+      'Category URL' => 'http://www.newark.com/semiconductors-tools?CMP=AFF-AW-semiconductors-tools',
+    ),
+    'Sensors & Transducers' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/5058622.jpg',
+      'Product Category' => 'Sensors & Transducers',
+      'Category Copy' => 'We stock a full line of transducers including piezo transducers, siren transducers, and much more.',
+      'Category URL' => 'http://www.newark.com/sensors-transducers?CMP=AFF-AW-sensors-transducers',
+    ),
+    'Static Control & Site Safety' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/4468672.jpg',
+      'Product Category' => 'Static Control & Site Safety',
+      'Category Copy' => 'Choose from market-leading manufacturers including 3M, Desco, SPC, Techspray, Panduit and Brady offering protective clothing, ear protection, personal alarms, pest control products and more.',
+      'Category URL' => 'http://www.newark.com/static-control-site-safety?CMP=AFF-AW-static-control-site-safety',
+    ),
+    'Switches & Relays' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/4474749.jpg',
+      'Product Category' => 'Switches & Relays',
+      'Category Copy' => 'Check out our fantastic range of relays and switches for use in Industrial, Communication and Electronic applications.',
+      'Category URL' => 'http://www.newark.com/switches-relays?CMP=AFF-AW-switches-relays',
+    ),
+    'Test, Measurement & Inspection' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/4727416.jpg',
+      'Product Category' => 'Test, Measurement & Inspection',
+      'Category Copy' => 'Newark element14 offers a complete solution for your test, measurement and inspection needs with our comprehensive product line.',
+      'Category URL' => 'http://www.newark.com/test-measurement-inspection?CMP=AFF-AW-test-measurement-inspection',
+    ),
+    'Tools & Production Supplies' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/3769069.jpg',
+      'Product Category' => 'Tools & Production Supplies',
+      'Category Copy' => 'Newark element14 carries a wide variety of tools and production supply products. Our soldering solutions includes, heat guns, solder wire, soldering irons and desoldering.',
+      'Category URL' => 'http://www.newark.com/tools-production-supplies?CMP=AFF-AW-tools-production-supplies',
+    ),
+    'Transformers' => array(
+      'Image URL' => 'http://www.newark.com/productimages/standard/en_US/3763454.jpg',
+      'Product Category' => 'Transformers',
+      'Category Copy' => 'Newark element14 has everything you need to be up-to-date with the latest in transformer technologies.',
+      'Category URL' => 'http://www.newark.com/transformers?CMP=AFF-AW-transformers',
+    ),
+  );
+}
+
+/**
+ * This is just a temp function for turning the csv file to an array.  Just run this function 
+ * and paste in the code to newark_partfinder_Mapping().
+ */
+function newark_partfinder_convert_csv_to_mapping_array() {  
+  // read the csv file
+  if (($handle = fopen('sites/default/modules/newark_partfinder/newark.csv', "r")) !== FALSE) {
+    while (($row = fgetcsv($handle, 1000, ",")) !== FALSE) {
+      if(!$header) {
+        $header = $row;
+      }
+      else {
+        $data[] = array_combine($header, $row);
+      }
+    }
+    
+    fclose($handle);
+  }
+  
+  // create a new array so the category is the index
+  foreach($data as $values) {
+    $category = $values['Category'];
+    unset($values['Category']);
+    $new_array[$category] = $values;
+  }
+  
+  // create php array
+  $output = "return array(\n";
+    foreach($new_array as $category => $data) {
+      $output .= "  '$category' => array(\n";
+      foreach($data as $key => $value) {
+        $output .= "    '$key' => '$value',\n";
+      }
+      $output .= "  ),\n";
+    }
+  $output .= ")";
+  dsm($output);
+}

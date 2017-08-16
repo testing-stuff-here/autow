@@ -1,0 +1,279 @@
+<?php
+/**
+ * @author Albert Jankowski <ajankowski@summitmediagroup.com>
+ *
+ * @file
+ *  Handles placing the Get My Free Download Blocks
+ */
+
+/**
+ * Implements hook_page_alter().
+ */
+function aw_gmfd_page_alter(&$page){
+  $node = menu_get_object();
+  $nid = FALSE;
+  global $user;
+
+  // Handle all the node logic
+  // - Nodes will display either a random or related stage one form.  Javascript will handle the showing or
+  //   not displaying of the block.  It will only be displayed if there isn't a cookie that a person filled out
+  //   a stage 2 form or playbook form (reader_token) or they did not see a slide in block within 24 hours
+  //   (aw_gmfd_sliding_panel)
+  if($node) {
+
+    $node_types_not_to_display = array('form_template', 'playbook', 'registration_form', 'webinar_registration', 'stage_one_form', 'webform', 'mobile_webform');
+    // Not showing slide-in on webinars page. nid = 21665
+    $node_ids_not_to_display = array('21665');
+    if($user->uid == 0 && !in_array($node->type, $node_types_not_to_display) && !in_array($node->nid, $node_ids_not_to_display)) {
+      // If not Original content or Supplier submitted than don't display
+      if(isset($node->field_term_source_type['und'][0]['tid'])) {
+        if($node->field_term_source_type['und'][0]['tid'] == 139 || $node->field_term_source_type['und'][0]['tid'] == 141) {
+           return '';
+        }
+      }
+      if(isset($node->field_allterms['und'][0]['tid'])) {
+        foreach($node->field_allterms['und'] as $term) {
+          $terms[] = $term['tid'];
+        }
+        // Get Related get my free download block based on terms
+        if(isset($terms)) {
+          $nid = aw_gmfd_get_related_block($terms);
+        }
+      }
+
+      // If none related than get random
+      if(!$nid) {
+        $nid = aw_gmfd_get_not_tagged();
+      }
+
+      if($nid) {
+        $get_my_free_download_node = node_load($nid);
+        $markup = drupal_render(node_view($get_my_free_download_node, 'aw_gmfd_slide_in'));
+
+        // Script to handle the slide in box - Position on node level will always be slide in
+        $script = '<script type="text/javascript">aw_gmfd_events("#sliding-panel", true, "Get My Free Download Impressions", "' . aw_gmfd_get_webform_component($get_my_free_download_node, 'Email Capture Content') . '", "Slide in");</script>';
+
+        $page['content']['system_main'][] = array(
+          '#markup' => $script . $markup,
+        );
+
+        aw_gmfd_add_files();
+      }
+    }
+  }
+  // Handle other pages - category/home
+  // - On Category pages we will always display the enticement
+  else {
+    $get_my_free_download_body_block = FALSE;
+    $category = TRUE;
+    $nid = FALSE;
+    // Category Pages
+    $search = '<div class="views-row views-row-4 views-row-even">';
+    $path = $_GET['q'];
+    //dsm($_GET);
+    switch($path) {
+      case 'home':
+        $category = TRUE;
+        aw_gmfd_add_files();
+        $nid = aw_gmfd_get_not_tagged();
+        if($nid) {
+          $get_my_free_download_node = node_load($nid);
+          $script = '<script type="text/javascript">aw_gmfd_events(".node-stage-one-form", false, "Get My Free Download Impressions", "' . aw_gmfd_get_webform_component($get_my_free_download_node, 'Email Capture Content') . '", "' . aw_gmfd_get_webform_component($get_my_free_download_node, 'Email Capture Position') . '");</script>';
+          $get_my_free_download_body_block = array('gmfd_block' => array(
+              '#markup' => $script . drupal_render(node_view($get_my_free_download_node)),
+              '#weight' => 2,
+            )
+          );
+
+          //$page['content'] = array_slice($page['content'], 0, 1, true) + $get_my_free_download_body_block + array_slice($page['content'], 1, count($page['content']) - 1, true);
+          // #2124 - uncomment the top and remove the bottom when removing the red cross link
+          // $page['content'] = array_slice($page['content'], 0, 2, true) + $get_my_free_download_body_block + array_slice($page['content'], 1, count($page['content']) - 1, true);
+          // ddl($page['content']);
+        }
+        break;
+      case 'products/hmi':
+      case 'taxonomy/term/2144':
+      case 'taxonomy/term/2145':
+      case 'taxonomy/term/2146':
+      case 'taxonomy/term/2147':
+        $nid = 13251;
+        break;
+      case 'factory-automation/packaging':
+      case 'taxonomy/term/909':
+      case 'taxonomy/term/911':
+        $nid = 13252;
+        break;
+      case 'taxonomy/term/42':
+        $nid = 13536;
+        break;
+      case 'products/power-management':
+        $nid = 13537;
+        break;
+      case 'products/networking':
+      case 'it/ethernet':
+      case 'it/networking':
+        $nid = 13539;
+        break;
+      case 'device-integration-strategies':
+      case 'btfw':
+        return;
+        break;
+      case 'webinars':
+        return;
+        break;
+    }
+
+    if($nid) {
+      $get_my_free_download_node = node_load($nid);
+      // If not published than don't display it
+      if($get_my_free_download_node->status == 0) {
+        $get_my_free_download_node = FALSE;
+      }
+      if($get_my_free_download_node) {
+        $get_my_free_download_body_block = drupal_render(node_view($get_my_free_download_node));
+      }
+    }
+
+    // If none defined than use random
+    if(!$get_my_free_download_body_block) {
+      $nid = aw_gmfd_get_not_tagged();
+      if($nid) {
+        $get_my_free_download_node = node_load($nid);
+        $get_my_free_download_body_block = drupal_render(node_view($get_my_free_download_node));
+      }
+    }
+
+    if($category && $nid) {
+      if(isset($page['content']['system_main']['main']['#markup'])) {
+        aw_gmfd_add_files();
+        $script = '<script type="text/javascript">aw_gmfd_events(".node-stage-one-form", false, "Get My Free Download Impressions", "' . aw_gmfd_get_webform_component($get_my_free_download_node, 'Email Capture Content') . '", "' . aw_gmfd_get_webform_component($get_my_free_download_node, 'Email Capture Position') . '");</script>';
+        $page['content']['system_main']['main']['#markup'] = $script . str_replace($search, $get_my_free_download_body_block . $search, $page['content']['system_main']['main']['#markup']);
+      }
+    }
+  }
+}
+
+/**
+ * Add all the js files
+ */
+function aw_gmfd_add_files() {
+  drupal_add_css(drupal_get_path('module', 'aw_gmfd') . '/css/aw_gmfd.css');
+  drupal_add_js(drupal_get_path('module', 'aw_gmfd') . '/js/aw_gmfd.js', 'file');
+}
+
+/**
+ * implements hook_entity_info_alter().
+ */
+function aw_gmfd_entity_info_alter(&$entity_info) {
+  $entity_info['node']['view modes']['aw_gmfd_slide_in'] = array(
+    'label' => t('Slide In Block'),
+    'custom settings' => FALSE,
+  );
+}
+
+/**
+* Implements hook_preprocess_node().
+*/
+function aw_gmfd_preprocess_node(&$vars) {
+  if($vars['view_mode'] == 'aw_gmfd_slide_in') {
+    $vars['theme_hook_suggestions'][] = 'node__' . $vars['type'] . 'aw_gmfd_slide_in';
+  }
+}
+
+/**
+ * Returns a random stage one form
+ */
+function aw_gmfd_get_random() {
+  $query = db_select('node', 'n')
+  ->fields('n', array('nid'))
+  ->condition('n.type', 'stage_one_form')
+  ->condition('n.status', 1)
+  ->range(0, 1)
+  ->orderRandom()
+  ->execute();
+
+  $result = $query->fetchAssoc();
+  return $result['nid'];
+}
+
+/**
+ * Gets related get my free downloads block based on the terms in the node
+ *
+ * @param $terms
+ *  an array of terms in a node
+ *
+ * @return $nid
+ *  the node id
+ */
+function aw_gmfd_get_related_block($terms) {
+  $nid = FALSE;
+
+  $query = db_select('node', 'n')
+  ->fields('n', array('nid'))
+  ->condition('n.type', 'stage_one_form')
+  ->condition('n.status', 1);
+  $query->join('taxonomy_index', 't', 'n.nid = t.nid');
+  $query->condition('t.tid', $terms, 'IN');
+  $query->orderRandom();
+  $query->range(0, 1);
+  $result = $query->execute();
+
+  foreach($result as $node) {
+    $nid = $node->nid;
+  }
+  return $nid;
+}
+
+/**
+ * Return any stage one forms that have not been tagged. (Run-of-site)
+ *
+ * @param integer $nid
+ *  the node id
+ */
+function aw_gmfd_get_not_tagged() {
+  $nid = FALSE;
+
+  $query = db_select('node', 'n')
+   ->fields('n', array('nid'))
+   ->condition('n.type', 'stage_one_form')
+   ->condition('n.status', 1);
+
+  $query_exists = db_select('taxonomy_index', 't');
+  $query_exists->addExpression('NULL');
+  $query_exists->where('n.nid = t.nid');
+
+  $query->notExists($query_exists);
+  $query->range(0, 1);
+  $query->orderRandom();
+
+  $result = $query->execute();
+  foreach($result as $record) {
+    $nid = $record->nid;
+  }
+
+  return $nid;
+}
+
+/**
+ * Get webform component based on name
+ *
+ * @param $node
+ *  the node object
+ * @param $components_name
+ *  component name
+ *
+ * @return $value
+ *  the default value of the form field
+ */
+function aw_gmfd_get_webform_component($node, $components_name) {
+  $value = '';
+  if(isset($node->webform['components'])) {
+    foreach($node->webform['components'] as $component) {
+      if($component['name'] == $components_name) {
+        $value = $component['value'];
+      }
+    }
+  }
+
+  return $value;
+}

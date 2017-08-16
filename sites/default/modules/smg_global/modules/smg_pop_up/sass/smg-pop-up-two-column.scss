@@ -1,0 +1,14 @@
+@import "mixins";
+
+div.ctools-modal-content.two-column-layout.min-640 .smg-pop-up-column {width:50% !important;} 
+div.ctools-modal-content.two-column-layout.min-640 .smg-pop-up-column {float:left !important;}
+div.ctools-modal-content.two-column-layout .modal-content input.form-text {width:100%;}
+div.ctools-modal-content.two-column-layout .modal-content {
+  width:97% !important; min-width: 97%; max-width: 97%; min-height: 180px; 
+  html.flexbox & {
+    @include flex-val(1 0 97%); @include flex-row; min-width: 180px;
+  }
+}
+div.ctools-modal-content.two-column-layout .modal-header-text {font-size:22px;}
+div.ctools-modal-content.two-column-layout .modal-header #modal-title {float:none !important;}
+div.ctools-modal-content.two-column-layout .modal-header-text {float:none !important; margin-left:10px;} 

@@ -1,0 +1,8 @@
+name = Waywire Field
+description = Provides a Waywire widget for fields.
+package = Fields
+core = 7.x
+dependencies[] = field
+dependencies[] = image
+dependencies[] = file
+configure = admin/config/media/waywire

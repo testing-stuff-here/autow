@@ -1,0 +1,5 @@
+name = aw_river_tabs
+description = This will modify the filter (Buttons/Tabs) in the "RIVER" for the home page and main subcategory pages (includes all the landing pages from the Main Navigation Home, Control etc)
+dependencies[] = views
+package = "custom"
+core = 7.x

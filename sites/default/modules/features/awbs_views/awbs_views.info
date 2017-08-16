@@ -1,0 +1,11 @@
+name = awbs views
+description = Views for the AWBS theme
+core = 7.x
+package = Features
+dependencies[] = views
+features[ctools][] = views:views_default:3.0
+features[features_api][] = api:2
+features[views_view][] = aaron_hand
+features[views_view][] = admin_content
+features[views_view][] = fdt_coverage
+features[views_view][] = home_river_of_content

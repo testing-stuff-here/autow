@@ -1,0 +1,162 @@
+Vocabulary,Level - 1,Level - 2,Level - 3,Map from Joomla taxonomy
+Automation Strategies,Control
+,,PLC,,Product Strategies // Controllers
+,,PAC,,Automation Strategies // Automation Controls
+,,DCS,ISA88,Product Strategies // Distributed Control Systems
+,,SCADA
+,,I/O,,Product Strategies // Controllers
+,,HMI,"Software, Hardware, Panel PC, Display, Mobile",Product Strategies // HMI
+,,Advanced Control,"DeviceNet, ControlNet, PROFIBUS, EtherNet/IP, PROFINET, CC-Link, Sercos, EtherCat, Ethernet Powerlink, Foundation Fieldbus,Modbus,Modbus TCP"
+,,Industrial PCs,,Product Strategies // Personal Computers
+,,Process Controllers,,Automation Strategies // Process Automation
+,,Batch Controllers,,Automation Strategies // Batch Automation
+,,Motion Control ,Robotic,Product Strategies // Motion
+,,Machine Control,,Automation Strategies // Machine Automation
+
+,,Sensors,,Product Strategies //  Sensors
+,,Networking
+,Asset Management,,,Automation Strategies // Asset Management
+,,Maintenance,"Predictive, Information Standards, Preventive, Condition, Cable, Wire, Asset Reliability",Automation Strategies // Maintenance & Support
+,,Prognostics
+,,Diagnostics
+,,Remote Diagnostics
+,,Fieldbuses,"DeviceNet, AS-Interface, CAN, Interbus, ControlNet, CC-link, HART,Foundation Fieldbus, EDDL, FDT, OPC, PROFIBUS, Modbus, Interbus, OpenSafety"
+,,Instrumentation,Smart ,Product Strategies // Instrumentation
+,,Sensors,"Photoelectric, Pressure, Flow, Displacement, Barcode Reader, Proximity, Ultrasonic, Level, Infrared, Potentiometer, Multimeter, Position, Temperature, Wireless, Amperometric, Array, 3D",Automation Strategies // Wireless 
+,,Vision,"GigE, 2D, 3D",Product Strategies // Vision
+,,Valves
+,,Robotics,,Product Strategies // Robotic
+,,HMI
+,Operations Management
+,,Manufacturing Execution System (MES),"Workflow-Instruction Technology, Apps",Product Strategies // MES
+,,Manufacturing Operations Management (MOM),,Automation Strategies // Production & Performance Management
+,,Enterprise Resource Planning (ERP)
+,,Business Process Management,CRM,Automation Strategies // Business Process Integration
+,,Production Management,"Modeling, Simulation, Emulation",Automation Strategies // Simulation
+,,Supply Chain
+,,Product Lifecycle Management (PLM),Software,Automation Strategies // Product Lifecycle Management
+,,Overall Equipment Effectiveness
+,,Training,Operator Training Simulation,Automation Strategies // Staffing & Training
+,,Cloud Computing
+,,Operator Performance
+,,System Integration
+,,KPI
+,,Quality
+,,Traceability,,Automation Strategies // Regulatory and Traceability
+,,Lean Manufacturing,Resource Consumption Accounting ,Automation Strategies // Lean/Six Sigma
+
+,Information Management
+,,Historian,,Product Strategies // Historians 
+,,Cloud Computing
+,,Networking,"DeviceNet, AS-Interface, CAN, CANopen, Interbus, ControlNet, CC-link, HART,Foundation Fieldbus, EDDL, FDT, OPC, PROFIBUS, Modbus, Interbus, PROFINET, IO, Switches, Common Industrial Protocol (CIP), PackML, DNP, DHCP, DF1, Redundancy",Automation Strategies // Networks & Connectivity
+,,Quality Management,,Automation Strategies // Quality Management
+,,Ethernet,"EtherNet/IP, PROFINET, PROFINET IO,  Modbus TCP, Ethernet Powerlink, EtherCAT, ControlNet, SERCOS III, Power over Ethernet (PoE), IEEE 802.3"
+,,Systems Administration
+,,Databases,"SQL, SQL Server, MySQL, Relational,"
+,,Enterprise Resource Planning (ERP),"Supply Chain Management, Purchasing, Product Lifecycle Management (PLM), Markup Languages (ISA-95)",Product Strategies // ERP
+
+,,Wireless,"Zigbee, Mesh, Wi-fi, WirelessHart, Cellular, Mobile, ISA100, FHSS, Dual-RF Technology"
+,,Communication,"EDDL, FDT, OPC, HART, Serial, Drivers, SNMP"
+
+,Safety
+,,Process Safety,"Safety Instrumented Systems, Safety Controllers",Automation Strategies // Safety 
+,,Machine Safety,"ISO13849, ANSI/PMMI B155.1"
+,,Safety Networks
+,,Functional Safety,IEC 61508
+,,Standards,openSAFETY
+,,Physical Safety,Real-Time Location Systems
+,Security,,,Automation Strategies // Security 
+,,Cyber-Security 
+,,Physical Security,IP Surveillance
+,,Network Security,Whitelisting
+,,Content Security
+,,Malware
+,,Firewalls
+,,Security Devices
+,,Database
+,,Standards
+
+,Energy Management,,,Automation Strategies // Energy Management
+,,Smart Grid
+,,Software
+,,Motors,,Product Strategies // Motors
+,,Drives
+,,Transducers
+,,Variable Frequency Drives
+,,Premium Efficiency Motors
+,,Lighting
+,,Co-Generation Boiler Management
+,,UPS
+,,Machines
+,,Power Supplies,Power Source Regeneration,Product Strategies // Power Supplies
+
+,Automation Team
+,,Leadership
+,,Industry Trends
+,,Manufacturing
+,,Project Management,"Engineering Procurement and Construction (EPCs), Main Automation Contractors (MACs), Services, Finance"
+,,Mergers & Acquisitions
+,,Conference Coverage
+Industry Type (multi-select)
+,Batch Automation
+,Discrete Automation
+,Process Automation
+
+
+Industries,Food and Beverage,,,Industries // Food/Beverage
+,Chemical,,,Industries // Chemical
+,Packaging,,,Industries // Packaging
+,OEM,,,Industries // Machinery
+,Pharmaceutical,,,Industries // Pharmaceutical
+,Medical
+,Oil and Gas,,,Industries // Petroleum
+,Fabricated Metals,,,Industries // Fabricated Metals
+,Print,,,Industries // Pulp & Paper
+,Automotive,,,Industries // Automotive
+,Construction
+,Agriculture
+,Mining 
+,Instrumentation Products,,,Product Strategies // Instrumentation
+,Control Products
+,Measurement Products
+,Electronics
+,Plastic and Rubber Products,,,Industries // Plastics & Rubber
+,Computers,,,Industries // Computers & Electronics
+,Semiconductors,,,Industries // Semiconductor
+,Aerospace,,,Industries // Aerospace
+,Steel
+,Communication Devices and Equipment
+,Water and Wastewater
+,System Integration
+,Power,,,Industries // Utilities 
+,Alternative Energy 
+
+
+
+
+
+Source type (Single-select)
+,Original content
+,Custom content
+,Supplier submitted
+,Lead gen campaign
+
+Coverage Type,opc
+,mfg_intelligence
+,industrial_networking
+,opsmanage,2010
+,emerson_exchange,2008
+,siemens_tia
+,machines_italia
+,profinet_news
+
+Column Type ,Feed Forward
+,Integrator View
+,Enterprise View
+,Economics View
+,Pinto's Prose
+,Industry View
+,Economy View
+,IT View
+,Finance View
+,The Setpoint

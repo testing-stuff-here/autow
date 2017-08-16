@@ -1,0 +1,32 @@
+; $Id: droptor.info,v 1.2.2.4 2011/01/02 23:16:51 urbanjustin Exp $
+name = "Droptor.com"
+description = Plug-in for Droptor.com, Drupal site organization, monitoring, management and best practices
+core = 7.x
+package = Security
+dependencies[] = update
+configure = admin/config/system/droptor
+
+files[] = droptor.module
+files[] = droptor_feed.inc
+files[] = droptor_form.inc
+
+; Information added by drupal.org packaging script on 2010-08-03
+version = "7.x-1.0-beta1"
+core = "7.x"
+project = "droptor"
+datestamp = "1280846773"
+
+
+; Information added by drupal.org packaging script on 2011-01-02
+version = "7.x-2.2"
+core = "7.x"
+project = "droptor"
+datestamp = "1293986469"
+
+
+; Information added by drupal.org packaging script on 2011-01-04
+version = "7.x-2.71"
+core = "7.x"
+project = "droptor"
+datestamp = "1294182966"
+

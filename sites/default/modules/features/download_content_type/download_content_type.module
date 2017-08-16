@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Download Content Type feature.
+ */
+
+include_once('download_content_type.features.inc');

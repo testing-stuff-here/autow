@@ -1,0 +1,4 @@
+name = SMG Canonical
+description = Overwrite the default canonical value
+core = 7.x
+package = Meta tags

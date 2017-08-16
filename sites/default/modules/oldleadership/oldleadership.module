@@ -1,0 +1,445 @@
+<?php
+/**
+ * @author Albert Jankowski <ajankowski@summitmediagroup.com>
+ *
+ * Creates Leadership in Automation Voting Block
+ *  - Since LIA is currently on a D6 instance, this is a quick way for
+ *    displaying a block with a voting link.  Dave says that the companies hardly
+ *    ever change and it would be better just to hard code the companies.
+ *
+ *  - Next year just all you need to do is update the get company name quries for the
+ *    the latest year companies.
+ *
+ *  @TODO If companies are going to change a lot just have it connect to the database
+ */
+module_load_include('inc', 'oldleadership', 'oldleadership.constants');
+
+/**
+ * Implements hook_block_info().
+ */
+function oldleadership_block_info() {
+  $blocks['oldleadership_votingblock'] = array(
+    'info' => t('Old Leadership In Automation'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function oldleadership_block_view($delta = '') {
+  $block = array();
+  $companies = oldleadership_companies();
+  if($companies) {
+    switch($delta) {
+      case 'oldleadership_votingblock':
+        $block = array(
+          'subject' => t('Leadership In<br /><span class="bottom">Automation</span>'),
+          'content' => theme('oldleadership_votingblock', array(
+            'company_info' => $companies,
+            'delta' => $delta,
+            )
+          )
+        );
+      break;
+    }
+  }
+
+  return $block;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function oldleadership_theme() {
+  return array(
+    'oldleadership_votingblock' =>  array(
+      'template' => 'oldleadership-votingblock',
+      'variables' => array('company_info' => NULL, 'delta' => NULL),
+    ),
+  );
+}
+
+/**
+ * Preprocess leadership voting block
+ */
+function template_preprocess_oldleadership_votingblock(&$variables) {
+  drupal_add_js(drupal_get_path('module', 'oldleadership') . '/js/ticker.js', array('scope' => 'footer'));
+  drupal_add_css(drupal_get_path('module', 'oldleadership') . '/css/oldleadership.css');
+
+  $variables['category'] = $variables['company_info']['category'];
+  $variables['survey_link'] = $variables['company_info']['link'];
+
+  $i = 1;
+  $output = '';
+  foreach($variables['company_info']['companies'] as $company) {
+    $output .= '<li class="company-name center row-' . $i . '">' . $company . '</li>';
+    $i++;
+  }
+  $output = '<ul id="oldleadership-companies">' . $output . '</ul>';
+
+  $variables['companies'] = $output;
+  unset($variables['company_info']);
+}
+
+/**
+ * Get company name and info
+ */
+function oldleadership_companies() {
+  $node = menu_get_object();
+  $company_info = FALSE;
+  if($node) {
+    if(isset($node->field_allterms['und'][0])) {
+      foreach($node->field_allterms['und'] as $term) {
+        $tids[] = $term['tid'];
+      }
+      $company_info = oldleadership_get_node_companies($tids);
+    }
+
+    // #2327 Remove from Machine Safety from SICK pages
+    if(isset($node->field_term_coverage_type['und'])){
+      foreach($node->field_term_coverage_type['und'] as $c_type){
+        if($c_type['tid'] == '2652')
+          $company_info = FALSE;
+      }
+    }
+  }
+  else{
+    $args = arg();
+    // Check by taxonomy path
+    if($args[0] == 'taxonomy') {
+      if(isset($args[2])) {
+        $company_info = oldleadership_get_node_companies(array($args[2]));
+      }
+    }
+    else {
+      // Set Leadership block based on the path
+      $map = FALSE;
+      // by full path
+      switch(request_uri()) {
+        case '/': // home page
+        case 'home':
+        case '/topics/alarm-management':
+        case '/topics/safety':
+        case '/topics/training':
+        case '/products/sensors':
+        case '/engineering/motors-drives':
+        case '/engineering/sensors':
+        case '/engineering/system-integration':
+        case '/asset-management':
+        case '/operations/condition-monitoring':
+        case '/operations/lean-manufacturing':
+        case '/operations/production-management':
+        case '/operations/training':
+        case '/operations/workforce':
+          // Random
+          $category = array_rand(array('process_and_batch' => TRUE,'discrete' => TRUE, 'information' => TRUE));
+          break;
+        case '/factory-automation/aerospace':
+        case '/factory-automation/automotive':
+        case '/factory-automation/fabricated-metals':
+        case '/factory-automation/packaging':
+        case '/factory-automation/oem':
+        case '/products/drives-motors':
+        case '/products/hmi':
+        case '/engineering/discrete-control':
+        case '/engineering/design':
+          $category = 'discrete';
+          break;
+        case '/process-automation/chemical':
+        case '/process-automation/food-beverage':
+        case '/process-automation/oil-gas':
+        case '/process-automation/life-sciences':
+        case '/process-automation/power-generation':
+        case '//process-automation/pulp-paper':
+        case '//process-automation/water-wastewater':
+        case '/topics/alternative-energy':
+        case '/products/control':
+        case '/products/power-management':
+        case '/engineering/batch-control':
+        case '/engineering/process-control':
+        case '/engineering/valves':
+          $category = 'process_and_batch';
+          break;
+        case '/it/communication':
+        case '/it/ethernet':
+        case '/it/databases':
+        case '/it/fieldbuses':
+        case '/it/networking':
+        case '/it/mes':
+        case '/topics/security':
+        case '/products/networking':
+        case '/operations/supply-chain':
+          $category = 'information';
+          break;
+      }
+    }
+    if(isset($category)) {
+      $company_info = oldleadership_get_category_info($category);
+    }
+  }
+
+  return $company_info;
+}
+
+/**
+ * Get companies when in a node
+ */
+function oldleadership_get_node_companies($tids) {
+  $mapping = FALSE;
+  $map['process_and_batch'] = oldleadership_term_map($tids, unserialize(LEADERSHIP_PROCESS_AND_BATCH_TIDS));
+  $map['discrete'] = oldleadership_term_map($tids, unserialize(LEADERSHIP_DISCRETE_TIDS));
+  $map['information'] = oldleadership_term_map($tids, unserialize(LEADERSHIP_INFORMATION_TIDS));
+
+  // Remove all the ones that are set to False
+  foreach($map as $key => $value) {
+    if($value === FALSE) {
+      unset($map[$key]);
+    }
+  }
+
+  if($map) {
+    $random = array_rand($map);
+    $mapping = oldleadership_get_category_info($random);
+  }
+
+  return $mapping;
+}
+
+/**
+ * Get the company name, link, and category name based on category defined
+ *
+ * @param $category_name
+ *  name of category
+ *
+ * @return
+ *  a company info array
+ */
+function oldleadership_get_category_info($category_name) {
+  switch($category_name) {
+    case 'process_and_batch':
+      $mapping['companies'] = get_process_control_company_names();
+      $mapping['link'] = 'https://www.surveymonkey.com/s/ZLYC5FD';
+      $mapping['category'] = 'Process and Batch Control Strategies';
+      break;
+    case 'discrete':
+      $mapping['companies'] = get_discrete_company_names();
+      $mapping['link'] = 'https://www.surveymonkey.com/s/ZLYC5FD';
+      $mapping['category'] = 'Discrete/Machine Control Strategies';
+      break;
+    case 'information':
+      $mapping['companies'] = get_information_company_names();
+      $mapping['link'] = 'https://www.surveymonkey.com/s/ZLYC5FD';
+      $mapping['category'] = 'Information Management';
+      break;
+  }
+
+  return $mapping;
+}
+
+/**
+ * Map the terms in a node to the leadership main tersm
+ *
+ * @param $terms
+ *  array of terms in a node
+ * @param $mapped_terms
+ *  array of terms that will set the mapping to TRUE
+ *
+ * @return $map
+ *  Boolean stating if a mapping is true or false
+ */
+function oldleadership_term_map($terms, $mapped_terms) {
+  $map = FALSE;
+  foreach($terms as $term) {
+    if(in_array($term, $mapped_terms)) {
+      $map = TRUE;
+    }
+  }
+  return $map;
+}
+
+/**
+ * Get Process and Batch  Control Company names
+ *
+ *  Run this query to get companies. You will need to change t2.tid = 53 in the future
+ *   SELECT DISTINCT n.title
+ *   FROM `term_node` t
+ *   LEFT JOIN `node` n ON n.nid = t.nid AND n.vid = t.vid
+ *   LEFT JOIN `term_node` t2 on n.nid = t2.nid
+ *   WHERE n.type = 'leadership_profile'
+ *   AND t.tid = 2
+ *   AND t2.tid = 53
+ *   AND n.status = 1
+ */
+function get_process_control_company_names() {
+  return array(
+    "Allied Electronics",
+    "American Industrial Systems",
+    "Antaira Technologies",
+    "ASCO Numatics",
+    "Automation Control Products",
+    "AutomationDirect",
+    "B&R Industrial Automation Corp.",
+    "Banner Engineering",
+    "Beamex, Inc.",
+    "Beckhoff Automation",
+    "Belden Inc.",
+    "CC-Link Partner Association - Americas",
+    "Emerson Process Management",
+    "Endress+Hauser, Inc.",
+    "EPLAN Software & Services",
+    "ExperTune, A Metso Company",
+    "Graybar",
+    "Helukabel USA",
+    "Hilscher North America",
+    "Honeywell",
+    "Husky Rack and Wire",
+    "IDEC Corporation",
+    "Kepware Technologies",
+    "Lenze Americas",
+    "Maple Systems",
+    "METZ CONNECT USA Inc.",
+    "Mitsubishi Electric Automation",
+    "Moxa Americas, Inc.",
+    "MYNAH Technologies",
+    "National Instruments, Inc.",
+    "Omega Engineering",
+    "Opto 22",
+    "Parker Hannifin Corporation",
+    "PI North America",
+    "Pro-Face America",
+    "ProAdjust",
+    "ProComSol",
+    "ProSoft Technology",
+    "Red Lion Controls",
+    "Rockwell Automation®",
+    "Siemens Industry, Inc.",
+    "Traco Power",
+    "Tri-Tronics",
+    "Turck, Inc.",
+    "Unitronics, Inc.",
+    "Wago Corporation",
+    "Winsted",
+  );
+}
+
+/**
+ * Get Discrete/Machine Control Strategies
+ *
+ *  Run this query to get companies. You will need to change t2.tid = 53 in the future
+ *   SELECT DISTINCT n.title
+ *   FROM `term_node` t
+ *   LEFT JOIN `node` n ON n.nid = t.nid AND n.vid = t.vid
+ *   LEFT JOIN `term_node` t2 on n.nid = t2.nid
+ *   LEFT JOIN `term_hierarchy` th on t.tid = th.tid
+ *   WHERE n.type = 'leadership_profile'
+ *   AND th.parent = 3
+ *   AND t2.tid = 53
+ *   AND n.status = 1
+ */
+function get_discrete_company_names() {
+  return array(
+    "Allied Electronics",
+    "American Industrial Systems",
+    "Antaira Technologies",
+    "ASCO Numatics",
+    "Automation Control Products",
+    "AutomationDirect",
+    "B&R Industrial Automation Corp.",
+    "Baldor Electric Company",
+    "Balluff",
+    "Banner Engineering",
+    "Beckhoff Automation",
+    "Belden Inc.",
+    "CC-Link Partner Association - Americas",
+    "Cognex",
+    "Emerson Process Management",
+    "ExperTune, A Metso Company",
+    "Festo Corporation",
+    "Graybar",
+    "Helukabel USA",
+    "Hilscher North America",
+    "Honeywell",
+    "Husky Rack and Wire",
+    "IDEC Corporation",
+    "Kepware Technologies",
+    "Lenze Americas",
+    "Maple Systems",
+    "METZ CONNECT USA Inc.",
+    "Mitsubishi Electric Automation",
+    "Moxa Americas, Inc.",
+    "National Instruments, Inc.",
+    "Omega Engineering",
+    "Opto 22",
+    "Parker Hannifin Corporation",
+    "PI North America",
+    "Pro-Face America",
+    "ProAdjust",
+    "ProSoft Technology",
+    "Red Lion Controls",
+    "Rockwell Automation®",
+    "SEW-EURODRIVE, Inc.",
+    "Siemens Industry, Inc.",
+    "Traco Power",
+    "Tri-Tronics",
+    "Turck, Inc.",
+    "Unitronics, Inc.",
+    "Wago Corporation",
+    "Yaskawa America, Inc.",
+  );
+}
+
+/**
+ * Get Information Management Companies
+ *
+ *  Run this query to get companies. You will need to change t2.tid = 53 in the future
+ *   SELECT DISTINCT n.title
+ *   FROM `term_node` t
+ *   LEFT JOIN `node` n ON n.nid = t.nid AND n.vid = t.vid
+ *   LEFT JOIN `term_node` t2 on n.nid = t2.nid
+ *   WHERE n.type = 'leadership_profile'
+ *   AND t.tid = 6
+ *   AND t2.tid = 53
+ *   AND n.status = 1
+ */
+function get_information_company_names() {
+  return array(
+    "Allied Electronics",
+    "American Industrial Systems",
+    "Antaira Technologies",
+    "Automation Control Products",
+    "AutomationDirect",
+    "B&R Industrial Automation Corp.",
+    "Beckhoff Automation",
+    "Belden Inc.",
+    "CC-Link Partner Association - Americas",
+    "Emerson Process Management",
+    "Endress+Hauser, Inc.",
+    "ExperTune, A Metso Company",
+    "Graybar",
+    "Helukabel USA",
+    "Hilscher North America",
+    "Honeywell",
+    "Husky Rack and Wire",
+    "Kepware Technologies",
+    "METZ CONNECT USA Inc.",
+    "Mitsubishi Electric Automation",
+    "Moxa Americas, Inc.",
+    "MYNAH Technologies",
+    "Omega Engineering",
+    "Opto 22",
+    "Parker Hannifin Corporation",
+    "PI North America",
+    "ProAdjust",
+    "ProSoft Technology",
+    "Red Lion Controls",
+    "Rockwell Automation®",
+    "Siemens Industry, Inc.",
+    "Traco Power",
+    "Turck, Inc.",
+    "Unitronics, Inc",
+    "Wago Corporation",
+    "Winsted",
+  );
+}

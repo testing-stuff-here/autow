@@ -1,0 +1,5 @@
+name = SMG Node update
+description = Custom drush command for updating nodes.
+package = Custom
+core = 7.x
+version = 7.x-1.x

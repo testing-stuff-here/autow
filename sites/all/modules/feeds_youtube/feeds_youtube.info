@@ -1,0 +1,10 @@
+; Basic information
+name = Feeds: YouTube
+description = Adds a YouTube feed processor to the Feeds module.
+core = 7.x
+package = Feeds
+dependencies[] = "feeds"
+dependencies[] = "libraries"
+
+; Files
+files[] = plugins/FeedsYoutubeParser.inc

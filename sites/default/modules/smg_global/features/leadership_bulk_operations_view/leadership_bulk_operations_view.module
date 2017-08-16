@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Leadership Bulk Operations View feature.
+ */
+
+include_once 'leadership_bulk_operations_view.features.inc';

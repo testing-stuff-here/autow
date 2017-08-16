@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Aquafadas Image Style Max Width 280 feature.
+ */
+
+include_once 'aquafadas_image_style_max_width_280.features.inc';

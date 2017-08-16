@@ -1,0 +1,6 @@
+name = Feeds: Waywire
+description = Adds a Waywire Fetcher and Processor
+core = 7.x
+dependencies[] = "feeds"
+dependencies[] = "feeds_httpfetcher_append_headers"
+package = Feeds

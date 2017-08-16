@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Webinar Series Content Type feature.
+ */
+
+include_once 'webinar_series_content_type.features.inc';

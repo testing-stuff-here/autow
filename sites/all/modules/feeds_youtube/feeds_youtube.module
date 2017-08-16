@@ -1,0 +1,165 @@
+<?php 
+
+/**
+ * @file
+ * Adds a YouTube feed processor to the Feeds module.
+ * 
+ * @see http://drupal.org/node/622696
+ */
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function feeds_youtube_ctools_plugin_api($owner, $api) {
+  if ($owner == 'feeds' && $api == 'plugins') {
+    return array('version' => 1);
+  }
+}
+
+/**
+ * Implements hook_feeds_plugins().
+ */
+function feeds_youtube_feeds_plugins() {
+  $info = array();
+  $info['FeedsYoutubeParser'] = array(
+    'name' => 'YouTube parser',
+    'description' => 'Parse YouTube feeds.',
+    'help' => 'Youtube API v3 wrapper to parse YouTube API response videos as Feeds',
+    'handler' => array(
+      'parent' => 'FeedsParser',
+      'class' => 'FeedsYoutubeParser',
+      'file' => 'FeedsYoutubeParser.inc',
+      'path' => drupal_get_path('module', 'feeds_youtube'),
+    ),
+  );
+  return $info;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function feeds_youtube_menu() {
+  $items = array();
+  $items['admin/structure/feeds/default'] = array(
+    'title' => 'Feeds importers',
+    'description' => 'Configure one or more Feeds importers to aggregate RSS and Atom feeds, import CSV files or more.',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 1,
+  );
+  $items['admin/structure/feeds/google-api-oauth'] = array(
+    'title' => 'Google API Access',
+    'description' => 'Google API Access configuration page',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('feeds_youtube_settings_from'),
+    'access arguments' => array('feeds_access'),
+    'file' => 'includes/admin.inc',
+    'weight' => 2,
+  );
+  $items['admin/structure/feeds/google-api-authentication'] = array(
+    'title' => 'Authenticate Google API Account',
+    'description' => 'Google API Access configuration page',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'feeds_youtube_authenticate',
+    'access arguments' => array('feeds_access'),
+    'file' => 'includes/admin.inc',
+    'weight' => 3,
+  );
+  $items['admin/structure/feeds/revoke-google-api-authentication'] = array(
+    'title' => 'Revoke Authenticate Google API Account',
+    'description' => 'Revoke Google API Access',
+    'type' => MENU_CALLBACK,
+    'page callback' => 'feeds_youtube_revoke_authentication',    
+    'access arguments' => array('feeds_access'),
+    'file' => 'includes/admin.inc',
+    'weight' => 3,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function feeds_youtube_menu_alter(&$items) {
+  $items['admin/structure/feeds']['type'] = MENU_NORMAL_ITEM;
+  $items['admin/structure/feeds']['weight'] = 1;
+}
+
+/**
+ * Implements hook_libraries_info().
+ */
+function feeds_youtube_libraries_info() {
+  $libraries['google-api-php-client'] = array(
+    'name' => 'Google API',
+    'vendor url' => 'http://developers.google.com',
+    'download url' => 'https://github.com/google/google-api-php-client',
+    'version' => '1.1.3',
+    'files' => array(
+      'php' => array(
+        'src/Google/autoload.php',
+      ),
+    ),
+    'versions' => array(
+      '1.1.3' => array(
+        'files' => array(
+          'php' => array(
+            'src/Google/autoload.php',
+          ),
+        ),
+      ),
+    ),
+    'version arguments' => array(
+      'file' => 'src/Google/Client.php',
+      'pattern' => '@LIBVER\s+([0-9\.]+)@',
+      'lines' => 29,
+      'cols' => 9,
+    ),
+  );
+  return $libraries;
+}
+
+/**
+ * Uility function to create Google Youtube API client.
+ * 
+ * @return Google_Client Google Youtube API client
+ */
+function feeds_youtube_googleapi_youtube_client_factory() {
+  $libraries = libraries_load('google-api-php-client');
+  if (!$libraries['loaded']) {
+    drupal_set_message(t('Google API library is not installed. Please refer to README.txt for more information about the installation'), 'error');
+    drupal_goto('admin/structure/feeds/google-api-oauth');
+  }
+
+  $feeds_youtube_api_settings = variable_get('feeds_youtube_api_settings', array());
+  $oauth2_client_id = variable_get('google_oauth_client_id', '');
+  $oauth2_client_secret = variable_get('google_oauth_client_secret', '');
+  $developer_key = variable_get('google_oauth_api_key', '');
+
+  if (!empty($oauth2_client_id) &&
+    !empty($oauth2_client_secret) &&
+    !empty($developer_key)) {
+    $client = new Google_Client();
+    $client->setClientId($oauth2_client_id);
+    $client->setClientSecret($oauth2_client_secret);
+    $client->setApprovalPrompt('force');
+    $client->setAccessType('offline');
+    $client->setDeveloperKey($developer_key);
+    $client->setScopes('https://www.googleapis.com/auth/youtube');
+    $redirect = filter_var(url(current_path(), array('absolute' => TRUE)), FILTER_SANITIZE_URL);
+    $client->setRedirectUri($redirect);
+
+    if (!empty($feeds_youtube_api_settings['token'])) {
+      $client->setAccessToken($feeds_youtube_api_settings['token']);
+      if ($client->isAccessTokenExpired()) {
+        $client->refreshToken($client->getRefreshToken());
+        $feeds_youtube_api_settings['token'] = $client->getAccessToken();
+        variable_get('feeds_youtube_api_settings', $feeds_youtube_api_settings);
+      }
+    }
+    return $client;
+  }
+  else {
+    drupal_set_message(t('Google APIs access is not configured.'), 'error');
+    drupal_goto('admin/structure/feeds/google-api-oauth');
+  }
+}

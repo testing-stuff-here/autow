@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Simple Lead Gen Form feature.
+ */
+
+include_once('simple_lead_gen_form.features.inc');

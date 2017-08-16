@@ -1,0 +1,10 @@
+<?php
+/**
+ * Implements hook_schema().
+ */
+function viddler_sitemap_schema() {
+  // Creating own cache table because I don't want the cache to be cleared
+  // everytime you git flush cache, etc...
+  $schema['cache_viddler_sitemap'] = drupal_get_schema_unprocessed('system', 'cache');
+  return $schema;
+}

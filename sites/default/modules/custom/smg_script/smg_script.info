@@ -1,0 +1,4 @@
+name = SMG Script
+description = Drush scripting
+package = SMG
+core = 7.x

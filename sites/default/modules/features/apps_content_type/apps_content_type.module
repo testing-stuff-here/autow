@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Apps Content Type feature.
+ */
+
+include_once('apps_content_type.features.inc');

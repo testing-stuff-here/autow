@@ -1,0 +1,65 @@
+<?php
+// $Id$
+/**
+* Views page alters
+*
+*/
+
+function company_profile_view_alteration_page_alter(&$page){
+  $args = arg();
+  if (($args[0] == 'company')&&(!is_numeric($args[1]))&&(count($args)==3)){
+    //drupal_set_message('<pre>'.print_r($args,true).'</pre>');
+    $path =  'company/'.arg(1);
+
+    $drupal_path = explode("/",drupal_lookup_path('source', $path));
+
+    if(!$drupal_path[0]) {
+      $drupal_path = explode("/",drupal_lookup_path('source', arg(1)));
+    }
+
+    switch ($args[2]){
+      case 'videos':
+          $output =  views_embed_view('company', 'page_4',$drupal_path[1]);
+          $node = node_load($drupal_path[1]);
+          drupal_set_title('Videos from '.$node->title);
+          //$title = '<h1 class="title">Videos <span>from ' . $node->title . '</span></h1>';
+          $title = '';
+          if($output){
+            $page['content']['system_main']['main']['#markup'] = $title . $output;
+          }
+          break;
+
+      case 'featured':
+          $output =  views_embed_view('company', 'page_1',$drupal_path[1]);
+          $node = node_load($drupal_path[1]);
+          drupal_set_title('Feature Stories involving '.$node->title);
+          //$title = '<h1 class="title">Feature Stories <span>involving ' . $node->title . '</span></h1>';
+          $title = '';
+          if($output){
+            $page['content']['system_main']['main']['#markup'] = $title . $output;
+          }
+          break;
+
+      case 'products':
+          $output =  views_embed_view('company', 'page_2',$drupal_path[1]);
+          $node = node_load($drupal_path[1]);
+          drupal_set_title('Products involving '.$node->title);
+          //$title = '<h1 class="title">Products <span>from ' . $node->title . '</span></h1>';
+          $title = '';
+          if($output){
+            $page['content']['system_main']['main']['#markup'] = $title . $output;
+          }
+           break;
+      case 'news':
+          $output =  views_embed_view('company', 'page_3',$drupal_path[1]);
+          $node = node_load($drupal_path[1]);
+          drupal_set_title('News involving '.$node->title);
+         // $title = '<h1 class="title">News <span>from ' . $node->title . '</span></h1>';
+          $title = '';
+          if($output){
+             $page['content']['system_main']['main']['#markup'] = $title . $output;
+          }
+          break;
+    }
+  }
+}

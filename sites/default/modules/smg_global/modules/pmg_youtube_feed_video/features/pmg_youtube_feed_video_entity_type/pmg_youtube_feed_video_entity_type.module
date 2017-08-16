@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the PMG YouTube Feed Video Entity Type feature.
+ */
+
+include_once 'pmg_youtube_feed_video_entity_type.features.inc';

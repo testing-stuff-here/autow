@@ -1,0 +1,16 @@
+#nav #menubar-main-menu>ul.menu>li.last>a { background: url(images/nav_aw2.png) 2px 0 no-repeat; padding: 0 25px 0 40px;} 
+#nav #menubar-main-menu>ul.menu>li.last:hover,
+#nav #menubar-main-menu>ul.menu>li.last.active-trail {} 
+#nav #menubar-main-menu>ul.menu>li.last:hover>a,
+#nav #menubar-main-menu>ul.menu>li.last.active-trail>a { background-position: 2px -43px; } 
+/*.page-node .submitted{color:#000;top:-3px;position:relative;}*/
+#content .block-follow-us-inside { margin-top: 20px; position: relative; border: 1px solid #ccc; height:135px; }
+/*.page-node .separator{color:#0A87B4;margin: 0 5px;top:-3px;position:relative;}*/
+#footer #block-menu-menu-footer-link-3 .content ul li { padding-left: 5px; }
+#block-quicktabs-resources .view-footer a{ background: url("images/more.png") no-repeat scroll right center transparent;  color: #666666;font-family: 'FamiliarProBold',Arial,Helvetica,sans-serif;font-size: 1em;height: 1.2em; margin-top: 0; padding-right: 20px;}
+.node .fied-slideshow  #actions{float: left;margin-left: 219px;}
+
+
+
+.page-node .sharethis-wrapper .st_twitter_hcount{margin-left:-18px;display: inline;top:3px;position:relative;}
+.sharethis-wrapper .linkedin{display: inline;height: 14px; width: 50px;margin-left: 15px;border: 1px solid #CCCCCC;position:relative;top:1px;}

@@ -1,0 +1,5 @@
+name = SMG Related
+description = Get's all the related nodes
+core = 7.x
+package = SMG Related
+configure = admin/config/content/smgRelated

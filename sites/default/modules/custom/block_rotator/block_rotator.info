@@ -1,0 +1,6 @@
+name = Block Rotator
+description = Module to make blocks appear a certain percentage of the time.
+package = SMG
+core = 7.x
+configure = admin/config/block-rotator
+dependencies[] = block

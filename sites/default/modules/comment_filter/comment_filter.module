@@ -1,0 +1,9 @@
+<?php
+
+/**
+ * implements hook_comment_insert
+ */
+function comment_filter_comment_insert($comment) {
+  if ($comment->homepage)
+    comment_delete($comment->cid);
+}

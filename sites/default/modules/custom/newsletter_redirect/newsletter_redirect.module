@@ -1,0 +1,53 @@
+<?php
+/**
+ * @file
+ * Main file for the Newsletter Redirect Module. Module requires the newsletter block
+ *
+ * Start off your form with:
+ * <form action="/newsletter_redirect/" method="get" name="newsletter form">
+ */
+
+
+/**
+ * Implements hook_menu()
+ */
+function newsletter_redirect_menu() {
+
+  $items['newsletter_redirect'] = array(
+    'title' => 'Newsletter Redirect',
+    'page callback' => 'newsletter_redirect_handler',
+    'type' => MENU_CALLBACK,
+    'access callback' => TRUE,
+  );
+
+  return $items;
+}
+
+/**
+ * Handler for redirecting to Omeda Newsletter Sign Up
+ */
+function newsletter_redirect_handler() {
+
+	global $base_root;
+	$reqURL = $base_root . '/subconfirmation/?t=newsletter';
+
+	$redirectURL = "http://www.omeda.com/cgi-win/awreg.cgi?function=check&source=newsletter";
+
+	// Take the GET-ed form data & turn it into something that Omeda can handle.
+	$keys       = array_keys($_GET);
+    $values     = array_values($_GET);
+    $numofkeys  = count($keys);
+    for ($i = 0; $i < $numofkeys; $i++) {
+      if ((strpos($keys[$i], 'nl') == 0) && ($values[$i] == 'yes')) {
+        $redirectURL  .= '&' . $keys[$i] . '=' . $values[$i];
+      }
+    }
+
+  // NOTE: The user will be sent to Omeda even if they have not selected any
+  //       newsletters
+
+  // Send the user to Omeda for the actual newsletter(s) signup with a request
+  // for the user's return at the completion of that transaction.
+  $redirectURL .= '&reqURL=' . urlencode($reqURL);
+  drupal_goto($redirectURL);
+}

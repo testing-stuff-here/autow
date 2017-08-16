@@ -1,0 +1,25 @@
+{
+    "name": "summitmedia/smg_global",
+    "description": "Any functionality or modifications that can be shared across sites.",
+    "type": "drupal-module",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "repositories": {
+        "drupal": {
+            "type": "composer",
+            "url": "https://packages.drupal.org/7"
+        }
+    },
+    "require": {
+        "drupal/content_complete": "^1.4-beta2",
+        "drupal/ctools": "^1.6",
+        "drupal/entity": "^1.2",
+        "drupal/feeds": "^2.0-alpha8",
+        "drupal/feeds_youtube": "dev-3.x#305f0229292b3e6e4cac49109fcdc5760179d832",
+        "drupal/services": "^3.0",
+        "drupal/system_stream_wrapper": "^1.0-rc1",
+        "drupal/views": "^3.7",
+        "drupal/webform": "^3.21"
+    }
+}
+

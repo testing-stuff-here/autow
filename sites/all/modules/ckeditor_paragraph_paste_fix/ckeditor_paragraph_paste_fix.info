@@ -1,0 +1,4 @@
+name = CKEditor Paragraph Paste Fix
+description = Remove &lt;p&gt;&amp;nbsp;&lt;/p&gt; when pasting.
+core = 7.x
+dependencies[] = ckeditor

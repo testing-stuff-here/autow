@@ -1,0 +1,6 @@
+name = Viddler Sitemap
+description = Generates a Video Sitemap
+core = 7.x
+package = Viddler
+files[] = library/video-sitemap.php
+files[] = ../../library/phpviddler.php

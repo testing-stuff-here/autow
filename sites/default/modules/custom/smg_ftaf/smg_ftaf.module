@@ -1,0 +1,740 @@
+<?php
+
+/**
+ *@author Yevgeny Ananin <euug0701@gmail.com>
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function smg_ftaf_menu(){
+  $items = array();
+
+  // Create settings form for SMG FTAF
+  // Generate page and form for article referrer
+  $items['admin/config/content/ftaf'] = array(
+    'title' => 'FTAF Config',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('smg_ftaf_admin_settings_form'),
+    'access arguments' => array('administer ftaf'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'smg_ftaf.admin.inc',
+  );
+  $items['ftaf/%node'] = array(
+    'description' => t('Share an Article With Your Friend'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('smg_ftaf_form', 1),
+    'access arguments' => array('access content'),
+  );
+
+  return $items;
+}
+
+/**
+ * Implement hook_permission()
+ */
+function smg_ftaf_permission(){
+  return array(
+    'administer ftaf' => array(
+      'title' => 'Administer Share-This-URL settings'
+    ),
+  );
+}
+
+function smg_ftaf_form($form, &$form_state, $node) {
+
+  global $base_url;
+
+  // Add this module's css file
+  drupal_add_css(drupal_get_path('module', 'smg_ftaf') . '/css/smg_ftaf.css', array('group' => CSS_DEFAULT, 'type' => 'file', 'every_page' => false));
+
+  // Add this module's js file
+  drupal_add_js(drupal_get_path('module', 'smg_ftaf') . '/js/smg_ftaf.js');
+
+  // Add a page title
+  drupal_set_title('Share This Article');
+
+  // Set logo location, depending on site
+  $site = variable_get('ftaf_site', 'pw');
+  switch($site){
+    case 'aw':
+      $image = '/images/aw.png';
+      $website = 'automationworld.com';
+      break;
+    case 'pw':
+      $image = '/images/pw.png';
+      $website = 'packworld.com';
+      break;
+    case 'hcp':
+      $image = '/images/hcp.png';
+      $website = 'healthcarepackaging.com';
+      break;
+  }
+
+  // get path of current module, add location of logo in the images directory
+  $logo_location = $base_url . '/' . drupal_get_path('module', 'smg_ftaf') . $image;
+
+  // get the values of title and deckhead from the node, for use below in the form
+  // check first if the node is a playbook, because the title and the "deckhead" are
+  // found in different fields
+  if($node->type == 'playbook') {
+    $node_title = $node->field_playbook_name['und'][0]['value'];
+    $node_title = str_replace('&', 'and', $node_title);
+    $node_deckhead = $node->field_top_copy['und'][0]['value'];
+  }else{
+    $node_title = $node->title;
+    $node_deckhead = $node->field_deckhead['und'][0]['value'];
+  }
+
+  // generate the url that is to be clicked by the referee
+  $referee_html_url = smg_ftaf_generate_html_url($node->nid);
+  $referee_url = smg_ftaf_generate_url($node->nid);
+
+  // fill this string value, for use in the form below, with the value
+  // of Article or Playbook
+  $shared_node_type = $node->type == 'playbook' ? 'Playbook' : 'Article';
+
+  /**
+   * Define a form.
+   */
+  // Defines the wrapper fieldset for the share this article form
+  $form['share_article'] = array(
+    '#type' => 'fieldset',
+  );
+  $form['share_article']['first_paragraph'] = array(
+    '#markup' => '
+        <div><div id="smg_ftaf-page-top"><img id="smg_ftaf-logo" src="' . $logo_location . '" /> <span id="smg_ftaf-page-top-text">Share this ' . $shared_node_type . '</span></div><br />
+        <div id="smg_ftaf-article">
+          <span id="smg_ftaf-headline">' . $node_title . '</span><br />
+          <span id="smg_ftaf-deckhead">' . $node_deckhead . '</span><br />
+          <span id="smg_ftaf-mail-link"><a id="smg_ftaf-mail-link-link" href="mailto:?subject=Article I am Sharing: ' . check_plain($node_title) . '&body=I am sharing this article from ' . $website . ' that I think you should see: %0D ' . $node_title . ': %0D' . $referee_html_url . '  %0D">Click here </a>to forward using your own email program (fastest)</span><br />
+          <span id="smg_ftaf-use-form">Or fill out the form</span>
+        </div>
+      </div>',
+  );
+  // add a fake field, which will be hidden with css.  if this value is non-empty upon form submission,
+  // then the submission is likely spam, and will be rejected during the validation process
+  $form['Site Name'] = array(
+    '#title' => t('Site Name'),
+    '#type' => 'textfield',
+  );
+  $form['share_article']['share_article_form'] = array(
+    '#type' => 'fieldset',
+    '#title' => '',
+  );
+  $form['share_article']['share_article_form']['form_directions'] = array(
+    '#markup' => '<div id="smg_ftaf-form-directions">
+        <span id="smg_ftaf-enter-to-from">Enter the TO and FROM email addresses.</span> <br> You may enter multiple email addresses under TO, comma separated.
+      </div>'
+  );
+  $form['share_article']['share_article_form']['send_to'] = array(
+    '#title' => t('To:'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+  );
+  $form['share_article']['share_article_form']['from'] = array(
+    '#title' => t('From:'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+  );
+  $form['share_article']['share_article_form']['receive_email'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Check here if you want to receive a copy'),
+  );
+  $form['share_article']['share_article_form']['message'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Add a Message:'),
+  );
+  $form['share_article']['share_article_form']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+  // store the referee url variable generated above as a hidden variable
+  $form['url'] = array(
+    '#type' => 'hidden',
+    '#value' => $referee_url,
+  );
+  // store the title of the article in a hidden variable
+  $form['article_title'] = array(
+    '#type' => 'hidden',
+    '#value' => $node_title,
+  );
+  // store the deckhead of the article in a hidden variable
+  $form['article_deckhead'] = array(
+    '#type' => 'hidden',
+    '#value' => $node_deckhead,
+  );
+
+  return $form;
+}
+
+/**
+ * Form validation logic for the Forward to a Friend form
+ */
+function smg_ftaf_form_validate($form, &$form_state) {
+  // explode the email field using a comma as a delimiter then test to make sure each value in the list is a valid email
+  $emails = explode(',', $form_state['values']['send_to']);
+  foreach($emails as $email) {
+    $email = trim($email);
+    if(!valid_email_address($email)) {
+      form_set_error('email', t($email . ' is not a valid e-mail address'));
+    }
+  }
+
+  // check the value of the Site Name field.  this field SHOULD BE EMPTY b/c it is hidden.  if it is non-empty, then the form
+  // was likely submitted by a spam-bot
+  if(strlen($form_state['values']['Site Name']) > 0) {
+    form_set_error('Site Name', t('Sorry you cannot submit the form, you might be a spam bot'));
+  }
+}
+
+/**
+ * Form submission logic for the Forward to a Friend form
+ */
+function smg_ftaf_form_submit($form, &$form_state) {
+  $message = $form_state['values']['message'];
+  $message = str_replace("\n", "<br />", $message);
+  $form_state['values']['message'] = $message;
+  smg_ftaf_mail_send($form_state['values']);
+}
+
+/**
+ * Sends an email
+ *
+ *@param $form_values
+ *  An array of values from the Forward to a Friend form that were submitted.
+ */
+function smg_ftaf_mail_send($form_values) {
+  // Must reference this module's implementation of hook_menu()
+  // as well as its defined template/key
+  $module = 'smg_ftaf';
+  $key = 'forward_to_friend';
+
+  // Specify 'to' and 'from' addresses, but add 'from' value to 'to' value
+  // if the 'receive_email' value is set to TRUE
+  $to = $form_values['send_to'];
+  $from = $form_values['from'];
+  if($form_values['receive_email']) $to .= ', ' . $from;
+
+  // pass the values entered into the form into $params variable
+  $params = $form_values;
+
+  // set the e-mail language to default language
+  $language = language_default();
+
+  // send the e-mail when drupal_mail() is called
+  $send = TRUE;
+
+  // Send the mail, check for success
+  $result = drupal_mail($module, $key, $to, $language, $params, $from, $send);
+  if($result['result'] == TRUE) {
+    drupal_set_message(t('Thank you!  Your message has been sent.'));
+  }
+  else {
+    drupal_set_message(t('There was a problem sending your message and it was not sent'), 'error');
+  }
+}
+
+/**
+ * Implements hook_mail.
+ */
+function smg_ftaf_mail($key, &$message, $params) {
+
+  // Specify the language to be used for the email
+  $options = array(
+    'langcode' => $message['language']->language,
+  );
+
+  switch($key) {
+    // sends a message from the Forward to a Friend form
+    case 'forward_to_friend':
+      $message['subject'] = t('@sender has shared: @head', array('@sender' => $params['from'], '@head' => $params['article_title']));
+      $html_encoded = check_plain($params['message']);
+      // convert html encoded br tags back to break tags
+      $html_encoded = str_replace('&lt;br /&gt;', '<br/>', $html_encoded);
+      $message['body'][] = $html_encoded;
+      $message['body'][] = '<a href="' . $params['url'] . '"><h3>' . $params['article_title'] . '</h3></a>';
+      $message['body'][] = $params['article_deckhead'];
+      $message['headers']['Reply-To'] = $params['from'];
+      break;
+  }
+}
+
+/**
+ * Generates a URL by adding the appropriate UTM values
+ * This URL will be used for the mailto link, it takes special
+ * consideration of the fact that you can't use ampersands in body
+ * of a mailto link
+ *
+ *@param $nid
+ *  The node id of the article
+ */
+function smg_ftaf_generate_html_url($nid) {
+  global $base_url;
+
+  // find the path alias of the given node
+  $path_alias = $base_url . '/' . drupal_get_path_alias('node/' . $nid);
+
+  $utm_campaign = 'FTAF';
+
+  // if either query parameter is set, add a question mark to the path
+  /*if(isset($_GET['rmedium']) || isset($_GET['rsource'])) {
+    $path_alias .= '?';
+  }*/
+
+  // The above code isn't necessary.  We should add the question mark either way.
+  $path_alias .= '?';
+
+  $path_alias .= 'utm_campaign=' . $utm_campaign;
+
+  // set the rmedium if it is in the URL
+  if(isset($_GET['rmedium']) && $_GET['rmedium']) {
+    $rmedium = $_GET['rmedium'];
+    if(strpos($rmedium, 'print') !== false){
+      $rmedium = 'print_referral';
+    }
+    $path_alias .= '&utm_medium=' . $rmedium;
+  }
+  // in case the editor accidentally used "medium" instead of "rmedium"
+  // set the rmedium if it is in the URL
+  if(isset($_GET['medium']) && $_GET['medium']) {
+    $rmedium = $_GET['medium'];
+    if(strpos($rmedium, 'print') !== false){
+      $rmedium = 'print_referral';
+    }
+    $path_alias .= '&utm_medium=' . $rmedium;
+  }
+  // set the rsource if it is in the URL
+  if(isset($_GET['rsource']) && $_GET['rsource']) {
+    $rsource = $_GET['rsource'];
+    $path_alias .= '&utm_source=' . $rsource;
+  }else{
+    if((isset($_GET['medium']) && $_GET['medium']) || (isset($_GET['rmedium']) && $_GET['rmedium'])){
+      $path_alias .= '&utm_source=nid' . $nid;
+    }
+  }
+
+  $site = variable_get('ftaf_site', 'pw');
+  switch($site){
+    case 'aw':
+      $url = 'http://awgo.to/api';
+      $api = 'pbvoNXgVFgSu';
+      break;
+    case 'pw':
+      $url = 'http://pwgo.to/api';
+      $api = 'EuFbOgFdGmAU';
+      break;
+    case 'hcp':
+      $url = 'http://hcpgo.to/api';
+      $api = 'LKQBkZWdRfca';
+      break;
+  }
+
+
+  $query = array(
+    'api' => $api,
+    'url' => $path_alias,
+  );
+
+  $query = http_build_query($query);
+  $url = "$url?$query";
+
+
+  $response = smg_ftaf_api_curl($url);
+  $json = json_decode($response);
+  $short = $json->short;
+  return $short;
+
+}
+
+/**
+ * Generates a URL by adding the appropriate UTM values
+ * This URL will be used for the form
+ *
+ *@param $nid
+ *  The node id of the article
+ */
+function smg_ftaf_generate_url($nid) {
+  global $base_url;
+
+  // find the path alias of the given node
+  $path_alias = $base_url . '/' . drupal_get_path_alias('node/' . $nid);
+
+  $utm_campaign = 'FTAF';
+
+  // if either query parameter is set, add a question mark to the path
+  /*if(isset($_GET['rmedium']) || isset($_GET['rsource'])) {
+    $path_alias .= '?';
+  }*/
+
+  // The above code isn't necessary.  We should add the question mark either way.
+  $path_alias .= '?';
+
+  $path_alias .= 'utm_campaign=' . $utm_campaign;
+
+  // Get the rmedium if it is in the URL.  Combine print-links and print-qr-codes
+  // into one category.
+  if(isset($_GET['rmedium']) && $_GET['rmedium']) {
+    $rmedium = $_GET['rmedium'];
+    if(strpos($rmedium, 'print') !== false){
+      $rmedium = 'print_referral';
+    }
+    $path_alias .= '&utm_medium=' . $rmedium;
+  }
+  // in case the editor accidentally used "medium" instead of "rmedium"
+  // set the rmedium if it is in the URL
+  if(isset($_GET['medium']) && $_GET['medium']) {
+    $rmedium = $_GET['medium'];
+    if(strpos($rmedium, 'print') !== false){
+      $rmedium = 'print_referral';
+    }
+    $path_alias .= '&utm_medium=' . $rmedium;
+  }
+
+  // set the rsource if it is in the URL.  Look to see if rmedium or medium
+  // are print, in which case we will set rsource to Article name
+  if(isset($_GET['rsource']) && $_GET['rsource']) {
+    $rsource = $_GET['rsource'];
+    $path_alias .= '&utm_source=' . $rsource;
+  }else{
+    if((isset($_GET['medium']) && $_GET['medium']) || (isset($_GET['rmedium']) && $_GET['rmedium'])){
+      $path_alias .= '&utm_source=nid' . $nid;
+    }
+  }
+
+  $site = variable_get('ftaf_site', 'pw');
+  switch($site){
+    case 'aw':
+      $url = 'http://awgo.to/api';
+      $api = 'pbvoNXgVFgSu';
+      break;
+    case 'pw':
+      $url = 'http://pwgo.to/api';
+      $api = 'EuFbOgFdGmAU';
+      break;
+    case 'hcp':
+      $url = 'http://hcpgo.to/api';
+      $api = 'LKQBkZWdRfca';
+      break;
+  }
+
+
+  $query = array(
+    'api' => $api,
+    'url' => $path_alias,
+  );
+
+  $query = http_build_query($query);
+  $url = "$url?$query";
+
+  $response = smg_ftaf_api_curl($url);
+  $json = json_decode($response);
+  $short = $json->short;
+  return $short;
+}
+
+/**
+ * Handle the curl functionality
+ */
+function smg_ftaf_api_curl($url, $query = '', $post = FALSE) {
+  $ch = curl_init();
+  curl_setopt($ch, CURLOPT_URL, $url);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($ch, CURLOPT_HEADER, 0);
+  curl_setopt($ch, CURLOPT_TIMEOUT, 0);
+  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+  if($post) {
+    curl_setopt($ch, CURLOPT_POST, TRUE);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $query);
+  }
+  else {
+    curl_setopt($ch, CURLOPT_HTTPGET, TRUE);
+  }
+  $response = curl_exec($ch);
+  /*
+   * Debug
+   * d(curl_getinfo($ch));
+   */
+  curl_close($ch);
+  return $response;
+}
+
+/**
+*  Modify the drupal mail system to send HTML emails.
+*  Without this modification, any emails that we send will display html
+*  syntax as plain text
+*/
+class SmgFtafMailSystem implements MailSystemInterface {
+  /**
+   * Concatenate and wrap the e-mail body for plain-text mails.
+   *
+   * @param $message
+   *   A message array, as described in hook_mail_alter().
+   *
+   * @return
+   *   The formatted $message.
+   */
+  public function format(array $message) {
+    $message['body'] = implode("\n\n", $message['body']);
+    $message['body'] = drupal_wrap_mail($message['body']);
+    return $message;
+  }
+
+  /**
+   * Send an e-mail message, using Drupal variables and default settings.
+   *
+   * @see <a href="http://php.net/manual/en/function.mail.php
+   *" title="http://php.net/manual/en/function.mail.php
+   *" rel="nofollow">http://php.net/manual/en/function.mail.php
+   *</a>   * @see drupal_mail()
+   *
+   * @param $message
+   *   A message array, as described in hook_mail_alter().
+   * @return
+   *   TRUE if the mail was successfully accepted, otherwise FALSE.
+   */
+  public function mail(array $message) {
+    //set the message to html
+    $message['headers']['Content-Type'] = 'text/html; charset=UTF-8;';
+
+    // If 'Return-Path' isn't already set in php.ini, we pass it separately
+    // as an additional parameter instead of in the header.
+    // However, if PHP's 'safe_mode' is on, this is not allowed.
+    if (isset($message['headers']['Return-Path']) && !ini_get('safe_mode')) {
+      $return_path_set = strpos(ini_get('sendmail_path'), ' -f');
+      if (!$return_path_set) {
+        $message['Return-Path'] = $message['headers']['Return-Path'];
+        unset($message['headers']['Return-Path']);
+      }
+    }
+    $mimeheaders = array();
+    foreach ($message['headers'] as $name => $value) {
+      $mimeheaders[] = $name . ': ' . mime_header_encode($value);
+    }
+    $line_endings = variable_get('mail_line_endings', MAIL_LINE_ENDINGS);
+    // Prepare mail commands.
+    $mail_subject = mime_header_encode($message['subject']);
+    // Note: e-mail uses CRLF for line-endings. PHP's API requires LF
+    // on Unix and CRLF on Windows. Drupal automatically guesses the
+    // line-ending format appropriate for your system. If you need to
+    // override this, adjust $conf['mail_line_endings'] in settings.php.
+    $mail_body = preg_replace('@\r?\n@', $line_endings, $message['body']);
+    // For headers, PHP's API suggests that we use CRLF normally,
+    // but some MTAs incorrectly replace LF with CRLF. See #234403.
+    $mail_headers = join("\n", $mimeheaders);
+
+    // We suppress warnings and notices from mail() because of issues on some
+    // hosts. The return value of this method will still indicate whether mail
+    // was sent successfully.
+    if (!isset($_SERVER['WINDIR']) && strpos($_SERVER['SERVER_SOFTWARE'], 'Win32') === FALSE) {
+      if (isset($message['Return-Path']) && !ini_get('safe_mode')) {
+        // On most non-Windows systems, the "-f" option to the sendmail command
+        // is used to set the Return-Path. There is no space between -f and
+        // the value of the return path.
+        $mail_result = @mail($message['to'], $mail_subject, $mail_body, $mail_headers, '-f' . $message['Return-Path']);
+      }
+      else {
+        // The optional $additional_parameters argument to mail() is not
+        // allowed if safe_mode is enabled. Passing any value throws a PHP
+        // warning and makes mail() return FALSE.
+        $mail_result = @mail($message['to'], $mail_subject, $mail_body, $mail_headers);
+      }
+    }
+    else {
+      // On Windows, PHP will use the value of sendmail_from for the
+      // Return-Path header.
+      $old_from = ini_get('sendmail_from');
+      ini_set('sendmail_from', $message['Return-Path']);
+      $mail_result = @mail($message['to'], $mail_subject, $mail_body, $mail_headers);
+      ini_set('sendmail_from', $old_from);
+    }
+    return $mail_result;
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function smg_ftaf_form_alter(&$form, &$form_state, $form_id){
+
+  // Ticket #2039 - Add an interface in the node edit form (in the "addional settings" area)
+  // that editors can use to automatically generate FTAF urls.
+  // Make sure that it is an edit form first (not a node-create form).
+  if(isset($form['nid']['#value'])){
+    if(isset($form['#node_edit_form'])){
+      if($form['#node_edit_form']){
+        $form['ftaf_urls'] = array(
+          '#type' => 'fieldset',
+          '#access' => TRUE,
+          '#title' => 'Generate "Share This" URLs',
+          '#collapsible' => TRUE,
+          '#collapsed' => TRUE,
+          '#weight' => 10,
+          '#group' => 'additional_settings',
+        );
+
+        // Create a field for HTML markup, will contain instructions for the user
+        $form['ftaf_urls']['instructions'] = array(
+          '#markup' => '<div style="font-weight:bold;">This form will help you generate a "Share-This" URL for the current article (or blog, playbook, ...).  Remember, the "Share-This" URL(s) will either appear in <em>Print</em>, or in a <em>Playbook</em>.  If you are creating URLs for Print, then remember to create two URLs, one for the link and one for the QR code (just use the form below twice).</div>',
+        );
+
+        // We need to collect an Issue-Date.  Articles have an Issue Date field, but Playbooks don't.
+        // If the user is creating a "Share-This" link to a Playbook landing page, this link will appear
+        // in one or more Magazine Issues.  So we offer dropdown select lists where the user can specify the
+        // year/month of the Issue in which the link will appear.
+
+        if($form['#node']->type == 'playbook'){
+          // We provide a select list that contains a set of Years (2013, 2014, ...)
+          // We generate this list in PHP first.
+          $years = array();
+          for($i = -1; $i < 3; $i++){
+            $string_int = strval($i);
+            if($i >= 0){
+              $string_int = '+' . $string_int;
+            }
+            date_default_timezone_set('UTC');
+            $year = date('Y', strtotime($string_int . ' year'));
+            $years[$year] = $year;
+          }
+
+          // We also provide a select list that contains each month of the year.
+          $months = array('Jan' => 'Jan', 'Feb' => 'Feb', 'Mar' => 'Mar', 'Apr' => 'Apr', 'May' => 'May', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Aug', 'Sep' => 'Sep', 'Oct' => 'Oct', 'Nov' => 'Nov', 'Dec' => 'Dec');
+
+          // Create a fieldset to hold the Month and Year fields
+          $form['ftaf_urls']['issue_date'] = array(
+            '#type' => 'fieldset',
+            '#access' => TRUE,
+            '#title' => 'Select an Issue Date',
+            '#description' => 'You are creating a "Share-This" URL for a Playbook landing page.  Please specify the <strong>Issue Date</strong> of the Magazine that you are adding this link to.',
+          );
+
+          // Create a select list for Issue Year field using FORM API,
+          // use $years array from above for the options
+          $form['ftaf_urls']['issue_date']['issue_year'] = array(
+            '#type' => 'select',
+            '#title' => t('Select the Issue Year'),
+            '#options' => $years,
+            '#default_value' => $years[1],
+          );
+          // Create a select list for Issue Month field using FORM API
+          $form['ftaf_urls']['issue_date']['issue_month'] = array(
+            '#type' => 'select',
+            '#title' => t('Select the Issue Month'),
+            '#options' => $months,
+            '#default_value' => $months[0],
+          );
+        }
+
+
+        // Create a set of checkboxes, with options for which kind of FTAF to create
+        $form['ftaf_urls']['url_type'] = array(
+          '#type' => 'radios',
+          '#options' => array(
+            'print_referral' => 'Print (Link)',
+            'print_qr_code' => 'Print (QR Code)',
+            'playbook_referral' => 'Playbook <strong>(Choose this option if the "Share-This" URL will <em>appear</em> in a Playbook, not if the item you are sharing <em>is</em> a Playbook.  If the "Share-This" URL will appear in Print, then use the above two options)</strong>',
+          ),
+          '#title' => 'Specify what kind of share-this link you are creating.  If it is print, will it be a link or a QR code?  Or will the share-this link appear in a playbook?',
+        );
+
+        // Create a select list of Playbook names.  Only display if user chose playbook in url_type list.
+        $nline = PHP_EOL;
+        $playbooks = explode($nline, variable_get('ftaf_playbooks', ''));
+        $playbooks_options = array('none' => '-- None --');
+        foreach($playbooks as $key => $playbook){
+          $safe_value = trim(substr($playbook, 0, strpos($playbook, '|')));
+          $value = trim(substr($playbook, strpos($playbook, '|')+1, strlen($playbook)));
+          $playbooks_options[$safe_value] = $value;
+        }
+        $form['ftaf_urls']['playbooks'] = array(
+          '#type' => 'select',
+          '#title' => 'Select Playbook Name',
+          '#options' => $playbooks_options,
+          '#default_value' => $playbooks_options['none'],
+          '#states' => array(
+            'visible' => array(
+              ':input[name="url_type"]' => array('value' => 'playbook_referral'),
+            ),
+          ),
+          '#description' => 'Please select the name of the Playbook.  If the Playbook does not appear in the list, add the Playbook on <a href="/admin/config/content/ftaf">this configuration page</a>.',
+        );
+
+        // Create the button to generate Share This link
+        $form['ftaf_urls']['generate_url'] = array(
+          '#type' => 'button',
+          '#name' => 'generate-link-button',
+          '#limit_validation_errors' => array(),
+          '#value' => t('Generate Share-This Link'),
+          '#ajax' => array(
+            'callback' => 'smg_ftaf_generate_share_this_url',
+            'wrapper' => 'share-this-textfield',
+            'method' => 'replace',
+            'effect' => 'fade',
+          ),
+        );
+
+        // Create the text field that will contain the Share This URL after it
+        // is returned from the ajax call
+        $form['ftaf_urls']['url_text'] = array(
+          '#type' => 'textfield',
+          '#title' => 'Share This URL',
+          '#size' => 60,
+          '#prefix' => '<div id="share-this-textfield">',
+          '#suffix' => '</div>',
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Ajax Callback function, generates a "Share This" URL based on the values chosen in node edit form
+ */
+function smg_ftaf_generate_share_this_url($form, &$form_state){
+  GLOBAL $base_url;
+  //ddl($form_state['values']);
+  //ddl($form);
+  $nid = $form['nid']['#value'];
+  $url_type = $form_state['values']['url_type'];
+  if($form_state['values']['type'] != 'playbook'){
+    if(strlen($form_state['values']['field_issue_date']['und'][0]['value']['date']) > 1){
+      $time_string = $form_state['values']['field_issue_date']['und'][0]['value']['date'];
+      if(preg_match('|^[0-9]{2}/[0-9]{4}|', $time_string, $matches)){
+        $time_string = str_replace('/', '/01/', $time_string);
+      }
+      $year = date('Y', strtotime($time_string));
+      $month = date('M', strtotime($time_string));
+    }
+    if($url_type != 'playbook_referral'){
+      if(!isset($time_string)){
+        form_set_error('date_missing', 'Missing Issue Date!  You specified that this link will appear in Print, but this article doesn\'t have an "Issue Date".  Please fill in the "Issue Date" field and resave this article.  Then try using this form again.');
+        return $form['ftaf_urls']['url_text'];
+      }
+      $form['ftaf_urls']['url_text']['#value'] = $base_url . '/ftaf/' . $nid . '?rmedium=' . $url_type . '&rissue=' . $month . $year;
+    }else{
+      $playbook = $form_state['values']['playbooks'];
+      if($playbook == 'none'){
+        form_set_error('playbook_name_missing', 'Please enter a Playbook Name');
+        return $form['ftaf_urls']['url_text'];
+      }
+      $form['ftaf_urls']['url_text']['#value'] = $base_url . '/ftaf/' . $nid . '?rmedium=' . $url_type . '&rsource=' . $playbook;
+    }
+  }else{
+    if($url_type != 'playbook_referral'){
+      $month = $form_state['values']['issue_month'];
+      $year = $form_state['values']['issue_year'];
+      $form['ftaf_urls']['url_text']['#value'] = $base_url . '/ftaf/' . $nid . '?rmedium=' . $url_type . '&rissue=' . $month . $year;
+    }else{
+      $playbook = $form_state['values']['playbooks'];
+      if($playbook == 'none'){
+        form_set_error('playbook_name_missing', 'Please enter a Playbook Name');
+        return $form['ftaf_urls']['url_text'];
+      }
+      $form['ftaf_urls']['url_text']['#value'] = $base_url . '/ftaf/' . $nid . '?rmedium=' . $url_type . '&rsource=' . $playbook;
+    }
+  }
+  $form['ftaf_urls']['url_text']['#description'] = '<div style="font-size:13px; color:#000;"><span style="color:#000;"><strong>Please copy the URL above</strong></span><br><br><span style="color:#000;"><strong><em>Further instructions...</em></strong></span><br>Now that you have a valid "Share-This" URL, you need to create a shortened URL.  Please go to one of our URL shortening sites (awgo.to, pwgo.to, or hcpgo.to).  When you are creating the shortened URL:<br><ul><li>Leave the <strong>utm_medium</strong> and <strong>utm_source</strong> dropdowns <strong>blank</strong></li><li><strong>Select a custom alias</strong>.  If you are creating "Share-This" URLs for print (as opposed to playbook), then it helps if you create an alias for the link first, then create one for the QR code.  The page should list the most recent custom aliases used.  If you selected "Print (Link)" above, increment the most recent alias by one, so if it was 075, make it 076.  Then, when you create a QR code URL, append a "q" to the corresponding link (i.e. it would be 076q).</li><li>Under Advanced Options, fill in the <strong>Issue Date</strong> field.</li><li>Under Advanced Options, fill in the <strong>Description</strong> field with the title of the article.</li></ul></div>';
+  return $form['ftaf_urls']['url_text'];
+}
+
+

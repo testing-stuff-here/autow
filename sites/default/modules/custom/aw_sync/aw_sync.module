@@ -1,0 +1,680 @@
+<?php
+/**
+ * @file
+ *   This contains functionality specific to PW. Anything that can be shared
+ *   accross multiple sites should be placed in the pmg_sync module.
+ */
+
+// PW site-info
+define('AW_SYNC_PFW_PROTOCOL', 'https');
+define('AW_SYNC_PFW_DOMAIN', 'www.profoodworld.com');
+define('AW_SYNC_PFW_TEXT_FORMAT', 'advanced_html');
+define('AW_SYNC_PFW_CONTENT_MANAGER_EMAIL', 'jfassl@pmmimediagroup.com');
+
+// HCP site-info
+define('AW_SYNC_HCP_PROTOCOL', 'https');
+define('AW_SYNC_HCP_DOMAIN', 'www.healthcarepackaging.com');
+define('AW_SYNC_HCP_TEXT_FORMAT', 'full_html');
+define('AW_SYNC_HCP_CONTENT_MANAGER_EMAIL', 'butschli@packworld.com');
+
+// PW site-info
+define('AW_SYNC_PW_PROTOCOL', 'https');
+define('AW_SYNC_PW_DOMAIN', 'www.packworld.com');
+define('AW_SYNC_PW_TEXT_FORMAT', 'full_html');
+define('AW_SYNC_PW_CONTENT_MANAGER_EMAIL', 'ncraig@pmmimediagroup.com');
+
+module_load_include('php', 'pmg_sync', 'libraries/pmgRestwsApi');
+module_load_include('php', 'pmg_sync', 'libraries/pmgServicesApi');
+
+/**
+ * Implements hook_node_update().
+ */
+function aw_sync_node_update($node) {
+  aw_sync_process_node($node);
+}
+
+/**
+ * Implements hook_node_insert().
+ */
+function aw_sync_node_insert($node) {
+  aw_sync_process_node($node);
+}
+
+/**
+ * Process the node and figure out if we need to post the node on another site
+ * based on the taxonomy terms.
+ *
+ * @param object $node
+ *   The drupal node object.
+ */
+function aw_sync_process_node($node) {
+  global $base_url;
+
+  $pfwAlias = FALSE;
+  $hcpAlias = FALSE;
+  $pwAlias = FALSE;
+
+  $okayToPost = TRUE;
+
+  $crossPostPFW = FALSE;
+  $crossPostHCP = FALSE;
+  $crossPostPW = FALSE;
+
+  $foodArticle = FALSE;
+  $lifeScienceArticle = FALSE;
+  $packagingArticle = FALSE;
+  $pwSubType = TRUE;
+
+  $syncTypes = array('article', 'company', 'video', 'blog');
+
+  // Don't cross post when on dev and staging server.
+  if (strpos($base_url, 'pfw.255elmp04.blackmesh.com') !== FALSE) {
+    $okayToPost = FALSE;
+  }
+
+  if (isset($node->field_crosspost_to_pfw['und'][0]['value'])
+    && $node->field_crosspost_to_pfw['und'][0]['value'] == 1
+  ) {
+    $crossPostPFW = TRUE;
+    $foodArticle = TRUE;
+  }
+
+  // Only cross post nodes of original content source type.
+  if (isset($node->field_term_source_type[LANGUAGE_NONE][0]['tid'])) {
+    if ($node->field_term_source_type[LANGUAGE_NONE][0]['tid'] == '138') {
+      $crossPostPFW = TRUE;
+      $crossPostHCP = TRUE;
+      $crossPostPW = TRUE;
+    }
+  }
+
+  // Cross post to PFW only if article is tagged with food related term.
+  if ($crossPostPFW && isset($node->field_allterms[LANGUAGE_NONE][0])) {
+    // TIDs of food related terms on PW site.
+    $pfwPwTerms = aw_sync_pfw_terms();
+
+    foreach ($node->field_allterms[LANGUAGE_NONE] as $key => $term) {
+      // If it has one of the food related terms then cross post the node.
+      if (in_array($term['tid'], $pfwPwTerms)) {
+        $foodArticle = TRUE;
+        break;
+      }
+    }
+  }
+
+  // Cross post to HCP only if article is tagged with Life Sciences term.
+  if ($crossPostHCP && isset($node->field_allterms[LANGUAGE_NONE][0])) {
+    // TID of life science term on PW site.
+    $hcpPwTerms = aw_sync_hcp_terms();
+
+    foreach ($node->field_allterms[LANGUAGE_NONE] as $key => $term) {
+      // If it has one of the food related terms then cross post the node.
+      if (in_array($term['tid'], $hcpPwTerms)) {
+        $lifeScienceArticle = TRUE;
+        break;
+      }
+    }
+  }
+
+  // Cross post to PW only if article is tagged with Packaging term.
+  if ($crossPostPW && isset($node->field_allterms[LANGUAGE_NONE][0])) {
+    // TID and Value of Packaging term.
+    $pwPwTerms = aw_sync_get_vocabulary_content('industries', array('Packaging'), TRUE);
+
+    foreach ($node->field_allterms[LANGUAGE_NONE] as $key => $term) {
+      if (in_array($term['tid'], $pwPwTerms)) {
+        $packagingArticle = TRUE;
+        break;
+      }
+    }
+  }
+
+  // Cross post to PW only if article is not tagged with Tactical Brief, Product
+  // or Events term of sub type vocabulary.
+  if ($crossPostPW && isset($node->field_term_subtype[LANGUAGE_NONE][0])) {
+    $subTypes = array('Tactical Brief', 'Product', 'Events');
+    $pwPwSubTypeTerms = aw_sync_get_vocabulary_content('subtype', $subTypes);
+
+    foreach ($pwPwSubTypeTerms as $key => $value) {
+      if ($node->field_term_subtype[LANGUAGE_NONE][0]['tid'] == $key) {
+        $pwSubType = FALSE;
+        break;
+      }
+    }
+  }
+
+  // Only cross post to PFW if it meets criteria and it was created after June
+  // 1, 2015.
+  if ($crossPostPFW === TRUE
+    && $foodArticle === TRUE
+    && $node->created > 1433185885
+    && $okayToPost === TRUE
+    && in_array($node->type, $syncTypes)
+  ) {
+    // On PW the author and title are text fields.
+    if (isset($node->field_author[LANGUAGE_NONE][0]['uid'])) {
+      $user = user_load($node->field_author[LANGUAGE_NONE][0]['uid']);
+      if (isset($user->field_first_name[LANGUAGE_NONE][0]['value'])) {
+        $node->field_byline[LANGUAGE_NONE][0]['value'] = $user->field_first_name[LANGUAGE_NONE][0]['value'] . ' ' . $user->field_last_name[LANGUAGE_NONE][0]['value'];
+      }
+      if (isset($user->field_title[LANGUAGE_NONE][0]['value'])) {
+        $node->field_author_title[LANGUAGE_NONE][0]['value'] = $user->field_title[LANGUAGE_NONE][0]['value'] . ' Packworld';
+      }
+    }
+
+    // Set text format on body.
+    if (isset($node->body[LANGUAGE_NONE][0])) {
+      $node->body[LANGUAGE_NONE][0]['format'] = AW_SYNC_PFW_TEXT_FORMAT;
+    }
+
+    // Set text format on About the Author.
+    if (isset($node->field_about_the_author[LANGUAGE_NONE][0])) {
+      $node->field_about_the_author[LANGUAGE_NONE][0]['format'] = AW_SYNC_PFW_TEXT_FORMAT;
+    }
+
+    // Remove uid user reference field because it doesn't exist on PFW.
+    unset($node->field_author);
+
+    // Set PFW as canonical if it was posted on pfw, otherwise use PW.
+    if ($pfwAlias) {
+      $node->metatags['canonical']['value'] = $pfwAlias;
+    }
+    else {
+      // Need to call function so it gets the path alias manually. It isn't the
+      // best option but if an alias changes or when saving a new node,
+      // drupal_lookup_path() may not have the correct alias.
+      $alias = aw_sync_get_new_alias($node);
+
+      if ($alias) {
+        $node->metatags['canonical']['value'] = $base_url . '/' . $alias;
+      }
+    }
+
+    // Send to PFW.
+    $pfwPmgServiceApi = new PmgServicesApi(AW_SYNC_PFW_PROTOCOL . '://', AW_SYNC_PFW_DOMAIN, '/api/v2', variable_get('aw_sync_api_username'), variable_get('aw_sync_api_password'));
+
+    $destinationNode = $node;
+    if ($node->type === 'blog') {
+      $destinationNode->type = 'article';
+    }
+
+    $pfwResponse = aw_sync_node_insert_update($node, $pfwPmgServiceApi, PMG_SYNC_PFW);
+
+    // Display message of the url it was posted to.
+    if ($pfwResponse) {
+      $alias = AW_SYNC_PFW_PROTOCOL . '://' . AW_SYNC_PFW_DOMAIN . '/' . $pfwResponse->alias;
+      drupal_set_message(t('This node was also posted at @alias', array('@alias' => $alias)));
+
+      // Check if service updated with new code. If not - use hard-coded function
+      // for checking terms matching.
+      if (isset($pfwResponse->taxonomies_match)) {
+        $match_terms = $pfwResponse->taxonomies_match;
+      }
+      else {
+        $match_terms = aw_sync_check_assigned_terms_on_pw($node, $pfwResponse);
+      }
+      if ($match_terms == FALSE) {
+        $params['sitename'] = AW_SYNC_PFW_PROTOCOL . '://' . AW_SYNC_PFW_DOMAIN;
+        $params['alias'] = $alias;
+
+        drupal_mail('aw_sync', 'aw_sync_terms_matching', AW_SYNC_PFW_CONTENT_MANAGER_EMAIL, LANGUAGE_NONE, $params);
+      }
+    }
+  }
+
+  // Only cross post to HCP if it meets criteria and it was created after June
+  // 1, 2015.
+  if ($crossPostHCP === TRUE
+    && $lifeScienceArticle === TRUE
+    && $node->created > 1433185885
+    && $okayToPost === TRUE
+    && in_array($node->type, $syncTypes)
+  ) {
+    // On PW the author and title are text fields.
+    if (isset($node->field_author[LANGUAGE_NONE][0]['uid'])) {
+      $user = user_load($node->field_author[LANGUAGE_NONE][0]['uid']);
+      if (isset($user->field_first_name[LANGUAGE_NONE][0]['value'])) {
+        $node->field_byline[LANGUAGE_NONE][0]['value'] = $user->field_first_name[LANGUAGE_NONE][0]['value'] . ' ' . $user->field_last_name[LANGUAGE_NONE][0]['value'];
+      }
+      if (isset($user->field_title[LANGUAGE_NONE][0]['value'])) {
+        $node->field_author_title[LANGUAGE_NONE][0]['value'] = $user->field_title[LANGUAGE_NONE][0]['value'] . ' Packworld';
+      }
+    }
+
+    // Set text format on body.
+    if (isset($node->body[LANGUAGE_NONE][0])) {
+      $node->body[LANGUAGE_NONE][0]['format'] = AW_SYNC_HCP_TEXT_FORMAT;
+    }
+
+    // Set text format on About the Author.
+    if (isset($node->field_about_the_author[LANGUAGE_NONE][0])) {
+      $node->field_about_the_author[LANGUAGE_NONE][0]['format'] = AW_SYNC_HCP_TEXT_FORMAT;
+    }
+
+    // Set PFW as canonical if it was posted on pfw, otherwise use PW.
+    if ($hcpAlias) {
+      $node->metatags['canonical']['value'] = $hcpAlias;
+    }
+    else {
+      // Need to call function so it gets the path alias manually. It isn't the
+      // best option but if an alias changes or when saving a new node,
+      // drupal_lookup_path() may not have the correct alias.
+      $alias = aw_sync_get_new_alias($node);
+
+      if ($alias) {
+        $node->metatags['canonical']['value'] = $base_url . '/' . $alias;
+      }
+    }
+
+    // Send to HCP.
+    $hcpPmgServiceApi = new PmgServicesApi(AW_SYNC_HCP_PROTOCOL . '://', AW_SYNC_HCP_DOMAIN, '/api/v2', variable_get('aw_sync_api_username'), variable_get('aw_sync_api_password'));
+    $destinationNode = $node;
+    if ($node->type === 'blog') {
+      $destinationNode->type = 'article';
+    }
+
+    $hcpResponse = aw_sync_node_insert_update($destinationNode, $hcpPmgServiceApi, PMG_SYNC_HCP);
+
+    // Display message of the url it was posted to.
+    if ($hcpResponse) {
+      $alias = AW_SYNC_HCP_PROTOCOL . '://' . AW_SYNC_HCP_DOMAIN . '/' . $hcpResponse->alias;
+      drupal_set_message(t('This node was also posted at @alias', array('@alias' => $alias)));
+
+      // Check if service updated with new code. If not - use hard-coded function
+      // for checking terms matching.
+      if (isset($hcpResponse->taxonomies_match)) {
+        $match_terms = $hcpResponse->taxonomies_match;
+      }
+      else {
+        $match_terms = aw_sync_check_assigned_terms_on_pw($node, $hcpResponse);
+      }
+      if ($match_terms == FALSE) {
+        $params['sitename'] = AW_SYNC_HCP_PROTOCOL . '://' . AW_SYNC_HCP_DOMAIN;
+        $params['alias'] = $alias;
+
+        drupal_mail('aw_sync', 'aw_sync_terms_matching', AW_SYNC_HCP_CONTENT_MANAGER_EMAIL, LANGUAGE_NONE, $params);
+      }
+    }
+  }
+
+  // Only cross post to PW if it meets criteria and it was created after June
+  // 1, 2015.
+  if ($crossPostPW === TRUE
+    && $packagingArticle === TRUE
+    && $pwSubType === TRUE
+    && $node->created > 1433185885
+    && $okayToPost === TRUE
+    && in_array($node->type, $syncTypes)
+  ) {
+    // On PW the author and title are text fields.
+    if (isset($node->field_author[LANGUAGE_NONE][0]['uid'])) {
+      $user = user_load($node->field_author[LANGUAGE_NONE][0]['uid']);
+      if (isset($user->field_first_name[LANGUAGE_NONE][0]['value'])) {
+        $node->field_byline[LANGUAGE_NONE][0]['value'] = $user->field_first_name[LANGUAGE_NONE][0]['value'] . ' ' . $user->field_last_name[LANGUAGE_NONE][0]['value'];
+      }
+      if (isset($user->field_title[LANGUAGE_NONE][0]['value'])) {
+        $node->field_author_title[LANGUAGE_NONE][0]['value'] = $user->field_title[LANGUAGE_NONE][0]['value'] . ' Packworld';
+      }
+    }
+
+    // Set text format on body.
+    if (isset($node->body[LANGUAGE_NONE][0])) {
+      $node->body[LANGUAGE_NONE][0]['format'] = AW_SYNC_PW_TEXT_FORMAT;
+    }
+
+    // Set text format on About the Author.
+    if (isset($node->field_about_the_author[LANGUAGE_NONE][0])) {
+      $node->field_about_the_author[LANGUAGE_NONE][0]['format'] = AW_SYNC_PW_TEXT_FORMAT;
+    }
+
+    // Set PFW as canonical if it was posted on AW, otherwise use PW.
+    if ($pwAlias) {
+      $node->metatags['canonical']['value'] = $pwAlias;
+    }
+    else {
+      // Need to call function so it gets the path alias manually. It isn't the
+      // best option but if an alias changes or when saving a new node,
+      // drupal_lookup_path() may not have the correct alias.
+      $alias = aw_sync_get_new_alias($node);
+
+      if ($alias) {
+        $node->metatags['canonical']['value'] = $base_url . '/' . $alias;
+      }
+    }
+
+    // Send to PW.
+    $pwPmgServiceApi = new PmgServicesApi(AW_SYNC_PW_PROTOCOL . '://', AW_SYNC_PW_DOMAIN, '/api/v2', variable_get('aw_sync_api_username'), variable_get('aw_sync_api_password'));
+    $destinationNode = $node;
+    if ($node->type === 'blog') {
+      $destinationNode->type = 'article';
+    }
+    $pwResponse = aw_sync_node_insert_update($destinationNode, $pwPmgServiceApi, PMG_SYNC_PW);
+
+    // Display message of the url it was posted to.
+    if ($pwResponse) {
+      $alias = AW_SYNC_PW_PROTOCOL . '://' . AW_SYNC_PW_DOMAIN . '/' . $pwResponse->alias;
+      drupal_set_message(t('This node was also posted at @alias', array('@alias' => $alias)));
+
+      // Check if service updated with new code. If not - use hard-coded function
+      // for checking terms matching.
+      if (isset($pwResponse->taxonomies_match)) {
+        $match_terms = $pwResponse->taxonomies_match;
+      }
+      else {
+        $match_terms = aw_sync_check_assigned_terms_on_pw($node, $pwResponse);
+      }
+      if ($match_terms == FALSE) {
+        $params['sitename'] = AW_SYNC_PW_PROTOCOL . '://' . AW_SYNC_PW_DOMAIN;
+        $params['alias'] = $alias;
+
+        drupal_mail('aw_sync', 'aw_sync_terms_matching', AW_SYNC_PW_CONTENT_MANAGER_EMAIL, LANGUAGE_NONE, $params);
+      }
+    }
+  }
+}
+
+/**
+ * Insert or update the node.
+ *
+ * @param object $node
+ *   The node object.
+ * @param object $api
+ *   Api object.
+ * @param integer $site_id
+ *   The site id of where you are inserting/updating to.
+ *
+ * @return array $response
+ *  The syncPost() response.
+ */
+function aw_sync_node_insert_update($node, $api, $site_id) {
+  $newNode = clone $node;
+
+  // Get UUID of node.
+  $uuids = entity_get_uuid_by_id('node', array($node->nid));
+  if (isset($uuids[$node->nid])) {
+    $newNode->uuid = $uuids[$node->nid];
+  }
+
+  // Setting cross posted node user to admin.
+  $newNode->uid = 1;
+
+  // Add taxonomy names to the fields that use taxonomies so they can be mapped
+  // on other sites.
+  pmg_sync_add_taxonomy_names_to_node($newNode);
+
+  // Add uuids to the field companies.
+  if (isset($newNode->field_companies[LANGUAGE_NONE][0])) {
+    pmg_sync_add_uuid_to_field($newNode, 'field_companies', 'node');
+  }
+
+  // Main image.
+  if (isset($newNode->field_image[LANGUAGE_NONE][0])) {
+    $fieldImage = pmg_sync_create_field_files($api, $newNode, 'field_image');
+    $newNode->field_image[LANGUAGE_NONE][0] = $fieldImage;
+  }
+
+  // Sub images.
+  if (isset($newNode->field_article_images[LANGUAGE_NONE][0])) {
+    $field_article_images = pmg_sync_create_field_files($api, $newNode, 'field_article_images', TRUE);
+    $newNode->field_article_images[LANGUAGE_NONE] = $field_article_images;
+  }
+
+  // Files (Podcast/White paper).
+  if (isset($newNode->field_files[LANGUAGE_NONE][0])) {
+    $field_files = pmg_sync_create_field_files($api, $newNode, 'field_files', TRUE);
+    $newNode->field_files[LANGUAGE_NONE] = $field_files;
+  }
+
+  // If video remove the fid because it should be generated when saving.
+  if (isset($newNode->field_viddler_id[LANGUAGE_NONE][0]['thumbnail_fid'])) {
+    unset($newNode->field_viddler_id[LANGUAGE_NONE][0]['thumbnail_fid']);
+  }
+  // For items designated “supplier news” on HCP that are cross-posted to pfw,
+  // keep those items from being promoted to front page. Later, filtering view
+  // criteria on pfw to omit nodes not promoted.
+  if (isset ($newNode->field_term_subtype) && $newNode->field_term_subtype[LANGUAGE_NONE][0]['tid'] == 177) {
+    $newNode->promote = 0;
+  }
+  // On AW, nodes are created with promote to front page unchecked. Setting this
+  // value to true when cross-posting.
+  $newNode->promote = 1;
+
+  // Find out if this node is already created on the other sites.
+  $oldNode = $api->pmgSyncNodeUUIDSearch($newNode->type, $newNode->uuid);
+
+  if ($site_id == PMG_SYNC_PFW) {
+    if (!empty($oldNode)) {
+      if (!empty($oldNode->field_allterms)) {
+        $newNode->field_allterms = $oldNode->field_allterms;
+      }
+      if (!empty($oldNode->field_term_subtype)) {
+        $newNode->field_term_subtype = $oldNode->field_term_subtype;
+      }
+      if (!empty($oldNode->field_term_coverage)) {
+        $newNode->field_term_coverage_type = $oldNode->field_term_coverage;
+      }
+      if (!empty($oldNode->field_term_source_type)) {
+        $newNode->field_term_source_type = $oldNode->field_term_source_type;
+      }
+    }
+  }
+
+  if (isset($node->field_companies[LANGUAGE_NONE][0])) {
+    foreach ($node->field_companies[LANGUAGE_NONE] as $key => $properties) {
+      // Check if there is a company with the same UUID on PFW. If not create
+      // it.
+//      if ($site_id == PMG_SYNC_PFW) {
+      $companyNodeOtherSite = $api->retrieveNode($properties['nid-uuid']);
+      // If error it will be in an array.
+      if ($companyNodeOtherSite && is_object($companyNodeOtherSite)) {
+        // Do nothing.
+      }
+      else {
+        $companyNodeOtherSite = aw_sync_node_insert_update(node_load($properties['nid']), $api, PMG_SYNC_PFW);
+      }
+
+      if ($companyNodeOtherSite) {
+        $newNode->field_companies[LANGUAGE_NONE][$key]['nid'] = $companyNodeOtherSite->nid;
+      }
+//      }
+      // Check if there is a company with the same title on PW. If not create
+      // it.
+      /*if ($site_id == PMG_SYNC_PW) {
+        $oldCompanyNode = node_load($properties['nid']);
+        $companyNodeOtherSite = $api->pmgSyncNodeTitleSearch('company', $oldCompanyNode->title);
+        if ($companyNodeOtherSite) {
+          $newNode->field_companies[LANGUAGE_NONE][$key]['nid'] = $companyNodeOtherSite['nid'];
+        }
+        else {
+          $newCompany = aw_sync_node_insert_update(node_load($properties['nid']), $api, PMG_SYNC_PFW);
+          if ($newCompany) {
+            $newNode->field_companies[LANGUAGE_NONE][$key]['nid'] = $newCompany->nid;
+          }
+        }
+      }*/
+    }
+  }
+
+  // Set full user to author_user_object so just in case you need to create it
+  // the data will be there and no need to recreate. Make sure to set it to
+  // field_author on the other end.
+  if (isset($newNode->field_author[LANGUAGE_NONE][0]['uid'])) {
+    $newNode->author_user_object = user_load($newNode->field_author[LANGUAGE_NONE][0]['uid']);
+    unset($newNode->field_author);
+  }
+
+  // Remove some parameters (FYI if you leave these then it may not save).
+  unset($newNode->nid);
+  unset($newNode->vid);
+  unset($newNode->date);
+  unset($newNode->path);
+  unset($newNode->additional_settings__active_tab);
+  unset($newNode->submit);
+  unset($newNode->preview);
+  unset($newNode->preview);
+  unset($newNode->delete);
+  unset($newNode->form_build_id);
+  unset($newNode->form_token);
+  unset($newNode->pubblish_on);
+  unset($newNode->url_type);
+  unset($newNode->playbooks);
+  unset($newNode->generate_url);
+  unset($newNode->url_text);
+  unset($newNode->unique_field_override);
+  unset($newNode->xmlsitemap);
+  unset($newNode->op);
+  unset($newNode->validated);
+  unset($newNode->original);
+  unset($newNode->is_new);
+  unset($newNode->timestamp);
+  unset($newNode->unpublish_on);
+  unset($newNode->old_vid);
+  unset($newNode->apachesolr_access_node_ignore);
+
+  // If error it will be in an array.
+  if ($oldNode && is_object($oldNode)) {
+    // Setting the nid if there is one already so it updates instead of creating
+    // a new node.
+    $newNode->nid = $oldNode->nid;
+  }
+
+  $response = $api->pmgSyncPost('node', $newNode);
+
+  return $response;
+}
+
+/**
+ * Returns pfw vocabalary terms.
+ *
+ * @param return array.
+ *  Vocab ids.
+ */
+function aw_sync_pfw_terms() {
+  return array(
+    909, // Industries -> Food and Beverage
+  );
+}
+
+/**
+ * Returns hcp vocabalary terms.
+ *
+ * @param return array.
+ *  Vocab ids.
+ */
+function aw_sync_hcp_terms() {
+  return array(
+    913, // Industries -> Life Sciences
+  );
+}
+
+/**
+ * This function calls pathauto_create_alias() but doesn't save the alias. This
+ * is useful for getting an alias during hook_node_insert().
+ */
+function aw_sync_get_new_alias($node) {
+  $alias = NULL;
+
+  if (module_exists('pathauto')) {
+    module_load_include('inc', 'pathauto');
+    $language = pathauto_entity_language('node', $node);
+    $uri = entity_uri('node', $node);
+    $alias = pathauto_create_alias('node', 'return', $uri['path'], array('node' => $node), $node->type, $language);
+  }
+
+  return $alias;
+}
+
+/**
+ * Helper function for getting all terms from vocabulary or
+ *  term data by terms names
+ * @param $vocabulary_name
+ *  Taxonomy vocabulary machine name;
+ * @param array $vocabulary_terms
+ *  Optional value; Data of needle terms;
+ * @param bool $only_tids
+ *  Optional value. If TRUE return only keys.
+ * @return array|mixed
+ */
+function aw_sync_get_vocabulary_content($vocabulary_name, array $vocabulary_terms = NULL, $only_tids = FALSE) {
+  $output = array();
+  $vid = taxonomy_vocabulary_machine_name_load($vocabulary_name);
+  $terms = taxonomy_get_tree($vid->vid);
+
+  foreach ($terms as $data) {
+    $output[$data->tid] = $data->name;
+  }
+
+  if (!empty($vocabulary_terms) && is_array($vocabulary_terms)) {
+    foreach ($output as $key => $value) {
+      if (!in_array($value, $vocabulary_terms)) {
+        unset($output[$key]);
+      }
+    }
+  }
+
+  if ($only_tids) {
+    $output = array_keys($output);
+  }
+
+  return $output;
+}
+
+/**
+ * Helper function checking assigned terms.
+ *
+ * @param $currentNode
+ * @param $destinationNode
+ * @return bool
+ */
+function aw_sync_check_assigned_terms_on_pw($currentNode, $destinationNode) {
+  if (count($currentNode->field_term_source_type[$currentNode->language])
+    != count($destinationNode->field_term_source_type->und)
+  ) {
+    return FALSE;
+  }
+
+  if (count($currentNode->field_term_subtype[$currentNode->language])
+    != count($destinationNode->field_term_source_type->und)
+  ) {
+    return FALSE;
+  }
+
+  if (count($currentNode->field_term_coverage_type[$currentNode->language])
+    != count($destinationNode->field_term_coverage->und)
+  ) {
+    return FALSE;
+  }
+
+  if (count($currentNode->field_term_coverage_type[$currentNode->language])
+    != count($destinationNode->field_term_coverage->und)
+  ) {
+    return FALSE;
+  }
+
+  if (count($currentNode->field_allterms[$currentNode->language])
+    != count($destinationNode->field_allterms->und)
+  ) {
+    return FALSE;
+  }
+  return TRUE;
+}
+
+/**
+ * Implements hook_mail().
+ */
+function aw_sync_mail($key, &$message, $params) {
+  switch ($key) {
+    case 'aw_sync_terms_matching':
+      $message['subject'] = t('Please tag this article');
+
+      $message['body'][] = t("Hello! The following article was just posted on @sitename", array(
+        '@sitename' => $params['sitename'],
+      ));
+      $message['body'][] = t("@url", array(
+        '@url' => $params['alias'],
+      ));
+      $message['body'][] = t("Please click the link above and assign taxonomy. Thanks!");
+
+      break;
+  }
+}

@@ -1,0 +1,72 @@
+/* Sidebars Second */
+#sidebar-second { width: 302px; float: right; }
+#sidebar-second .block { margin-bottom: 20px; }
+#sidebar-second .block-inner { width: 300px; border: 1px solid #ccc; background-color: #fdfdfe; }
+
+#sidebar-second .block .content { padding: 0 11px 5px; }
+#sidebar-second .block-latest-video .content h2 { color: #0a87b4; padding: 15px 10px 0; font-size: 23px; font-family: 'FamiliarProBold', Arial, Helvetica, sans-serif; font-weight: normal; }
+#sidebar-second .block-latest-video .content p { padding: 0 10px; font-size: 14px; }
+#sidebar-second .block-latest-video .content .video-desc { font-weight: bold; padding: 0 10px 10px; font-size: 12px; }
+#sidebar-second .block-latest-video .content .video-desc a { color: #0a87b4; padding: 5px 10px; }
+
+#sidebar-second .block h3.title { background-color: #0a87b4; color: #fff; font-weight: normal; font-family: 'FamiliarProBold', Arial, Helvetica, sans-serif; text-transform: uppercase; font-size: 17px; padding: 5px 10px; }
+#sidebar-second .block-image-ad .content { padding: 0; }
+#sidebar-second .block-magazines .content { padding: 5px 0 10px; }
+
+/* Quick Tabs */
+#sidebar-second .block-quicktabs {}
+#sidebar-second .block-quicktabs .content { padding: 0; }
+
+#sidebar-second .block-quicktabs .quicktabs-wrapper {}
+#sidebar-second .block-quicktabs .quicktabs-wrapper ul.quicktabs-tabs { padding: 0 10px 10px; margin: 0; height: 28px; width: 290px }
+#sidebar-second .block-quicktabs .quicktabs-wrapper ul.quicktabs-tabs li { padding: 0; margin: 0; height: 28px; }
+#sidebar-second .block-quicktabs .quicktabs-wrapper ul.quicktabs-tabs li a { background: url("images/tab_bg2.png") no-repeat left top transparent; height: 28px; font-size: 12px; display: block; float: left; padding: 0 8px; margin: 0; line-height: 20px; color: #000; text-transform: uppercase; font-weight: normal; font-family: 'FamiliarProBold', Arial, Helvetica, sans-serif; }
+#sidebar-second .block-quicktabs .quicktabs-wrapper ul.quicktabs-tabs li #quicktabs-tab-resources-0{background:none;} 
+#sidebar-second .block-quicktabs .quicktabs-wrapper ul.quicktabs-tabs li #quicktabs-tab-most_popular-0{background:none;} 
+#sidebar-second .block-quicktabs .quicktabs-wrapper ul.quicktabs-tabs li:hover a { background: url(images/tab_bghover.png) center top no-repeat !important; color: #fff; text-decoration: none; }
+#sidebar-second .block-quicktabs .quicktabs-wrapper ul.quicktabs-tabs li.active a { background: url(images/tab_bg.png) center top no-repeat !important; color: #fff; text-decoration: none; }
+#sidebar-second .block-quicktabs .quicktabs-wrapper div.quicktabs_main {}
+#sidebar-second .block-quicktabs .quicktabs-wrapper div.quicktabs_main .quicktabs-tabpage {}
+#sidebar-second .block-quicktabs .quicktabs-tabpage .block { margin: 0; }
+#sidebar-second .block-quicktabs .quicktabs-tabpage .block-inner { border: none; width: auto; }
+#sidebar-second .block-quicktabs .quicktabs-tabpage .block .content { margin: 0; padding: 0; }
+#sidebar-second .block-quicktabs .quicktabs-tabpage .block .content ul { display: block; margin: 0; padding: 0; }
+#sidebar-second .block-quicktabs .quicktabs-tabpage .block .content ul li { display: block; margin: 0; padding: 0; list-style: none; list-style-image: none; }
+#sidebar-second .block-quicktabs .quicktabs-tabpage .block .content ul li a { font-size: 17px; font-weight: bold; color: #000; display: block; margin: 0; padding: 10px 10px 10px 27px; background: url(images/list_symbol_raguo_blue.png) 15px 16px no-repeat; border-bottom: 1px dotted #ccc; }
+#sidebar-second .block-quicktabs .quicktabs-tabpage .block .content ul li.last a { border: none; }
+
+/* Follow Us */
+#sidebar-second .block-follow-us {}
+#sidebar-second .block-follow-us .content { padding: 10px 15px; }
+#sidebar-second .block-follow-us .content .icons-social { width: 29px; padding: 0 15px 0 0; margin: 0; border-right: 1px solid #ccc; float: left; }
+#sidebar-second .block-follow-us .content .twitter-content { float: right; width: 205px; }
+#sidebar-second .block-follow-us .content .twitter-content h2 { font-size: 16px; font-weight: normal; font-family: 'FamiliarProBold', Arial, Helvetica, sans-serif; color: #000; }
+#sidebar-second .block-follow-us .content .twitter-content ul { padding: 0; margin: 0; display: block;width:210px; }
+#sidebar-second .block-follow-us .content .twitter-content ul li { list-style: none; list-style-image: none; display: block; padding: 10px 0; border-top: 1px solid #000; color: #000; font-size: 14px; font-weight: normal; font-family: 'FolksLightRegular', Arial, Helvetica, sans-serif; }
+#sidebar-second .block-follow-us .content .twitter-content ul li a { font-weight: normal; font-family: 'FamiliarProBold', Arial, Helvetica, sans-serif; color: #0a87b4; position:relative;top:-2px;}
+
+/* Sponsored Content */
+#sidebar-second .block-sponsored-content {}
+#sidebar-second .block-sponsored-content .content { padding: 0; }
+#sidebar-second .block-sponsored-content .content .view {}
+#sidebar-second .block-sponsored-content .content .view .view-content {}
+#sidebar-second .block-sponsored-content .content .view .view-content .views-row { clear: both; padding: 15px; border-bottom: 1px dotted #ccc; }
+#sidebar-second .block-sponsored-content .content .view .view-content .views-row-last { border-bottom: none; }
+#sidebar-second .block-sponsored-content .content .view .view-content .views-row-first { padding-top: 5px; }
+
+#sidebar-second .block-sponsored-content .content .views-field-image { float: left; margin-right: 15px; }
+#sidebar-second .block-sponsored-content .content .views-field-category { font-size: 13px; color: #0a87b4; text-transform: uppercase; font-weight: normal; font-family: 'FolksLightRegular', Arial, Helvetica, sans-serif; }
+#sidebar-second .block-sponsored-content .content .views-field-title { font-size: 17px; color: #000; font-weight: bold; }
+#sidebar-second .block-sponsored-content .content .views-field-title .bullet { color: #0a87b4; }
+
+/* Automation Voices */
+#sidebar-second .block-automation-voices .content { padding: 0 5px 5px; }
+#sidebar-second .block .content {}
+#sidebar-second .block .content table { width: 100% }
+#sidebar-second .block .content table td { width: 140px; padding: 0px; background: none #fff; }
+#sidebar-second .view-automation-voices .views-row { padding: 5px; background: none #fff; }
+#sidebar-second .view-automation-voices .views-field-picture img { width: 130px; margin-bottom: 5px; border: 1px solid #ccc; overflow: hidden; }
+
+#sidebar-second .view-automation-voices .views-field-title { font-size: 15px; background: url(images/list_symbol_raguo_blue.png) 0 5px no-repeat; padding-left: 10px; color: #000; font-weight: bold; }
+#sidebar-second .view-automation-voices .views-field-title a {color: #000;}
+#sidebar-second .view-automation-voices .views-field-field-lastname { font-weight: normal; font-family: 'FolksLightRegular', Arial, Helvetica, sans-serif; color: #0a87b4; font-size: 12px; text-transform: uppercase; }

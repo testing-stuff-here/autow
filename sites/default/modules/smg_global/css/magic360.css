@@ -1,0 +1,22 @@
+body .awbs-360-page .awbs-360-image-wrapper {
+  height: auto !important; }
+body .awbs-360-page .magic360__container .magic360__description {
+  padding: 5px 15px; }
+  body .awbs-360-page .magic360__container .magic360__description .magic360__description-text {
+    color: #c60000;
+    font-weight: bold; }
+body .awbs-360-page .magic360__container .magic360__wrapper {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto; }
+  body .awbs-360-page .magic360__container .magic360__wrapper > div[id^="m360"] {
+    max-height: 600px;
+    z-index: 99; }
+    @media screen and (max-width: 761px) {
+      body .awbs-360-page .magic360__container .magic360__wrapper > div[id^="m360"] {
+        max-height: 550px; }
+        @supports (max-height: 100vw) {
+          body .awbs-360-page .magic360__container .magic360__wrapper > div[id^="m360"] {
+            max-height: 100vw; } } }
+
+/*# sourceMappingURL=magic360.css.map */

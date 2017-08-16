@@ -1,0 +1,53 @@
+.node li{clear:both;}
+.node #image-nav {overflow:visible;background:none; height:auto !important;}
+.node #image-nav li { width: 70px; list-style: none }
+.node #image-nav a { width: 70px; padding: 3px; display: block; border: 1px solid #ccc; }
+.node #image-nav li.activeSlide a { background: #88f; }
+.node #image-nav a:focus { outline: none; }
+.node #image-nav img { border: none; display: block }
+
+.node #slideshow{position: relative;float:left}
+.node #slideshow  a img,.node #slideshow a{position: absolute; top: 0px; left: 0px; display:block;height:200px;width:200px;}
+.node .scrollable img{height:70px;width:70px;}
+.node .scrollable .items{display:block;float:right;}
+.node .fied-slideshow{width:350px;float:right;}
+.node .fied-slideshow{display:none;}
+
+.node .fied-slideshow object, .node .fied-slideshow object embed{height:200px !important;width:200px !important;}
+.node .fied-slideshow .overlay {float:left;top:-76px;position:relative;}
+
+#inline_viddler{text-align:center;}
+
+
+/* node slideshow */
+.node .fied-slideshow {width:auto;padding-left:7px;}
+.node .fied-slideshow .scrollable img{width:100px;height:73px;border:1px solid #999999 !important;}
+.node .fied-slideshow .scrollable #image-nav li.activeSlide a{background:none repeat scroll 0 0 #fff !important;}
+.node .fied-slideshow .scrollable #image-nav a {border:0 !important;width: 102px;margin: 3px 2px 2px;}
+.node .fied-slideshow #slideshow{border: 2px solid #ccc;float: left;width: 200px; height: 200px; margin-right:15px; position:relative;}
+.node .fied-slideshow  #actions{height: 22px;background: url(images/slideshowpager.png); border-bottom: 1px solid #CCCCCC !important; border-left: 1px solid #CCCCCC !important; border-right: 1px solid #CCCCCC !important; border-top: 0 none;float: right; width: 112px;clear: both; height: 22px; margin-top: -24px; }
+.node .fied-slideshow  #actions a.prev{background: url(images/slideshowpager.png) no-repeat 0 0; height:22px; width:57px;display: block; float:left;}
+.node .fied-slideshow  #actions a.prev:hover{background-position: 0 -22px;}
+.node .fied-slideshow  #actions a.next{background: url(images/slideshowpager.png) no-repeat -56px 0; height:22px;width:55px; display: block;}
+.node .fied-slideshow  #actions a.next:hover{background-position: -56px -22px;}
+.node .fied-slideshow .vertical{height: 178px !important;border: 1px solid #ccc;width: 112px; float: left;}
+.node .fied-slideshow .vertical ul{ padding:0;}
+.node .fied-slideshow #image-nav li {width:auto; height: 170px;}
+.node .fied-slideshow .enlarge{ clear: both; color: #000000; font-size: 1em; font-weight: bold; position: relative; text-align: center; z-index: 2;}
+
+.node .fied-slideshow #image-nav li p {
+  margin: 3px 5px 5px;
+  width: 102px;
+  font-size: 80%;
+  line-height: 1em;
+}
+.node .fied-slideshow #image-nav li a.thumbnail1 {overflow: hidden; height: 75px;}
+.node .fied-slideshow #image-nav li p.quick-link a,
+.node .fied-slideshow #image-nav li.activeSlide p.quick-link a {
+  background: none repeat scroll 0 0 #fff !important;
+  color: #2687BB;
+  text-transform: uppercase;
+  font-size: 80%;
+  margin: 0; padding: 0;
+  font-weight: bold;
+}

@@ -1,0 +1,70 @@
+; name, description, screenshot, version - these are necessary for theme list
+name        = "OM Base Theme"
+description = "For more info, read the <a href="http://drupal.org/node/1290584">OM Theme Documentation</a>"
+screenshot  = "screenshot.png"
+
+; compatibilities
+core        = "7.x"
+engine      = phptemplate
+
+; viewport
+; you can turn off these by adding ';' at the begining of each line
+head[meta][viewport][initial-scale] = 1.0
+head[meta][viewport][width] = device-width
+head[meta][viewport][minimum-scale] = 0.5
+head[meta][viewport][maximum-scale] = 1.0
+head[meta][viewport][user-scalable] = yes
+
+; support for older devices/browsers, 
+; you can turn off these by adding ';' at the begining of each line
+head[meta][MobileOptimized] = width
+head[meta][HandheldFriendly] = true
+head[meta][apple-mobile-web-app-capable] = yes
+head[meta][cleartype] = on
+head[meta][X-UA-Compatible][IE] = edge  
+head[meta][X-UA-Compatible][chrome] = 1   
+
+; 960 grids, 12, 16, 24 columns
+settings[grid_guide] = on 
+;settings[grid] = 16 
+
+; this will set the site offline with a timer,
+; great for underconstruction sites, maintenance
+; you can set the time of launch or when the site will 
+; be live again.
+settings[offline][switch] = off
+settings[offline][message] = "We're currently improving this site."
+settings[countdown][year] = 2012
+settings[countdown][month] = 1
+settings[countdown][days] = 1
+settings[countdown][hours] = 0
+settings[countdown][minutes] = 0
+settings[countdown][seconds] = 0
+
+; default stylesheets
+; reset          - common browser default inconsistencies on tags
+stylesheets[all][] = "css/reset.css"
+stylesheets[all][] = "css/om.css"
+
+; jquery scripts
+scripts[]       = "js/om.js"
+
+; default regions, on the left inside the brackets 
+; are the variable names used in "page.tpl.php",
+; on right side are the names necessary for blocks list
+
+regions[header_block]   = "Header Block"
+regions[menu_bar]       = "Menu Bar"
+regions[highlighted]    = Highlighted
+regions[sidebar_first]  = "Sidebar - First (Left)"
+regions[sidebar_second] = "Sidebar - Second (Right)"
+regions[content]        = Content
+regions[footer]         = Footer
+
+
+; Information added by drupal.org packaging script on 2011-10-23
+version = "7.x-2.11"
+core = "7.x"
+project = "om"
+datestamp = "1319365237"
+

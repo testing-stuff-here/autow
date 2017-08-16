@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the AWBS article  feature.
+ */
+
+include_once('awbs_article_.features.inc');

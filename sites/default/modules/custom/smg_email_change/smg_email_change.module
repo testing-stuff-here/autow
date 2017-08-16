@@ -1,0 +1,52 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function smg_email_change_menu() {
+  $items['admin/config/email-sender'] = array(
+    'title' => 'Set sender of site email',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('smg_email_change_form'),
+    'access arguments' => array('administer users'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback: Set sender of site email
+ *
+ * @see smg_email_change_menu()
+ */
+function smg_email_change_form($form, &$form_state) {
+  $form['smg_email_change'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Sender Email Address'),
+    '#default_value' => variable_get('smg_email_change', 'donotreply@pmmimediagroup.com'),
+    '#size' => 40,
+    '#required' => TRUE,
+  );
+  return system_settings_form($form);
+}
+
+/**
+ * Validation function for smg_email_change_form.
+ */
+function smg_email_change_form_validate($form, &$form_state) {
+  $email  =  $form_state['input']['smg_email_change'];
+  $is_valid  = valid_email_address($email);
+  if (!$is_valid) {
+    form_set_error('form', t('Seems, this email isn\'t valid'));
+  }
+}
+
+/**
+ * Implements hook_mail_alter().
+ */
+function smg_email_change_mail_alter(&$message) {
+  $site_name =  variable_get('site_name', 'Drupal');
+  $sender_email = variable_get('smg_email_change', 'donotreply@pmmimediagroup.com');
+  $message['from'] = $message['headers']['From'] = "{$site_name} <{$sender_email}>";
+}

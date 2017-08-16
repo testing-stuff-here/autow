@@ -1,0 +1,5 @@
+;$Id$
+name = pwnode
+description = this will alter the nodes 
+package = "custom"
+core = 7.x

@@ -1,0 +1,20 @@
+<?php
+// $Id$
+/**
+ * Used to remove/alter certain elements from the $head output within html.tpl.php
+ * http://api.drupal.org/api/drupal/modules--system--system.api.php/function/hook_html_head_alter/7
+ */
+ 
+function html_head_alteration_html_head_alter(&$head_elements) {
+ 
+ $args = arg();
+
+ // delete canonical element if this is a node view page
+  if( ($args[0] =='node') && (!isset($args[2])) ){
+    foreach ($head_elements as $key => $element) {
+      if (isset($element['#attributes']['rel']) && $element['#attributes']['rel'] == 'canonical') {
+        unset($head_elements[$key]);
+      }
+    }
+  }
+}

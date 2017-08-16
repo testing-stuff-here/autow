@@ -1,0 +1,17 @@
+#wrapper-360 {margin:10px; border:1px solid #000; padding:8px;}
+#content {width:100%;}
+.node .form-item {height:100%;}
+.infoDiv .info-deckhead {padding-top:20px;}
+
+@media (min-width: 640px) {
+  .page-node #content .node .content {}
+  .node-type-360-package-spin-rotate .node #wrapper-360 .form-item, .page-node #holder360 {min-height:500px;}
+}
+
+@media (max-width: 640px) {
+  #wrapper-360 .form-item, #wrapper-360 #holder360 {min-height:250px;}
+}
+
+@media (max-width: 481px) {
+  #wrapper-360 {margin:0; padding:0;}
+}

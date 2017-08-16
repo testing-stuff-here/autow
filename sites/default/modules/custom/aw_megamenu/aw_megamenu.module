@@ -1,0 +1,356 @@
+<?php
+/**
+ * @File
+ *
+ * Create mega menu URL endpoints for AWBS theme
+ */
+
+/**
+ * Implements hook_menu()
+ */
+function aw_megamenu_menu() {
+  $items['awmegamenu/get-content/menuname'] = [
+    'page callback' => 'aw_megamenu_get_content',
+    //'file' => 'pmmi_megamenu.inc',
+    //'page arguments' => array(3),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  ];
+
+  return $items;
+}
+
+/**
+ * Callback for VID get content
+ */
+function aw_megamenu_get_content() {
+  $menu_options = [
+    'aweditors',
+    'products',
+    'factory',
+    'process',
+    'engineering',
+    'operations',
+    'it',
+    'video',
+  ];
+  if ($cache = cache_get("aw_megamenu")) {
+    $results = $cache->data;
+  }
+  else {
+    foreach ($menu_options as $menuname) {
+      // If the menu request is for editor information
+      if ($menuname == 'aweditors') {
+        $authors = [
+          'David Greenfield',
+          'Aaron Hand',
+          'Stephanie Neil',
+          'Pat Reynolds',
+        ];
+
+        foreach ($authors as $author) {
+          $author_result_set = db_query('SELECT n.title as title, dfi.field_image_fid as imgid, ua.alias AS href FROM {node} n
+                                   INNER JOIN {field_data_field_image} dfi ON dfi.entity_id = n.nid
+                                   INNER JOIN {url_alias} ua ON ua.source = CONCAT(:nodeprefix, n.nid)
+                                   WHERE n.nid IN (SELECT entity_id FROM {field_data_field_byline} WHERE field_byline_value = :author)
+                                   ORDER BY n.nid
+                                   DESC LIMIT 5', [
+            ':nodeprefix' => "node/",
+            ':author' => $author,
+          ])->fetchAll();
+
+
+          foreach ($author_result_set as &$result) {
+            $image = file_load($result->imgid);
+            $result->image->src = file_create_url($image->uri);
+            $result->image->title = (property_exists($image, 'title')) ? $image->title : '';
+            $result->image->alt = (property_exists($image, 'alt')) ? $image->alt : '';
+          }
+          $author_return[$author]['items'] = $author_result_set;
+          $author_return[$author]['path'] = str_replace(' ', '-', strtolower($author)); // author paths differ from topic paths
+        }
+        $results[$menuname] = $author_return;
+
+      }
+
+      if ($menuname === 'video') {
+        $videos_content = [];
+        $videos_view = views_get_view_result('video', 'page');
+        $i = 0;
+
+        $videos_view_link = views_get_view('video');
+        $videos_view_link->set_display('page');
+        $videos_views_path = $videos_view_link->get_path();
+
+        while($i != 5) {
+          $videos_item = node_load($videos_view[$i]->nid);
+          $item = new stdClass();
+          $item->image->src = $videos_item->field_viddler_id[LANGUAGE_NONE][0]['thumbnail_url'];
+          $item->image->alt = $videos_item->title;
+          $item->image->title = $videos_item->title;
+          $item->title = $videos_item->title;
+          $item->href = drupal_get_path_alias('node/' . $videos_item->nid);
+
+          $videos_content[] = $item;
+          $i++;
+        }
+        $results[$menuname]['See all videos']['items'] = $videos_content;
+        $results[$menuname]['See all videos']['path'] = $videos_views_path;
+      }
+
+      // If the endpoint called isn't for the editor data, pass it through this switch.
+      if ($menuname != 'aweditors' && $menuname !== 'video') {
+        switch ($menuname) {
+          case 'products':
+            $tids = [
+              'Controls' => [
+                'path' => 'products/control',
+                'tids' => [1, 3, 4, 11, 14, 2710],
+              ],
+              'Drives' => [
+                'path' => 'products/drives-motors',
+                'tids' => [93, 92, 2693, 2707, 2708],
+              ],
+              'HMI' => [
+                'path' => 'products/hmi',
+                'tids' => [2144, 2699, 2700],
+              ],
+              'Instrumentation' => [
+                'path' => 'products/instrumentation',
+                'tids' => [27, 31],
+              ],
+              'Sensors' => [
+                'path' => 'products/sensors',
+                'tids' => [
+                  28,
+                  1810,
+                  1683,
+                  845,
+                  838,
+                  844,
+                  837,
+                  833,
+                  841,
+                  835,
+                  836,
+                  846,
+                  1411,
+                  834,
+                  840,
+                  843,
+                  29,
+                  842,
+                  839,
+                  2721,
+                  2722,
+                ],
+              ],
+              'Networking' => [
+                'path' => 'products/networking',
+                'tids' => [1331, 2709],
+              ],
+              'Energy Management' => [
+                'path' => 'products/energy-management',
+                'tids' => [97, 1732, 1517, 1523, 1736, 99, 91, 816, 2756],
+              ],
+
+            ];
+            break;
+          case 'factory':
+            $tids = [
+              'Aerospace' => [
+                'path' => 'factory-automation/aerospace',
+                'tids' => [929],
+              ],
+              'Automotive' => [
+                'path' => 'factory-automation/automotive',
+                'tids' => [918],
+              ],
+              'Fabricated Metals' => [
+                'path' => 'factory-automation/fabricated-metals',
+                'tids' => [916],
+              ],
+              'Packaging' => [
+                'path' => 'factory-automation/packaging',
+                'tids' => [911],
+              ],
+              'OEM' => [
+                'path' => 'factory-automation/oem',
+                'tids' => [912],
+              ],
+            ];
+            break;
+          case 'process':
+            $tids = [
+              'Chemical' => [
+                'path' => 'process-automation/chemical',
+                'tids' => [910],
+              ],
+              'Food & Beverage' => [
+                'path' => 'process-automation/food-beverage',
+                'tids' => [909],
+              ],
+              'Oil & Gas' => [
+                'path' => 'process-automation/oil-gas',
+                'tids' => [915],
+              ],
+              'Life Sciences' => [
+                'path' => 'process-automation/life-sciences',
+                'tids' => [913],
+              ],
+              'Power Generation' => [
+                'path' => 'process-automation/power-generation',
+                'tids' => [934],
+              ],
+              'Pulp & Paper' => [
+                'path' => 'process-automation/pulp-paper',
+                'tids' => [917],
+              ],
+              'Water/Wastewater' => [
+                'path' => 'process-automation/water-wastewater',
+                'tids' => [932],
+              ],
+            ];
+            break;
+          case 'engineering':
+            $tids = [
+              'Batch Manufacturing' => [
+                'path' => 'engineering/batch-manufacturing',
+                'tids' => [105],
+              ],
+              'Discrete Manufacturing' => [
+                'path' => 'engineering/discrete-manufacturing',
+                'tids' => [106],
+              ],
+              'Continuous Process' => [
+                'path' => 'engineering/continuous-process',
+                'tids' => [107],
+              ],
+              'Design' => [
+                'path' => 'engineering/design',
+                'tids' => [847, 895, 1764, 1765, 1480, 42],
+              ],
+              'Motors & Drives' => [
+                'path' => 'engineering/motors-drives',
+                'tids' => [92, 93],
+              ],
+              'Sensors' => [
+                'path' => 'engineering/sensors',
+                'tids' => [18, 28],
+              ],
+              'System Integration' => [
+                'path' => 'engineering/system-integration',
+                'tids' => [49, 2750],
+              ],
+              'Valves' => [
+                'path' => 'engineering/valves',
+                'tids' => [31],
+              ],
+            ];
+            break;
+          case 'operations':
+            $tids = [
+              'Asset Management' => [
+                'path' => 'operations/asset-management',
+                'tids' => [19, 2704],
+              ],
+              'Lean Manufacturing' => [
+                'path' => 'operations/lean-manufacturing',
+                'tids' => [53, 2745],
+              ],
+              'Production Management' => [
+                'path' => 'operations/production-management',
+                'tids' => [39],
+              ],
+              'Supply Chain' => [
+                'path' => 'operations/supply-chain',
+                'tids' => [41, 2725],
+              ],
+              'Training' => [
+                'path' => 'operations/training',
+                'tids' => [45],
+              ],
+              'Workforce' => [
+                'path' => 'operations/workforce',
+                'tids' => [1445, 2751],
+              ],
+            ];
+            break;
+          case 'it':
+            $tids = [
+              'Communication' => [
+                'path' => 'it/communication',
+                'tids' => [70, 2689],
+              ],
+              'Ethernet' => [
+                'path' => 'it/ethernet',
+                'tids' => [138, 61, 2732],
+              ],
+              'Databases' => [
+                'path' => 'it/databases',
+                'tids' => [64, 2691],
+              ],
+              'Fieldbuses' => [
+                'path' => 'it/fieldbuses',
+                'tids' => [
+                  1,
+                  1331,
+                  858,
+                  1948,
+                  854,
+                  10,
+                  862,
+                  863,
+                  864,
+                  855,
+                  859,
+                ],
+              ],
+              'Networking' => [
+                'path' => 'it/networking',
+                'tids' => [1331, 2709],
+              ],
+              'MES' => [
+                'path' => 'it/mes',
+                'tids' => [35, 2705],
+              ],
+            ];
+            break;
+        }
+        // See if the cache already has data for this menu selection
+        foreach ($tids as $key => $tidsdata) { // loop through the tid groups ($tidsdata) by menu subtopic type ($key)
+          $root_path = $tids[$key]['path'];
+          $topic_result_set = db_query('SELECT n.nid FROM {taxonomy_index} n WHERE n.tid IN (:tids) ORDER BY nid DESC LIMIT 5', [':tids' => $tidsdata['tids']])->fetchAll(); // request the 5 newest nodes for this topic id
+
+          unset($nidparams); // unset before each loop through the topics returned
+          foreach ($topic_result_set as $topic_result) { // for each tid node, loop through
+            $nidparams[] = $topic_result->nid; // and save that nid into a node id params array
+          }
+
+          // $article_result_set = db_query('SELECT nd.title FROM {node} nd WHERE nd.nid IN (:nids)', array(':nids'=>$nidparams))->fetchAll(); // fetch the node data for the 5 nodes for this subtopic
+          $article_result_set = db_query('SELECT nd.title as title, dfi.field_image_fid as imgid, ua.alias AS href FROM {node} nd
+                                   INNER JOIN {field_data_field_image} dfi ON dfi.entity_id = nd.nid
+                                   INNER JOIN {url_alias} ua ON ua.source = CONCAT(:nodeprefix, nd.nid)
+                                   WHERE nd.nid IN (:nids)', [
+            ':nids' => $nidparams,
+            ':nodeprefix' => "node/",
+          ])->fetchAll();
+
+          foreach ($article_result_set as &$article) {
+            $image = file_load($article->imgid);
+            $article->image->src = image_style_url("medium", $image->uri); ///file_create_url($image->uri); // image_style_url
+            $article->image->title = (property_exists($image, 'title')) ? $image->title : '';
+            $article->image->alt = (property_exists($image, 'alt')) ? $image->alt : '';
+          }
+
+          $results[$menuname][$key]['items'] = $article_result_set; // add to the JSON result set
+          $results[$menuname][$key]['path'] = $root_path;
+        }
+      }
+
+    } // foreach
+    cache_set('aw_megamenu', $results, 'cache', time() + 3000); // set the results in cache
+  }
+
+  drupal_json_output($results); // output the results in JSON format
+}

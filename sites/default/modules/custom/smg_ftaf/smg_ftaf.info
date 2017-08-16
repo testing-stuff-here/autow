@@ -1,0 +1,7 @@
+name = SMG Forward to a Friend
+description = Functionality that allows users to forward articles to friends
+package = SMG
+core = 7.x
+stylesheets[all][] = css/smg_ftaf.css
+dependencies[] = mailsystem
+dependencies[] = googleanalytics

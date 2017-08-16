@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the awbs views feature.
+ */
+
+include_once('awbs_views.features.inc');

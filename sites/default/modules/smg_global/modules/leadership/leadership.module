@@ -1,0 +1,2182 @@
+<?php
+/**
+ * @author Albert Jankowski <ajankowski@summitmediagroup.com>
+ *
+ * Creates Leadership in Automation Voting Block
+ *  - Since LIA is currently on a D6 instance, this is a quick way for
+ *    displaying a block with a voting link.  Dave says that the companies hardly
+ *    ever change and it would be better just to hard code the companies.
+ *
+ *  - Next year just all you need to do is update the get company name quries for the
+ *    the latest year companies.
+ *
+ * @TODO If companies are going to change a lot just have it connect to the database
+ */
+module_load_include('inc', 'leadership', 'leadership.constants');
+
+/**
+ * Implements hook_permission().
+ */
+function leadership_permission() {
+  return array(
+    'administer_leadership' => array(
+      'title' => t('Administer Leadership'),
+      'description' => t('Perform administration tasks on Leadership.'),
+    ),
+    'administer_company_profiles' => array(
+      'title' => t('Administer Company Profile'),
+      'description' => t('Administer company profiles'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function leadership_menu() {
+  $site_id = variable_get('smg_global_site');
+  if ($site_id == 'pw') {
+    $main_categories = array(
+      'Machines' => variable_get('leadership_admin_category_machines'),
+      'Materials' => variable_get('leadership_admin_category_materials'),
+      'Services' => variable_get('leadership_admin_category_services'),
+    );
+  }
+
+  // *** Administration Pages *** //
+  // Main Dashboard
+  $items['admin/leadership'] = array(
+    'title' => 'Leadership',
+    'description' => 'Manage Leadership',
+    'page callback' => 'leadership_dashboard',
+    'access arguments' => array('administer_leadership'),
+    'weight' => 12,
+    'file' => 'leadership.admin.inc',
+  );
+  // Company Page
+  $items['admin/leadership/companies'] = array(
+    'title' => 'Add Company',
+    'page callback' => 'leadership_companies',
+    'access arguments' => array('administer_leadership'),
+    'file' => 'leadership.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+  // User Page
+  $items['admin/leadership/user'] = array(
+    'title' => 'Users',
+    'page callback' => 'leadership_user_config',
+    'access arguments' => array('administer_leadership'),
+    'file' => 'leadership.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+  // User Login Link Popup
+  $items['admin/leadership/user/uli/%user/%ctools_js'] = array(
+    'title' => 'User Login Link',
+    'page callback' => 'leadership_user_login_link_popup',
+    'page arguments' => array(4, 5),
+    'access arguments' => array('administer_leadership'),
+    'file' => 'leadership.admin.inc',
+    'type' => MENU_CALLBACK,
+  );
+  // Configure
+  $items['admin/leadership/configure'] = array(
+    'title' => 'Configuration',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('leadership_configure_form'),
+    'access arguments' => array('administer_leadership'),
+    'file' => 'leadership.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 100,
+  );
+  // Notifications
+  $items['admin/leadership/notifications'] = array(
+    'title' => 'Notifications',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('leadership_notifications_form'),
+    'access arguments' => array('administer_leadership'),
+    'file' => 'leadership.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 150,
+  );
+  // Send one-time login notifications
+  $items['admin/leadership/notifications/one-time-send'] = array(
+    'title' => 'Send One-Time Login Notices',
+    'page callback' => 'leadership_send_one_time_login_notifications',
+    'access arguments' => array('administer_leadership'),
+    'file' => 'leadership.admin.inc',
+    'type' => MENU_CALLBACK,
+  );
+  // Send unapproved print profile notifications
+  $items['admin/leadership/notifications/unapproved-send'] = array(
+    'title' => 'Send Unapproved Print Profile Notifications',
+    'page callback' => 'leadership_send_unapproved_print_profile_notifications',
+    'access arguments' => array('administer_leadership'),
+    'file' => 'leadership.admin.inc',
+    'type' => MENU_CALLBACK,
+  );
+  // Add Admin Main Categories to a company.
+  $items['admin/leadership/add/main-categories/%'] = array(
+    'title' => 'Add Categories to Company',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('leadership_add_categories_to_one_company_form', 4),
+    'access arguments' => array('administer_leadership'),
+    'file' => 'leadership.admin.inc',
+  );
+
+  // Add category to multiple companies via checkbox form.
+  if ($site_id == 'pw' && !empty($main_categories)) {
+    foreach ($main_categories as $taxonomy_name => $tid) {
+      $items["admin/leadership/add/category/$tid"] = array(
+        'title' => "Add $taxonomy_name Term to current companies",
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('leadership_all_companies_category_form', 4),
+        'access arguments' => array('administer_leadership'),
+        'file' => 'leadership.admin.inc',
+        'type' => MENU_LOCAL_ACTION,
+      );
+    }
+  }
+
+  // *** Remove Company From Current Session
+  $items['leaders/%/remove/session'] = array(
+    'title' => 'Remove Company From Current Session',
+    'page callback' => 'leadership_companies_remove_from_current_session',
+    'page arguments' => array(1),
+    'access arguments' => array('administer_leadership'),
+    'file' => 'leadership.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+  // *** Get xml from Print Profile
+  $items['admin/leadership/xml/%'] = array(
+    'title' => 'XML',
+    'page callback' => 'leadership_get_xml',
+    'page arguments' => array(3),
+    'access arguments' => array('administer_leadership'),
+    'file' => 'leadership.admin.inc',
+    'type' => MENU_CALLBACK,
+  );
+  // *** Get company list that will be used in the leadership blocks
+  $items['leaders/get-company-list/json/%/%'] = array(
+    'title' => 'Get Leadership Companies for Taxonomy Term',
+    'delivery callback' => 'drupal_json_output',
+    'page callback' => 'leadership_get_company_list_json',
+    'page arguments' => array(3, 4),
+    'access callback' => true,
+  );
+
+  // *** User Pages *** //
+  $items['user/%user/leadership'] = array(
+    'title' => 'Leadership',
+    'page callback' => 'leadership_user_redirect',
+    'access arguments' => array('administer_company_profiles'),
+    'page arguments' => array(1),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'leadership.user.inc',
+    'weight' => 99,
+  );
+  $items['leaders/user/%'] = array(
+    'title' => 'Leadership User',
+    'description' => 'Leadership User Dashboard',
+    'page callback' => 'leadership_user_dashboard',
+    'page arguments' => array(2),
+    'access arguments' => array('administer_company_profiles'),
+    'file' => 'leadership.user.inc',
+    'type' => MENU_LOCAL_ACTION,
+  );
+  $items['leaders/widget/%'] = array(
+    'title' => 'Leadership Widget',
+    'description' => 'Leadership Widget for your site',
+    'page callback' => 'leadership_widget_page',
+    'page arguments' => array(2),
+    'access arguments' => array('administer_company_profiles'),
+    'file' => 'leadership.user.inc',
+    'type' => MENU_LOCAL_ACTION,
+  );
+  $items['admin/leadership/text-output'] = array(
+    'title' => 'Leadership Text Output',
+    'description' => 'A text Output of all the leadership items',
+    'page callback' => 'leadership_text_output',
+    'page arguments' => array(variable_get('leadership_dashboard_session_term')),
+    'access arguments' => array('administer_leadership'),
+    'type' => MENU_LOCAL_ACTION,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_menu_alter().
+ *
+ * @param array $items
+ */
+function leadership_menu_alter(&$items) {
+  // Set a different theme callback for node edit pages, and pass along the node
+  // object to this function so we can make decisions based on it.
+  $items['node/%node/edit']['theme callback'] = 'leadership_edit_node_theme';
+  $items['node/%node/edit']['theme arguments'] = array(1);
+}
+
+/**
+ * For editing leadership nodes.
+ *
+ * @param object $node
+ *
+ * @return string
+ */
+function leadership_edit_node_theme($node) {
+  if ($node->type == 'leadership_data_card' ||
+    $node->type == 'leadership_print_profile' ||
+    $node->type == 'leadership_online_profile'
+  ) {
+
+    // Only show theme to leadership user
+    global $user;
+
+    foreach ($user->roles as $key => $value) {
+      if ($key == variable_get('leadership_role_name')) {
+        return 'seven';
+      }
+    }
+  }
+}
+
+/**
+ * Implement hook_user_login()
+ *
+ * @param array  $edit
+ * @param object $account
+ */
+function leadership_user_login(&$edit, $account) {
+  $leadership_user = FALSE;
+  $expo_pack_user = FALSE;
+
+  // Get Role name of leadwise user
+  $leadership_role_obj = user_role_load(variable_get('leadership_role_name'));
+  $expo_pack_role_obj = user_role_load_by_name('Expo Pack User');
+
+  foreach ($account->roles as $role) {
+    if (isset($leadership_role_obj) && $role == $leadership_role_obj->name) {
+      $leadership_user = TRUE;
+    }
+    if (isset($expo_pack_role_obj) && $role == $expo_pack_role_obj->name) {
+      $expo_pack_user = TRUE;
+    }
+  }
+
+  if ($leadership_user && !$expo_pack_user) {
+    $edit['redirect'] = 'leaders/user/' . $account->uid;
+  }
+
+  if ($expo_pack_user) {
+    $edit['redirect'] = 'leaders/user/' . $account->uid . '/expo-pack';
+  }
+}
+
+/**
+ * Implements hook_node_access().
+ *
+ * @param object $node
+ * @param string $op
+ * @param object $account
+ *
+ * @return string
+ */
+function leadership_node_access($node, $op, $account) {
+  if (variable_get('smg_global_site') == 'aw') {
+    $company_field_name = 'field_ld_company';
+  }
+  else {
+    $company_field_name = 'field_companies';
+  }
+  $bundle = is_string($node) ? $node : $node->type;
+  $profile_types = array(
+    'leadership_data_card',
+    'leadership_online_profile',
+    'leadership_print_profile',
+  );
+  $roles = $account->roles;
+
+  // Grant access to leadership profiles if company is assigned to
+  // user (field_companies/field_ld_company on user entity).
+  if (in_array($bundle, $profile_types) && ($op == 'update' || $op == 'view') && (in_array('Leadership Admin', $roles) || in_array('Leadership User', $roles))) {
+    $profile_wrapper = entity_metadata_wrapper('node', $node);
+    $profile_company = array_shift($profile_wrapper->$company_field_name->value());
+    $user_wrpapper = entity_metadata_wrapper('user', $account);
+    $user_companies = $user_wrpapper->$company_field_name->value();
+
+    foreach ($user_companies as $user_company) {
+      if ($user_company->nid == $profile_company->nid) {
+        return NODE_ACCESS_ALLOW;
+      }
+    }
+  }
+  return NODE_ACCESS_IGNORE;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function leadership_block_info() {
+  $blocks['leadership_all_companies'] = array(
+    'info' => t('Leadership All Companies'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  $blocks['leadership_data_card_block'] = array(
+    'info' => t('Leadership Datacard'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  $blocks['leadership_all_and_datacard'] = array(
+    'info' => t('Leadership Datacard and All Companies'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  $blocks['leadership_companies_full'] = array(
+    'info' => t('Leadership Companies Full'),
+    'cache' => DRUPAL_NO_CACHE,
+    'status' => TRUE,
+    'region' => 'content',
+    'visibility' => BLOCK_VISIBILITY_LISTED,
+    'pages' => 'leaders',
+    'weight' => 40,
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implement hook_preprocess_block().
+ *
+ * @param array $vars
+ */
+function leadership_preprocess_block(&$vars) {
+  $block_id = $vars['block']->module . '-' . $vars['block']->delta;
+  $classes = &$vars['classes_array'];
+
+  // Add classes based on the block delta.
+  switch ($block_id) {
+    // Add class to leadership locks blocks.
+    case 'leadership-leadership_all_companies':
+    case 'leadership-leadership_data_card_block':
+    case 'leadership-leadership_all_and_datacard':
+      $classes[] = 'block-ld';
+      break;
+
+    // Add clearfix class to companies full block.
+    case 'leadership-leadership_companies_full':
+      $classes[] = 'clearfix';
+      break;
+  }
+}
+
+/**
+ * Implements hook_block_view().
+ *
+ * @param string $delta
+ *
+ * @return array
+ */
+function leadership_block_view($delta = '') {
+  $block = array();
+
+  switch ($delta) {
+    case 'leadership_all_companies':
+      $node = menu_get_object();
+
+      $data_card_content = leadership_get_data_card_content($node);
+
+      if (!$data_card_content) {
+        $block = array(
+          'subject' => '<img class="ld-block-logo" src="' . variable_get('leadership_block_logo') . '" alt="Leadership Logo" />',
+          'content' => theme('leadership_allcompanies', array(
+              'taxonomies' => leadership_get_taxonomies(FALSE),
+              'delta' => $delta,
+            )
+          ),
+        );
+      }
+      break;
+    case 'leadership_data_card_block':
+      $node = menu_get_object();
+
+      // Get the companies
+      $data_card_content = leadership_get_data_card_content($node);
+
+      if ($data_card_content) {
+        $block = array(
+          'subject' => '<img class="ld-block-logo" src="' . variable_get('leadership_block_logo') . '" alt="Leadership Logo" />',
+          'content' => theme('leadership_datacard', array(
+            'category_content' => $data_card_content,
+          )),
+        );
+      }
+      break;
+    case 'leadership_all_and_datacard':
+      $output = '';
+      $path = drupal_get_path('module', 'leadership');
+      $node = menu_get_object();
+
+      // Get data card content
+      $data_card_content = leadership_get_data_card_content($node);
+      if ($data_card_content) {
+        $output .= theme('leadership_datacard', array('category_content' => $data_card_content));
+      }
+      // Get all companies section content.
+      $output .= theme(
+        'leadership_allcompanies',
+        array('taxonomies' => leadership_get_taxonomies(), 'delta' => $delta, 'has_data_card' => $data_card_content ? TRUE : FALSE)
+      );
+
+      $js_extension = (variable_get('smg_global_is_production', false)) ? '.min.js' : '.js';
+
+      $block = array(
+        'subject' => '<img class="ld-block-logo" src="' . variable_get('leadership_block_logo') . '" alt="Leadership Logo" />',
+        'content' => array(
+          '#markup' => $output,
+          '#attached' => array(
+            'css' => array(
+              $path . '/css/all_companies_block.css',
+            ),
+          ),
+        ),
+      );
+
+      if (!path_is_admin(current_path())) {
+        $block['content']['#attached']['js'] = array(
+          'sites/all/libraries/angularjs/bower_components/angular-animate/angular-animate.min.js',
+          $path . "/angular/js/all_companies_block{$js_extension}",
+        );
+      }
+
+      break;
+    case 'leadership_companies_full':
+      $site_id = variable_get('smg_global_site');
+      $module_path = drupal_get_path('module', 'leadership');
+      if ($site_id == 'aw' || $site_id == 'hcp') {
+        $output = theme('leadership_aw_page', array(
+          'taxonomies' => leadership_get_taxonomies(TRUE),
+        ));
+      }
+      else {
+        if ($site_id == 'ppoem') {
+          $output = theme('leadership_ppoem_page', array(
+            'taxonomies' => leadership_get_taxonomies(TRUE),
+          ));
+        }
+        else {
+          $output = theme('leadership_pw_page', array(
+            'taxonomies' => leadership_get_taxonomies(TRUE),
+            'site_id' => $site_id,
+          ));
+        }
+      }
+      $block = array(
+        'content' => array(
+          '#markup' => $output,
+          '#attached' => array(
+            'css' => array(
+              $module_path . '/css/leaders_page.css',
+            ),
+          ),
+        ),
+      );
+  }
+
+  return $block;
+}
+
+/**
+ * Implements hook_block_configure().
+ *
+ * @param string $delta
+ *
+ * @return array
+ */
+function leadership_block_configure($delta = '') {
+  $form = array();
+  if ($delta == 'leadership_data_card_block' || $delta == 'leadership_all_and_datacard') {
+    $form['leadership_data_card_term_limit'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Number of Terms to Display'),
+      '#description' => t('Sets the amount of terms to display in the data card block.'),
+      '#default_value' => variable_get('leadership_data_card_term_limit', 20),
+      '#size' => 3,
+    );
+  }
+
+  return $form;
+}
+
+/**
+ * Implements hook_block_save().
+ *
+ * @param string $delta
+ * @param array  $edit
+ */
+function leadership_block_save($delta = '', $edit = array()) {
+  if ($delta == 'leadership_data_card_block' || $delta == 'leadership_all_and_datacard') {
+    variable_set('leadership_data_card_term_limit', $edit['leadership_data_card_term_limit']);
+  }
+}
+
+/**
+ * Get all the companies per page.
+ *
+ * @param  mixed $node
+ *   node object
+ * @return array $data
+ *   an array of term ids that contain an array of company data @see
+ *   leadership_get_companies_with_term.
+ */
+function leadership_get_data_card_content($node) {
+
+  $data_card_content = &drupal_static(__FUNCTION__);
+
+  if (!$data_card_content) {
+    // Instantiate defaults.
+    $get_info = FALSE;
+    $data = array();
+    $site_id = variable_get('smg_global_site');
+    $mapping = array();
+
+    if ($node) {
+      // Make sure it has source type of original or supplier submitted.
+      if (isset($node->field_term_source_type['und'][0])) {
+        foreach ($node->field_term_source_type['und'] as $term) {
+          // Set the original and supplier submitted tids based on sites.
+          if ($site_id == 'aw') {
+            $allowed_source_type_tids = array(138, 140);
+          }
+          elseif ($site_id === 'ppoem') {
+            $allowed_source_type_tids = array(42, 44);
+          }
+          elseif ($site_id === 'pfw') {
+            $allowed_source_type_tids = array(223, 224);
+          }
+          else {
+            $allowed_source_type_tids = array(162, 163);
+          }
+          if (in_array($term['tid'], $allowed_source_type_tids)) {
+            $get_info = TRUE;
+          }
+        }
+      }
+
+      if ($get_info && isset($node->field_allterms['und'][0])) {
+        $already_used_tids = array();
+        // Go through all the taxonomy terms and find out if there are
+        // any companies for that term.
+        foreach ($node->field_allterms['und'] as $term) {
+          if (!in_array($term['tid'], $already_used_tids)) {
+            if (in_array($site_id, array('aw', 'ppoem'))) {
+              // AW/PPOEM have direct mappings so just check if there are any companies with
+              // the same term id.
+              $companies = leadership_get_companies_with_term($site_id, $term['tid'], TRUE);
+              foreach ($companies as $key => $company) {
+                $data[$company->tid][] = $company;
+              }
+            }
+            else {
+              // PW, HCP, and PFW don't have a direct mapping so look for the mapping
+              // for that term.
+              $node_mapping = taxonomy_map_get_mapping($term['tid']);
+
+              if ($node_mapping) {
+                $mapping = array_merge($mapping, $node_mapping);
+              }
+            }
+
+            $already_used_tids[] = $term['tid'];
+          }
+        }
+      }
+    }
+    else {
+      $path = current_path();
+
+      // If a taxonomy path get the taxonomy tid from the path and find out if
+      // there are any companies with the term.
+      if (strpos($path, 'taxonomy/term/') !== FALSE) {
+        $taxonomy_path = explode('/', $path);
+        if (isset($taxonomy_path[2]) && is_numeric($taxonomy_path[2])) {
+          // Automation World/PPOEM have direct mappings so just checking if there are
+          // any companies with the term.
+          if (in_array($site_id, array('aw', 'ppoem'))) {
+
+            if ($site_id == 'aw') {
+              // Display Network and Connectivity for child terms.
+              if (in_array($taxonomy_path[2], array(2727, 2728, 2729, 2730, 2733, 2731, 2732, 2734, 2735, 2736, 2737, 2738, 2739, 2740, 2741))) {
+                $taxonomy_path[2] = 2709;
+              }
+            }
+
+            $companies = leadership_get_companies_with_term($site_id, $taxonomy_path[2], TRUE);
+            foreach ($companies as $company) {
+              $data[$taxonomy_path[2]][] = $company;
+            }
+          }
+          else {
+            // Packaging World and Healthcare Packaging have a taxonomy mapping
+            // so checking if there is a mapping of the term.
+            $mapping = taxonomy_map_get_mapping($taxonomy_path[2]);
+          }
+        }
+      }
+      elseif (module_exists('taxonomy_map')) {
+        // Get the mapping based on the path.
+        $mapping = taxonomy_map_get_mapping($path);
+      }
+    }
+
+    // If it is mapped, then get the companies based on the mapping.
+    if ($mapping) {
+      // Store already ran tids so we don't have repeat companies.
+      $already_used_tids = array();
+
+      foreach ($mapping as $tid) {
+        // Prevent companies from being added multiple times.
+        if (!in_array($tid, $already_used_tids)) {
+          $companies = leadership_get_companies_with_term($site_id, $tid, TRUE);
+
+          foreach ($companies as $company) {
+            $data[$tid][] = $company;
+          }
+
+          $already_used_tids[] = $tid;
+        }
+      }
+    }
+
+    $data_card_content = array_slice($data, 0, variable_get('leadership_data_card_term_limit', 20), TRUE);
+  }
+
+  return $data_card_content;
+}
+
+/**
+ * Get Taxonomies that are for leadership
+ *
+ * @param boolean $include_companies
+ *   If set to true the array will include the companies in the taxonomy list.
+ *
+ * @param integer $session
+ *
+ * @param bool $datacardPublished
+ *   If set to TRUE it will makes sure that the datacard is published.
+ *
+ * @param bool $printProfilePublished
+ *   If set to TRUE it will make sure that the print profile is published.
+ *
+ * @return array $terms_with_companies
+ *   An array of taxonomy objects. @see taxonomy_get_tree().
+ */
+function leadership_get_taxonomies(
+  $include_companies = FALSE,
+  $session = NULL,
+  $datacardPublished = TRUE,
+  $printProfilePublished = FALSE
+) {
+  $terms_with_companies = array();
+  $site_id = variable_get('smg_global_site');
+  $leadership_user_category_vocab = variable_get('leadership_user_category_vocab');
+
+  if ($site_id !== 'pw' && $leadership_user_category_vocab) {
+    // Go through the Leadership taxonomies (Technologies & Topics) that are
+    // available in Leadership and have a company.
+
+    // Set as array so we take in account settings that have only a single
+    // vocab.
+    if (!is_array($leadership_user_category_vocab)) {
+      $leadership_user_category_vocab = array($leadership_user_category_vocab);
+    }
+
+    $terms = array();
+    foreach ($leadership_user_category_vocab as $vocab) {
+      $terms = array_merge($terms, taxonomy_get_tree($vocab));
+
+      // #610 - Excluding the child terms for appearing for AW.
+      if ($site_id == 'aw') {
+        foreach ($terms as $key => $term) {
+          if ($term->parents) {
+            foreach ($term->parents as $parent) {
+              if ($parent) {
+                unset($terms[$key]);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Alphabetize by company name.
+    usort($terms, 'leadership_compare_by_name');
+  }
+  else {
+    $machinery = taxonomy_get_tree($leadership_user_category_vocab, variable_get('leadership_user_machinery'));
+    $materials = taxonomy_get_tree($leadership_user_category_vocab, variable_get('leadership_user_materials'));
+    $services = taxonomy_get_tree($leadership_user_category_vocab, variable_get('leadership_user_service'));
+
+    // Alphabetize by company name.
+    usort($machinery, 'leadership_compare_by_name');
+    usort($materials, 'leadership_compare_by_name');
+    usort($services, 'leadership_compare_by_name');
+
+    $terms = array_merge($machinery, $materials, $services);
+  }
+
+  $terms_without_companies = leadership_get_terms_without_companies($site_id);
+  foreach ($terms as $term) {
+    if ($include_companies) {
+      $companies = leadership_get_companies_with_term($site_id, $term->tid, $datacardPublished, $printProfilePublished, FALSE, $session);
+      if ($companies) {
+        $term->companies = $companies;
+      }
+    }
+
+    // Only add the terms if there are any companies.
+    if (!in_array($term->tid, $terms_without_companies)) {
+
+      if ($site_id === 'pfw') {
+        $term = (array) $term;
+      }
+
+      $terms_with_companies[] = $term;
+    }
+  }
+
+  return $terms_with_companies;
+}
+
+/**
+ * String comparison on the name object.
+ * @param object $a
+ *   String 1.
+ * @param object $b
+ *   String 2. [varname] [description]
+ *
+ * @return int
+ */
+function leadership_compare_by_name($a, $b) {
+  return strcmp($a->name, $b->name);
+}
+
+/**
+ * Get companies that have the taxonomy term on their print profile and that
+ * are in the current session.
+ *
+ * @param integer $site_id
+ *   Site id.
+ * @param integer|bool $tid
+ *   Taxonomy term id.
+ * @param bool $datacardPublished
+ *   If set to TRUE it will makes sure that the datacard is published.
+ * @param bool $printProfilePublished
+ *   If set to TRUE it will make sure that the print profile is published.
+ * @param integer|bool $datacardNid
+ *   The node id of the datacard. Used to force to only show one datacard.
+ *   One example would be during preview.
+ * @param integer $session
+ *
+ * @return array $companies
+ *   Returns companies for the term.
+ */
+function leadership_get_companies_with_term(
+    $site_id,
+    $tid = FALSE,
+    $datacardPublished = FALSE,
+    $printProfilePublished = FALSE,
+    $datacardNid = FALSE,
+    $session = NULL
+) {
+  $companies = array();
+  $mapping = leadership_site_mappings($site_id);
+  // Use current leadership session by default.
+  if (!isset($session)) {
+    $session = variable_get('leadership_dashboard_session_term');
+  }
+
+  /** @var SelectQuery $query */
+  $query = db_select('node', 'n')
+    ->fields('n', array('nid', 'title'))
+    ->condition('n.type', 'company')
+    ->condition('n.status', '1')
+    ->orderBy('n.title', 'asc')
+    ->distinct();
+  // Query items dealing with Print Profile
+  $query->leftJoin($mapping['company_field_table'], 'print_profile', "print_profile.{$mapping['company_field_nid']} = n.nid");
+  $query->condition('print_profile.bundle', 'leadership_print_profile');
+  $query->addField('print_profile', 'entity_id', 'print_profile_nid');
+  if ($printProfilePublished) {
+    $query->leftJoin('node', 'print_profile_node', 'print_profile.entity_id = print_profile_node.nid');
+    $query->condition('print_profile_node.status', 1);
+  }
+  $query->leftJoin($mapping['website_field_table'], 'ld_website', 'ld_website.entity_id = print_profile.entity_id');
+  $query->addField('ld_website', $mapping['website_field_value'], 'company_website');
+
+  // Query items dealing with the Data card Profile
+  $query->leftJoin($mapping['company_field_table'], 'data_card_profile', "data_card_profile.{$mapping['company_field_nid']} = n.nid");
+  $query->condition('data_card_profile.bundle', 'leadership_data_card');
+  // must have this datacard node id
+  if ($datacardNid) {
+    $query->condition('data_card_profile.entity_id', $datacardNid);
+  }
+  $query->addField('data_card_profile', 'entity_id', 'datacard_nid');
+  if ($datacardPublished) {
+    $query->leftJoin('node', 'data_card_profile_node', 'data_card_profile.entity_id = data_card_profile_node.nid');
+    $query->condition('data_card_profile_node.status', 1);
+  }
+
+  // Queries dealing with the taxonomy terms
+  if (in_array($site_id, array('pw', 'hcp', 'pfw'))) {
+    $query->leftJoin('field_data_field_ld_categories', 'categories', 'categories.entity_id = print_profile.entity_id');
+    if ($tid) {
+      $query->condition('categories.field_ld_categories_tid', $tid);
+      $query->leftJoin('taxonomy_term_data', 'td', 'td.tid = :tid', array(':tid' => $tid));
+      $query->addField('td', 'name', 'taxonomy_name');
+      $query->addField('td', 'tid');
+    }
+  }
+  elseif ($site_id === 'aw') {
+    $query->leftJoin('field_data_field_ld_categories_technologies', 'categories_technology', 'categories_technology.entity_id = print_profile.entity_id');
+    if ($tid) {
+      $db_or = db_or();
+      $db_or->condition('categories_technology.field_ld_categories_technologies_tid', $tid);
+      $query->condition($db_or);
+      $query->leftJoin('taxonomy_term_data', 'td', 'td.tid = :tid', array(':tid' => $tid));
+      $query->addField('td', 'name', 'taxonomy_name');
+      $query->addField('td', 'tid');
+    }
+  }
+  else {
+    $query->leftJoin('field_data_field_ld_categories_control_prod', 'categories_controls', 'categories_controls.entity_id = print_profile.entity_id');
+    $query->leftJoin('field_data_field_ld_categories_technologies', 'categories_technologies', 'categories_technologies.entity_id = print_profile.entity_id');
+    $query->leftJoin('field_data_field_ld_categories_int_equip', 'categories_integrated_equip', 'categories_integrated_equip.entity_id = print_profile.entity_id');
+    if ($tid) {
+      $db_or = db_or();
+      $db_or->condition('categories_controls.field_ld_categories_control_prod_tid', $tid);
+      $db_or->condition('categories_technologies.field_ld_categories_technologies_tid', $tid);
+      $db_or->condition('categories_integrated_equip.field_ld_categories_int_equip_tid', $tid);
+      $query->condition($db_or);
+      $query->leftJoin('taxonomy_term_data', 'td', 'td.tid = :tid', array(':tid' => $tid));
+      $query->addField('td', 'name', 'taxonomy_name');
+      $query->addField('td', 'tid');
+    }
+  }
+
+  $query->leftJoin('field_data_field_ld_session', 'session', 'n.nid = session.entity_id');
+  $query->condition('session.field_ld_session_tid', $session);
+  $query->leftJoin('field_data_field_youtube_amplified', 'youtube_amplify', 'n.nid = youtube_amplify.entity_id');
+  $query->addField('youtube_amplify', 'field_youtube_amplified_value');
+  $result = $query->execute()->fetchAll();
+
+  foreach ($result as $data) {
+    // Get alias to company page.
+    $data->alias = "/" . drupal_get_path_alias('node/' . $data->nid);
+    // Get data card node data.
+    $data->data_card_processed_for_angular = leadership_process_data_card_for_angular(node_load($data->datacard_nid));
+    $data->pmg_youtube_feed_videos[$data->nid] = pmg_youtube_feed_leadership_get_company_video_json($data->nid);
+    $companies[$data->nid] = $data;
+  }
+
+  // #820 - Adding Studio One Eleven in Profile.
+  if ($site_id == 'pw') {
+    // If company node Berlin Packaging add company Studio One Eleven using
+    // Berlin Packaging data card info.
+    if (isset($companies[51308])) {
+      // Just using 1 because I know node 1 doesn't exist. It doesn't matter
+      // what the node id is anyways.
+      $companies[1] = clone $companies[51308];
+      $companies[1]->title = 'Studio One Eleven';
+
+      // Alphabetize by company name.
+      uasort($companies, 'leadership_compare_by_title');
+    }
+  }
+
+  return $companies;
+}
+
+/**
+ * String comparison on the title object.
+ *
+ * @param object $a
+ *   String 1.
+ * @param object $b
+ *   String 2. [varname] [description]
+ *
+ * @return int
+ */
+function leadership_compare_by_title($a, $b) {
+  return strcmp($a->title, $b->title);
+}
+
+/**
+ * Implements hook_theme().
+ */
+function leadership_theme() {
+  return array(
+    'leadership_allcompanies' => array(
+      'variables' => array('taxonomies' => NULL, 'delta' => NULL, 'has_data_card' => NULL),
+      'template' => 'leadership-allcompanies',
+    ),
+    'leadership_datacard' => array(
+      'variables' => array('category_content' => NULL, 'delta' => NULL),
+      'template' => 'leadership-datacard',
+    ),
+    'leadership_pw_page' => array(
+      'variables' => array('taxonomies' => NULL, 'site_id' => NULL),
+    ),
+    'leadership_aw_page' => array(
+      'variables' => array('taxonomies' => NULL),
+    ),
+    'leadership_ppoem_page' => array(
+      'variables' => array('taxonomies' => NULL),
+    ),
+    'leadership_companies_full' => array(
+      'variables' => array('taxonomies' => NULL, 'site_id' => NULL),
+    ),
+  );
+}
+
+/**
+ * Preprocess for the all companies block.
+ *
+ * @param array $vars
+ *   An associative array containing:
+ *   - taxonomies array
+ *     An array that contains taxonomy objects @see taxonomy_get_tree().
+ *   - delta string
+ *     The block string key.
+ *   - has_data_card
+ *     This will only be used in the all_companies_and_data_card block. If set
+ *     to FALSE then only all data that would appear in the all companies block
+ *     will appear. If set to TRUE both will appear.
+ */
+function template_preprocess_leadership_allcompanies(&$vars) {
+
+  if (path_is_admin(current_path())) {
+    return;
+  }
+
+  // Add js and css files.
+  $js_extension = (variable_get('smg_global_is_production', false)) ? '.min.js' : '.js';
+
+  $path = drupal_get_path('module', 'leadership');
+  $video_widget_path = drupal_get_path('module', 'video_widget');
+  drupal_add_css($path . '/css/all_companies_block.css');
+  drupal_add_css($path . '/css/datacard.css');
+  drupal_add_css($path . '/css/datacard_' . variable_get('smg_global_site') . '.css');
+  drupal_add_css($video_widget_path . '/video_widget_includes/css/video_widget.css');
+  drupal_add_js($video_widget_path . "/video_widget_includes/angular/app{$js_extension}");
+  //drupal_add_js('sites/all/libraries/angularjs/bower_components/angular-animate/angular-animate.min.js');
+  drupal_add_js($path . "/angular/js/all_companies_block{$js_extension}", array('every_page' => TRUE, 'preprocess' => TRUE));
+  drupal_add_js($path . "/angular/js/datacard{$js_extension}");
+
+  $vars['site_id'] = variable_get('smg_global_site');
+
+  $taxonomies = $vars['taxonomies'];
+  if ($taxonomies) {
+    if (variable_get('smg_global_site') == 'pw') {
+      // Add the parent tids,titles (Ex: Machinery, Materials, Service)
+      $categories = array();
+      foreach ($taxonomies as $taxonomy) {
+        $categories[$taxonomy->parents[0]]['tids'][] = $taxonomy;
+      }
+      foreach ($categories as $tid => $category) {
+        $categories[$tid]['tid'] = $tid;
+        $categories[$tid]['title'] = taxonomy_term_load($tid)->name;
+      }
+      $vars['taxonomies'] = $categories;
+    }
+
+    $vars['taxonomies'] = (array) $vars['taxonomies'];
+
+    // Add taxonomy list to Drupal object to be used by Angular.
+    drupal_add_js(array('leadership_all_companies_block' => $taxonomies), 'setting');
+
+  }
+  // Call the video widget registering function
+  video_widget_add_js();
+}
+
+/**
+ *  Preprocess datacard block.
+ *
+ * @param array $vars
+ *   An associative array containing:
+ *   - category_content array
+ *     An associative array of companies that contain the following objects (the
+ *     taxonomy name is the key of the array):
+ *     - nid integer
+ *       Node ID.
+ *     - title string
+ *       The company name.
+ *     - taxonomy_name
+ *       The name of the taxonomy
+ *     - tid integer
+ *       Taxonomy ID.
+ *     - field_youtube_amplified_value boolean
+ *       Boolean that states if a company is youtube amplified.
+ *     - datacard_nid integer
+ *       The datacard node id.
+ *     - print_profile_nid
+ *       The print profile node id.
+ *   - delta string
+ *     The block string key.
+ */
+function template_preprocess_leadership_datacard(&$vars) {
+
+  if (path_is_admin(current_path())) {
+    return;
+  }
+
+  $category_content = $vars['category_content'];
+  $json = NULL;
+  $angular_data_card = array();
+  $module_path = drupal_get_path('module', 'leadership');
+  $vars['company_link_icon'] = '/' . $module_path . '/css/images/ls_icon2.png';
+  $site_id = variable_get('smg_global_site');
+  $vars['site_id'] = $site_id;
+  $trim_company_name_length = variable_get('leadership_data_card_company_name_length', 29);
+  $trim_company_name_length_youtube_amplified = variable_get('leadership_data_card_company_name_length_youtube_amplified', 29);
+
+  foreach ($category_content as $taxonomy_tid => $content) {
+    $term = taxonomy_term_load($taxonomy_tid);
+    $vars['taxonomy_name'][$taxonomy_tid] = $term->name;
+    // Get parent of terms. Only expecting one parent.
+    $parents = taxonomy_get_parents($taxonomy_tid);
+    foreach ($parents as $parent) {
+      $vars['parent_name'][$taxonomy_tid] = $parent->name;
+    }
+
+    foreach ($content as $key => $company_data) {
+      // Add the companies videos's to the pmg_youtube_feed_leadership object
+      $company = pmg_youtube_feed_leadership_get_company_video_json($company_data->nid);
+      if ($company) {
+        $json[$company_data->nid] = $company_data->pmg_youtube_feed_videos[$company_data->nid];
+      }
+
+      // If a company is youtube amplified it will have less room because of the
+      // logo.
+      if ($company_data->field_youtube_amplified_value) {
+        $trim_company_name_length = $trim_company_name_length_youtube_amplified;
+      }
+
+      // Trim the title so it fits correctly in the block.
+      $category_content[$taxonomy_tid][$key]->title = views_trim_text(array('max_length' => $trim_company_name_length, 'ellipsis' => TRUE), $category_content[$taxonomy_tid][$key]->title);
+    }
+
+    // Add the datacard info for use with Angular
+    $angular_data_card[$taxonomy_tid] = leadership_get_companies_with_term(variable_get('smg_global_site'), $taxonomy_tid, TRUE);
+  }
+
+  // Add company videos to json object so Angular can handle.
+  if ($json) {
+    pmg_youtube_feed_leadership_add_videos_to_drupal_settings_object($json);
+  }
+
+  $js_extension = (variable_get('smg_global_is_production', false)) ? '.min.js' : '.js';
+
+  if ($angular_data_card) {
+    drupal_add_js(array('leadershipDatacard' => $angular_data_card), 'setting');
+    drupal_add_js($module_path . "/angular/js/datacard{$js_extension}", 'file');
+    drupal_add_css($module_path . '/css/datacard.css');
+    drupal_add_css($module_path . '/css/datacard_' . $site_id . '.css');
+    video_widget_add_js();
+  }
+}
+
+/**
+ * Returns html to display all the leadership companies.
+ *
+ * @param array $vars
+ *   An associative array containing:
+ *   - taxonomies array
+ *     An array that contains taxonomy objects @see taxonomy_get_tree().
+ *   - site_id string
+ *     Sting site identifier.
+ *
+ * @return string
+ */
+function theme_leadership_pw_page(&$vars) {
+  $output = '';
+  // The number of taxonomies allowed per column. Column 3 is set to a super
+  // high value just in case more terms are added.
+  // @TODO - Perhaps add this to the configuration but then again this doesn't
+  // change that often.
+  $column_limits = array(
+    variable_get('leadership_user_machinery') => array(
+      1 => 9,
+      2 => 17,
+      3 => 200,
+    ),
+    variable_get('leadership_user_materials') => array(
+      1 => 4,
+      2 => 7,
+      3 => 200,
+    ),
+    variable_get('leadership_user_service') => array(
+      1 => 1,
+      2 => 100,
+      3 => 200,
+    ),
+  );
+
+  $categories = array();
+  // Add the parent tids, titles (Ex: Machinery, Materials, Service).
+  foreach ($vars['taxonomies'] as $taxonomy) {
+    $categories[$taxonomy->parents[0]]['tids'][] = $taxonomy;
+  }
+
+  foreach ($categories as $tid => $category) {
+    $count = 1;
+    $output .= '<div class="category-container">';
+    $output .= '<h2>' . taxonomy_term_load($tid)->name . '</h2>';
+
+    foreach ($category as $terms) {
+      $column_limit = $column_limits[$tid]; // Get the limit based on the category tid.
+
+      foreach ($terms as $term) {
+        $column_number = FALSE;
+        // Split up the taxonomies into columns based on the what was set in
+        // $column_limits.
+        if ($count == 1) {
+          $column_number = 1;
+        }
+        foreach ($column_limit as $limitColumnNumber => $limit) {
+          // Adding 1 because a new column is formed after it reaches a limit.
+          if ($count == $limit + 1) {
+            $column_number = $limitColumnNumber + 1;
+          }
+        }
+        if ($column_number) {
+          $output .= '<div class="column-' . $column_number . '">';
+        }
+
+        $output .= '<h3>' . $term->name . '</h3>';
+        $output .= '<ul class="leaders-name">';
+        foreach ($term->companies as $company_id => $company) {
+          $videoIcon = $company->field_youtube_amplified_value ? '<span class="youtube-amplified-video-icon"></span>' : '';
+          $output .= '<li><a href="' . $company->alias . '">' . $company->title . '</a> ';
+          if (isset($company->pmg_youtube_feed_videos[$company->nid]->videos)) {
+            $output .= $videoIcon;
+          }
+          $output .= '</li>';
+        }
+        $output .= '</ul>';
+
+        // Ending div for each column. (column 3 will never hit here)
+        foreach ($column_limit as $limitColumnNumber => $limit) {
+          if ($count == $limit) {
+            $output .= '</div>'; // end .column-1
+          }
+        }
+
+        $count++;
+      }
+
+      // Since there can be less taxonomies than the limit, add an ending div
+      // if not done so already. (Most likely column 3)
+      $add_end_div = TRUE;
+      foreach ($column_limit as $limitColumnNumber => $limit) {
+        if ($count == $limit) {
+          $add_end_div = FALSE;
+        }
+      }
+      if ($add_end_div) {
+        $output .= '</div>';
+      }
+    }
+    $output .= '</div>';
+  }
+
+  return $output;
+}
+
+/**
+ * Returns html to display all the leadership companies.
+ *
+ * @param array $vars
+ *   An associative array containing:
+ *   - taxonomies array
+ *     An array that contains taxonomy objects @see taxonomy_get_tree().
+ *
+ * @return string
+ */
+function theme_leadership_aw_page(&$vars) {
+  $output = '';
+  // Splitting up the taxonomies into 3 chunks by dividing the count (and
+  // adding 3 just in case it isn't divisible by 3);
+  $split_up_taxonomies = array_chunk($vars['taxonomies'], (count($vars['taxonomies']) + 3) / 3);
+  foreach ($split_up_taxonomies as $key => $taxonomies) {
+    $output .= '<div class="column-' . ($key + 1) . '">';
+    foreach ($taxonomies as $term) {
+      $output .= '<h3>' . $term->name . '</h3>';
+      $output .= '<ul class="leaders-name">';
+      foreach ($term->companies as $company_id => $company) {
+        $videoIcon = $company->field_youtube_amplified_value ? '<span class="youtube-amplified-video-icon"></span>' : '';
+        $output .= '<li><a href="' . $company->alias . '">' . $company->title . '</a> ';
+        if (isset($company->pmg_youtube_feed_videos[$company->nid]->videos)) {
+          $output .= $videoIcon;
+        }
+        $output .= '</li>';
+      }
+      $output .= '</ul>';
+    }
+    $output .= '</div>';
+  }
+
+  return $output;
+}
+
+function theme_leadership_ppoem_page(&$vars) {
+  $output = '';
+  $taxonomies = &$vars['taxonomies'];
+  // Splitting up the taxonomies into 3 chunks by dividing the count (and
+  // adding 3 just in case it isn't divisible by 3);
+  $categorized_taxonomies = array();
+  foreach ($taxonomies as $taxonomy) {
+    $categories = array('2' => 'Controls Products', '3' => 'Technology', '11' => 'Integrated Equipment');
+    if (array_key_exists($taxonomy->vid, $categories)) {
+      $categorized_taxonomies[$categories[$taxonomy->vid]][] = $taxonomy;
+    }
+  }
+  ksort($categorized_taxonomies);
+  $output .= '<div class="tech-trend-wrapper">';
+
+  foreach ($categorized_taxonomies as $key => $taxonomies) {
+    $output .= '<div class="tech-trend-column">';
+    $output .= '<h2>' . $key . '</h2>';
+    foreach ($taxonomies as $term) {
+      if ($term->companies) {
+        $output .= '<h3>' . $term->name . '</h3>';
+        $output .= '<ul class="leaders-name">';
+        foreach ($term->companies as $company_id => $company) {
+          $videoIcon = $company->field_youtube_amplified_value ? '<span class="youtube-amplified-video-icon"></span>' : '';
+          $output .= '<li><a href="' . $company->alias . '">' . $company->title . '</a> ';
+          if (isset($company->pmg_youtube_feed_videos[$company->nid]->videos)) {
+            $output .= $videoIcon;
+          }
+          $output .= '</li>';
+        }
+        $output .= '</ul>';
+      }
+    }
+    $output .= '</div>';
+  }
+  $output .= '</div>';
+  return $output;
+}
+
+/**
+ * Implements hook_node_view_alter().
+ *
+ * @param array $build
+ */
+function leadership_node_view_alter(&$build) {
+  if ($build['#view_mode'] == 'full') {
+    if (isset($build['field_companies'])) {
+      foreach ($build['field_companies']['#items'] as $key => $company) {
+        // Check if this company has youtube amplified checked
+        if (pmg_youtube_feed_leadership_is_youtube_amplify($company['nid'])) {
+          // Get that companies videos
+          if ($videos_json = pmg_youtube_feed_leadership_get_company_video_json($company['nid'], 'node', 1)) {
+            $pmg_youtube_feed_videos[$company['nid']] = $videos_json;
+          }
+        }
+      }
+
+      // Add the videos to the Drupal.settings object
+      if (isset($pmg_youtube_feed_videos)) {
+        video_widget_add_js();
+        pmg_youtube_feed_leadership_add_videos_to_drupal_settings_object($pmg_youtube_feed_videos);
+        foreach ($pmg_youtube_feed_videos as $company_nid => $value) {
+          $build['leadership_videos'][] = array(
+            '#markup' => '<video-widget nid="' . $company_nid . '"></video-widget>',
+          );
+        }
+      }
+    }
+
+    // Add Angular items to the node page. The node page is only needed for
+    // preview.
+    if ($build['#bundle'] == 'leadership_data_card') {
+      $site_id = variable_get('smg_global_site');
+      // the datacard needs a term id. Since we are just displaying it for
+      // preview, I am just setting it to an arbitrary number.
+      $fake_tid = 0;
+      $build['tid'] = $fake_tid;
+
+      $node = $build['#node'];
+      $datacardData = leadership_get_companies_with_term($site_id, FALSE, FALSE, FALSE, $node->nid);
+
+      // Overwrite the data_card_processed_for_angular with the data that is
+      // in the node now. Meaning the user still hasn't saved the node.
+      $data_card_processed_for_angular = leadership_process_data_card_for_angular($node);
+      foreach ($datacardData as $key => $data) {
+        $datacardData[$key]->data_card_processed_for_angular = $data_card_processed_for_angular;
+      }
+
+      $module_path = drupal_get_path('module', 'leadership');
+      $js_extension = (variable_get('smg_global_is_production', false)) ? '.min.js' : '.js';
+      drupal_add_js(array('leadershipDatacard' => array($fake_tid => $datacardData)), 'setting');
+      drupal_add_js($module_path . "/angular/js/datacard{$js_extension}", 'file');
+      drupal_add_css($module_path . '/css/datacard.css');
+      drupal_add_css($module_path . '/css/datacard_pw.css');
+      // Making sure the datacard is shown.
+      $extra_style = '';
+      if ($site_id == 'hcp') {
+        $extra_style = '#block-system-main .dataCard { position:relative; margin-left:20px; }';
+      }
+      drupal_add_css(
+        '#block-system-main { height: 1000px; }
+        #block-system-main .dataCard { display: block; right: auto; }' . $extra_style,
+        array(
+          'group' => CSS_THEME,
+          'type' => 'inline',
+        )
+      );
+      video_widget_add_js();
+    }
+  }
+}
+
+/**
+ * Implements hook_node_submit().
+ *
+ * @param object $node
+ * @param array  $form
+ * @param array  $form_state
+ */
+function leadership_node_submit($node, $form, &$form_state) {
+  if ($node->type == 'leadership_online_profile') {
+    $old_node = node_load($node->nid);
+    $to = variable_get('youtube_amplify_admin_email');
+    $admin_email = variable_get('leadership_admin_user_email');
+    $from = '';
+    // Get from and brand name.
+    switch (variable_get('smg_global_site')) {
+      case 'hcp':
+        $from = $admin_email;
+        $params['brand'] = 'Healthcare Packaging';
+        break;
+      case 'aw':
+        $from = $admin_email;
+        $params['brand'] = 'Automation World';
+        break;
+      case 'pw':
+        $from = $admin_email;
+        $params['brand'] = 'Packaging World';
+        break;
+      case 'ppoem':
+        $from = $admin_email;
+        $params['brand'] = 'PP-OEM';
+        break;
+      case 'pfw':
+        $from = $admin_email;
+        $params['brand'] = 'Pro Food World';
+        break;
+    }
+
+    // This company already had a youtube username set. Check to see if it was
+    // changed.
+    if (isset($old_node->field_youtube_username['und'][0]['value'])) {
+      if ($old_node->field_youtube_username['und'][0]['value'] != $form_state['values']['field_youtube_username']['und'][0]['value']) {
+        $params['company_name'] = $node->title;
+        $params['old_youtube_username'] = $old_node->field_youtube_username['und'][0]['value'];
+        $params['new_youtube_username'] = $form_state['values']['field_youtube_username']['und'][0]['value'];
+
+        // Send out email to youtube Amplified admin.
+        drupal_mail('leadership', 'leadership_youtube_username_updated', $to, language_default(), $params, $from);
+      }
+    }
+    else {
+      // Youtube username has been added.
+      if (isset($form_state['values']['field_youtube_username']['und'][0]['value']) && trim($form_state['values']['field_youtube_username']['und'][0]['value'])) {
+        $params['company_name'] = $node->title;
+        $params['new_youtube_username'] = $form_state['values']['field_youtube_username']['und'][0]['value'];
+
+        // Send out email to youtube Amplified admin.
+        drupal_mail('leadership', 'leadership_youtube_username_added', $to, language_default(), $params, $from);
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_mail()
+ *
+ * @param string $key
+ * @param array  $message
+ * @param array  $params
+ */
+function leadership_mail($key, &$message, $params) {
+  switch ($key) {
+    case 'leadership_youtube_username_updated':
+      $message['subject'] = 'Youtube Amplified';
+      $message['body'][] = "Hello, \r\n" . $params['company_name'] . " has updated their youtube username from:" . $params['old_youtube_username'] . " to:" . $params['new_youtube_username'] . " on " . $params['brand'] . ". Can you please varify that it matches what is set up in PMG YouTube Feed.";
+      break;
+    case 'leadership_youtube_username_added':
+      $message['subject'] = 'Youtube Amplified';
+      $message['body'][] = "Hello, \r\n" . $params['company_name'] . " has added their youtube username on " . $params['brand'] . ". Their youtube username is: " . $params['new_youtube_username'] . ". Can you please add their videos to PMG YouTube Feed (if you haven't done so already).";
+      break;
+    case 'both':
+      $message['subject'] = $params['company'] . ': Data Card & Online Profile still unapproved';
+      $message['body'][] = $params['message'];
+      $message['headers'] += $params['headers'];
+      break;
+    case 'single':
+      $message['subject'] = $params['company'] . ': ' . $params['unapproved'] . ' still unapproved';
+      $message['body'][] = $params['message'];
+      $message['headers'] += $params['headers'];
+      break;
+    case 'profile_unapproved':
+      $message['subject'] = $params['leaders_type'] . ' Alert: ' . $params['company'] . ' data card not showing up';
+      $message['body'][] = $params['message'];
+      $message['headers'] += $params['headers'];
+      break;
+    case 'leadership_nofity_online_profile_published':
+      $message['subject'] = 'Leadership Print Profile is Approved';
+      $message['body'][] = "Hello, \r\n The Company Profile for " . $params['company'] . " has been approved. Head over to the Dashboard:" . $params['url'] . ".";
+      break;
+    case 'leadership_one_time_login_notification':
+      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8;';
+      $message['subject'] = 'One-time Login Link for ' . variable_get('site_name');
+      $message['body'][] = $params['message'];
+      break;
+    case 'leadership_unapproved_pp_notification':
+      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8;';
+      $message['subject'] = 'Leadership Print Profile is Unapproved';
+      $message['body'][] = $params['message'];
+      break;
+  }
+}
+
+/**
+ * Get a json string of companies for the term id.
+ *
+ * @param integer $tid
+ *   Taxonomy term id.
+ * @param bool $datacardPublished
+ *   If set to true or 1 it will make sure that the datacard is published.
+ *
+ * @return array
+ */
+function leadership_get_company_list_json($tid, $datacardPublished = FALSE) {
+  return leadership_get_companies_with_term(variable_get('smg_global_site'), $tid, $datacardPublished);
+}
+
+/**
+ * Implements hook_form_alter().
+ *
+ * @param array $form
+ * @param array $form_state
+ * @param string $form_id
+ */
+function leadership_form_alter(&$form, &$form_state, $form_id) {
+  global $user;
+  $machinery_category = FALSE;
+  $materials_category = FALSE;
+  $service_category = FALSE;
+  $field_company = 'field_companies';
+  $site_id = variable_get('smg_global_site');
+  $leadership_user = FALSE;
+
+  if ($site_id == 'aw') {
+    $field_company = 'field_ld_company';
+  }
+
+  if ($form_id == 'leadership_print_profile_node_form' ||
+    $form_id == 'leadership_data_card_node_form' ||
+    $form_id == 'leadership_online_profile_node_form'
+  ) {
+
+    // Add styles to edit form
+    drupal_add_css(drupal_get_path('module', 'leadership') . '/css/leadership_node_edit.css');
+    // Add styles based on site
+    switch ($site_id) {
+      case 'pw':
+        // Hide Machinery, Materials, Services checkboxes.
+        drupal_add_css('#edit-field-ld-categories-und-0-6517-6517,#edit-field-ld-categories-und-0-6537-6537,#edit-field-ld-categories-und-0-6547-6547 {display:none;}', $option['type'] = 'inline');
+        break;
+
+      case 'aw':
+        // #328 - Remove the Topics Label so there aren't two sections to enter
+        // Categories. (I guess it was confusing to some users).
+        drupal_add_css('
+          .form-item-field-ld-categories-technologies-und { padding-bottom:0px !important; margin-bottom:0px !important;}
+          .form-item-field-ld-categories-topics-und { padding-top:0px !important; margin-top:0px !important;}
+          #edit-field-ld-categories-topics label { display:none; }
+          #edit-field-ld-categories-topics ul label { display:inline-block !important;}
+        ', $option['type'] = 'inline');
+        // #428 - Remove Industry News.
+        drupal_add_js("jQuery(document).ready(function ($) { $('.form-item-field-ld-categories-topics-und-0-2744-2744').parent().css('display','none'); });", 'inline');
+        break;
+
+      case 'ppoem':
+        // #684 - Hide all taxonomies for Technology Topics.
+        drupal_add_css('#edit-field-ld-categories-technologies-und ul li{ display:none; }', $option['type'] = 'inline');
+        // #684 - Hide child terms of Drives & Motors.
+        drupal_add_css('.form-item-field-ld-categories-control-prod-und-0-3-3 ul { display:none; }', $option['type'] = 'inline');
+
+        // #684 - Only show Robotics, Machine Safety, and Networking and hide
+        // Drives and Motors children.
+        drupal_add_js("jQuery(document).ready(function ($) {
+          $('.form-item-field-ld-categories-technologies-und-0-18-18').parent().css('display','block');
+          $('.form-item-field-ld-categories-technologies-und-0-21-21').parent().css('display','block');
+          $('.form-item-field-ld-categories-technologies-und-0-59-59').parent().css('display','block');
+
+          var drives_motors = $('.form-item-field-ld-categories-control-prod-und-0-3-3').parent();
+          drives_motors.find('ul').css('display', 'none');
+
+          $('.form-item-field-ld-categories-technologies-und-0-3-3').parent().child('ul').css('display','block');
+        });", 'inline');
+        break;
+
+    }
+
+    // See if the user is a leadership_user
+    foreach ($user->roles as $key => $role) {
+      if ($key == variable_get('leadership_role_name')) {
+        $leadership_user = TRUE;
+      }
+    }
+
+    // Have the company(main company) name (hidden from the user) be the default
+    // company name(new node)
+    $company_nid = $form['#node']->{$field_company}['und'][0]['nid'];
+    $main_company = node_load($company_nid);
+    $company_name = $main_company->title;
+
+    // Have the company name be the default company name
+    $default_value = $form['title']['#default_value'];
+    if (!$default_value) {
+      $form['title']['#default_value'] = $company_name;
+    }
+
+    if ($form_id == 'leadership_print_profile_node_form') {
+      if ($site_id == 'pw') {
+        // Find out what Categories they are in and hide if not this
+        foreach ($main_company->field_ld_main_categories['und'] as $value) {
+          if ($value['tid'] == variable_get('leadership_admin_category_machines')) {
+            $machinery_category = TRUE;
+          }
+          if ($value['tid'] == variable_get('leadership_admin_category_materials')) {
+            $materials_category = TRUE;
+          }
+          if ($value['tid'] == variable_get('leadership_admin_category_services')) {
+            $service_category = TRUE;
+          }
+        }
+        // Right now I know that Machinery is First, Materials is Second, and Service is Third
+        //
+        // @TODO think of a better way of doing this just in case they are in a different
+        // order. Perhaps using weight
+        if (!$machinery_category) {
+          drupal_add_css('#edit-field-ld-categories-und li:nth-child(1) {display:none;}', $option['type'] = 'inline');
+        }
+        if (!$materials_category) {
+          drupal_add_css('#edit-field-ld-categories-und li:nth-child(2) {display:none;}', $option['type'] = 'inline');
+        }
+        if (!$service_category) {
+          drupal_add_css('#edit-field-ld-categories-und li:nth-child(3) {display:none;}', $option['type'] = 'inline');
+        }
+        // The above code will still hide some children terms.  Showing all children terms.
+        drupal_add_css('#edit-field-ld-categories-und li li {display:block !important;}', $option['type'] = 'inline');
+      }
+
+      // Add example image.
+      $img = variable_get('leadership_print_example');
+      $form['top_image'] = array(
+        '#markup' => '<div class="leadership-print-example"><img src="' . $img . '" alt="Example print profile." /></div>',
+        '#weight' => -25,
+      );
+
+      // Add Text On Top of the form
+      $form['top_text'] = array(
+        '#markup' => '<h1>All of the following questions are for publication in your profile page.</h1>',
+        '#weight' => -20,
+      );
+
+      // Add Text at the bottom of the form
+      $form['actions']['break_before_approve'] = array(
+        '#markup' => '<br /><br />',
+        '#weight' => 20,
+      );
+      $admin_name = variable_get('leadership_admin_user_name');
+      $admin_email = variable_get('leadership_admin_user_email');
+      $form['actions']['approval_message'] = array(
+        '#markup' => '<h2 class="yellow">Click "Save draft and return later" when you\'re done for this session. When you\'re finished and ready to submit it to us, please click "Approve Profile". (Please note that once you click "Approve Profile" any subsequent changes must be made through ' . $admin_name . '--' . l($admin_email, 'mailto:' . $admin_email, array('absolute' => TRUE)) . '</h2><h2><strong>PREVIEW</strong>: Once you click "Approve", we will begin laying out your profile. When it is complete, ' . $admin_name . ' will e-mail you a PDF preview for your approval.</h2>',
+        '#weight' => 100,
+      );
+
+      // Hide the preview button because right now the preview won't mimic the
+      // indesign version.
+      $form['actions']['preview']['#access'] = FALSE;
+
+      //Change Save Button Text
+      $form['actions']['submit']['#value'] = 'Save draft and return later';
+
+      $form['actions']['publish']['#submit'][] = 'leadership_send_email_on_publish';
+
+      // Change the Publish buttont text.
+      $form['actions']['publish']['#value'] = 'Approve Profile';
+    }
+
+    // Hide Save button if published already only on the print profile
+    if ($form_id == 'leadership_print_profile_node_form' && $form['#node']->status == 1 && $user->uid !== 1 && $user->uid !== '1') {
+      $form['actions']['submit']['#access'] = FALSE;
+    }
+
+    if ($form_id == 'leadership_online_profile_node_form') {
+
+      if ($site_id === 'pw') {
+        // #603 - We moved from Viddler to PMG YouTube Feed but Waywire doesn't have a
+        // way of uploading so we are just having users use their Youtube video.
+        // Some customers will still have their Waywire video but we want to
+        // hide it from the form.
+        if ($leadership_user) {
+          $form['field_waywire_video']['#access'] = FALSE;
+          $form['field_viddler_id']['#access'] = FALSE;
+        }
+
+        // Hide based on if they are in Mahinery, Materials, Services
+        // Get Main Terms from company
+        $company_nid = $form['#node']->field_companies['und'][0];
+        $company = node_load($company_nid);
+
+        $machinery_category = FALSE;
+        $materials_category = FALSE;
+        $service_category = FALSE;
+
+        foreach ($company->field_ld_main_categories['und'] as $value) {
+          switch ($value['tid']) {
+            case variable_get('leadership_admin_category_machines'):
+              $machinery_category = TRUE;
+              break;
+            case variable_get('leadership_admin_category_materials'):
+              $materials_category = TRUE;
+              break;
+            case variable_get('leadership_admin_category_services'):
+              $service_category = TRUE;
+              break;
+          }
+        }
+
+        if ($machinery_category && !$materials_category && !$service_category) {
+          $form['field_ld_plant_locations']['#access'] = FALSE;
+        }
+
+        if (!$machinery_category) {
+          $form['field_ld_geo_distrib']['#access'] = FALSE;
+          $form['field_ld_warranty']['#access'] = FALSE;
+          $form['field_ld_service']['#access'] = FALSE;
+          $form['field_ld_training']['#access'] = FALSE;
+          $form['field_ld_sales']['#access'] = FALSE;
+          $form['field_ld_plant_locations']['#access'] = FALSE;
+        }
+      }
+    }
+
+    // Change the redirect. If a leadership user it will go to their dashboard.
+    // Otherwise it will go to the leadership dashboard.
+    if ($leadership_user) {
+      $form['#action'] .= '?destination=leaders/user/' . $form['uid']['#value'];
+    }
+    else {
+      $form['#action'] .= '?destination=admin/leadership';
+    }
+
+    // If a leadership user isn't in the current session
+    $company_nid = $form['#node']->{$field_company}['und'][0]['nid'];
+    $company = node_load($company_nid);
+
+    $current_session = FALSE;
+
+    foreach ($company->field_ld_session['und'] as $session) {
+      if ($session['tid'] == variable_get('leadership_session_term') || $session['tid'] == variable_get('leadership_dashboard_session_term')) {
+        $current_session = TRUE;
+      }
+    }
+
+    // Send thmem back to the user page
+    if (!$current_session) {
+
+      if ($leadership_user) {
+        drupal_set_message(t('You are not set up in the current Leadership Session. Please contact Jan Kang (jkang@pmmimediagroup.com) for any questions'), 'error');
+        drupal_goto('leaders/user/' . $user->uid);
+      }
+    }
+  }
+}
+
+/**
+ * Function for getting corresponding profile
+ *
+ * @param integer $company_nid
+ *  The nid of the company (most likely in the current node in the field:
+ *  field_companies).
+ * @param string $content_type
+ *  The machine node type name.
+ * @param string $site_id
+ *  Site identifier.
+ *
+ * @return integer $nid
+ *  The node id of the corresponding node.
+ */
+function leadership_get_corresponding_nid($company_nid, $content_type, $site_id) {
+  $nid = FALSE;
+  $mappings = leadership_site_mappings($site_id);
+  // Get the site link from the print profile
+  /** @var SelectQuery $query */
+  $query = db_select($mappings['company_field_table'], 'companies')
+    ->fields('companies', array('bundle', 'entity_id', $mappings['company_field_nid']))
+    ->condition($mappings['company_field_nid'], $company_nid)
+    ->condition('bundle', $content_type)
+    ->range(0, 1);
+
+  $result = $query->execute();
+
+  while ($record = $result->fetchAssoc()) {
+    $nid = $record['entity_id'];
+  }
+
+  return $nid;
+}
+
+/**
+ * Function for sending email on publish
+ *
+ * @param array $form
+ */
+function leadership_send_email_on_publish(&$form) {
+  global $base_url;
+  $mappings = leadership_site_mappings(variable_get('smg_global_site'));
+
+  // Get Company
+  $company_nid = $form[$mappings['company_field']]['und'][0]['nid']['#default_value'];
+  $company = node_load($company_nid);
+
+  // Send out notification to Leadership admin that profile has been approved.
+  $params = array(
+    'company' => $company->title,
+    'url' => $base_url . '/admin/leadership',
+  );
+  drupal_mail('leadership', 'leadership_nofity_online_profile_published', variable_get('leadership_admin_user_email'), language_default(), $params);
+}
+
+/**
+ * Implements hook_pagepreview_update_window().
+ *
+ * @param string $preview_id
+ * @param int    $nid
+ */
+function leadership_pagepreview_update_window($preview_id, $nid) {
+  // Moving the leadership online form profile data inside the company page
+  $node = node_load($nid);
+  if ($node->type == 'leadership_online_profile') {
+    drupal_add_js("jQuery(document).ready(function ($) { $('.node-leadership-online-profile').insertAfter('.leadership'); });", 'inline');
+    drupal_add_css(drupal_get_path('module', 'leadership') . '/css/leadership-preview.css');
+  }
+  if ($node->type == 'leadership_data_card') {
+    drupal_add_css(drupal_get_path('module', 'leadership') . '/css/datacard.css');
+  }
+}
+
+/**
+ * Get any mappings based on what site you are on.
+ *
+ * @param string $site_id
+ *
+ * @return array
+ */
+function leadership_site_mappings($site_id) {
+  $mapping['company_field'] = 'field_companies';
+  $mapping['company_field_table'] = 'field_data_field_companies';
+  $mapping['company_field_nid'] = 'field_companies_nid';
+  $mapping['website_field_table'] = 'field_data_field_link';
+  $mapping['website_field_value'] = 'field_link_url';
+  $mapping['executive_contact'] = 'field_field_ld_contact';
+  $mapping['executive_title'] = 'field_ld_contact_title';
+  $mapping['executive_photo'] = 'field_ld_contact_photo';
+  $mapping['data_card_logo'] = 'field_ld_logo';
+  $mapping['data_card_teaser'] = 'field_field_ld_teaser';
+  $mapping['data_card_product_photos'] = 'field_ld_product_photo';
+  $mapping['data_card_product_photos_photo'] = 'field_ld_prod_photos';
+  $mapping['data_card_product_photos_title'] = 'field_ld_photo_title';
+  $mapping['data_card_product_photos_link'] = 'field_ld_link';
+  $mapping['image_style_data_card_exec'] = 'leadership_data_card_exec';
+  $mapping['image_style_data_card_logo'] = 'leadership_data_card_logo';
+  $mapping['image_style_data_card_product'] = 'leadership_data_card_product_photo';
+  $mapping['field_ld_print_photo1'] = 'field_ld_print_photo1';
+  $mapping['field_ld_print_photo2'] = 'field_ld_print_photo2';
+  $mapping['print_ld_address1'] = 'field_address1';
+  $mapping['print_ld_address2'] = 'field_address2';
+  $mapping['print_ld_city'] = 'field_city';
+  $mapping['print_ld_zipcode'] = 'field_zipcode';
+  $mapping['print_ld_country'] = 'field_ld_country';
+  $mapping['print_ld_phone'] = 'field_phone';
+  $mapping['print_ld_fax'] = 'field_fax';
+  $mapping['print_ld_email'] = 'field_ld_general_email';
+  $mapping['print_ld_website'] = 'field_link';
+
+  switch ($site_id) {
+    case 'aw':
+      $mapping['company_field'] = 'field_ld_company';
+      $mapping['company_field_table'] = 'field_data_field_ld_company';
+      $mapping['company_field_nid'] = 'field_ld_company_nid';
+      $mapping['website_field_table'] = 'field_data_field_ld_website';
+      $mapping['website_field_value'] = 'field_ld_website_value';
+      $mapping['executive_contact'] = 'field_ld_contact';
+      $mapping['data_card_teaser'] = 'field_ld_teaser';
+      $mapping['data_card_product_photos_photo'] = 'field_ld_product_photos';
+      $mapping['field_ld_print_photo1'] = 'field_ld_print_photo_1';
+      $mapping['field_ld_print_photo2'] = 'field_ld_print_photo_2';
+      $mapping['print_ld_address1'] = 'field_ld_address_1';
+      $mapping['print_ld_address1'] = 'field_ld_address_1';
+      $mapping['print_ld_city'] = 'field_ld_address_city';
+      $mapping['print_ld_zipcode'] = 'field_ld_zip_postal_code';
+      $mapping['print_ld_country'] = 'field_ld_country';
+      $mapping['print_ld_phone'] = 'field_ld_phone';
+      $mapping['print_ld_fax'] = 'field_ld_fax';
+      $mapping['print_ld_email'] = 'field_ld_email';
+      $mapping['print_ld_website'] = 'field_ld_website';
+      break;
+    case 'hcp':
+      $mapping['image_style_data_card_exec'] = 'premier_supplier_data_card_exec';
+      $mapping['image_style_data_card_logo'] = 'premier_supplier_data_card_logo';
+      $mapping['image_style_data_card_product'] = 'premier_supplier_data_card_product_photo';
+      break;
+    case 'ppoem':
+    case 'pfw':
+      $mapping['field_ld_print_photo1'] = 'field_ld_print_photo_1';
+      $mapping['field_ld_print_photo2'] = 'field_ld_print_photo_2';
+
+  }
+
+  return $mapping;
+}
+
+/**
+ * Returns an array of data about datacard nodes, structured in a way
+ * that we can use in Angular
+ *
+ * @param object $datacard
+ *   The datacard node
+ *
+ * @return array $angular_datacard
+ */
+function leadership_process_data_card_for_angular($datacard) {
+  $angular_datacard = array();
+  /** @var Object $datacard_wrapper */
+  $datacard_wrapper = entity_metadata_wrapper('node', $datacard);
+  $angular_datacard["node"] = $datacard;
+  // Get site mapping
+  $site_id = variable_get('smg_global_site');
+  $mapping = leadership_site_mappings($site_id);
+
+  // Get the path to the styled photo of the contact
+  if (!empty($datacard->{$mapping['executive_photo']})) {
+    $contact_photo = $datacard_wrapper->{$mapping['executive_photo']}->value();
+    $angular_datacard["contact_photo_path"] = image_style_url($mapping['image_style_data_card_exec'], $contact_photo["uri"]);
+  }
+
+  // Get the contact person's name
+  if (!empty($datacard->{$mapping['executive_contact']})) {
+    $angular_datacard["contact_name"] = $datacard_wrapper->{$mapping['executive_contact']}->value();
+  }
+
+  // Get the contact person's title
+  if (!empty($datacard->{$mapping['executive_title']})) {
+    $angular_datacard["contact_title"] = $datacard_wrapper->{$mapping['executive_title']}->value();
+  }
+
+  // Get the product summary
+  if (!empty($datacard->body)) {
+    $datacard_body_field = $datacard_wrapper->body->value();
+    $angular_datacard["product_summary"] = $datacard_body_field["value"];
+  }
+
+  // Get the product teaser
+  if (!empty($datacard->{$mapping['data_card_teaser']})) {
+    $angular_datacard["teaser"] = $datacard_wrapper->{$mapping['data_card_teaser']}->value();
+  }
+
+  // Get the path to the styled photo of the company logo
+  if (!empty($datacard->{$mapping['data_card_logo']})) {
+    $company_logo = $datacard_wrapper->{$mapping['data_card_logo']}->value();
+    $angular_datacard["company_logo_path"] = image_style_url($mapping['image_style_data_card_logo'], $company_logo["uri"]);
+  }
+
+  // Process the product photo info, since it is a field collection
+  if (!empty($datacard->{$mapping['data_card_product_photos']})) {
+    // Get field collections
+    $fcs = $datacard_wrapper->{$mapping['data_card_product_photos']}->value();
+    foreach ($fcs as $photo_fc) {
+
+      $photo_array = array("field_collection" => $photo_fc);
+
+      $fc_wrapper = entity_metadata_wrapper("field_collection_item", $photo_fc);
+
+      // Get the path to the styled photo of the product
+      if (isset($photo_fc->{$mapping['data_card_product_photos_photo']}['und'])) {
+        $photo_array["product_photo"] = image_style_url(
+          $mapping['image_style_data_card_product'],
+          $photo_fc->{$mapping['data_card_product_photos_photo']}['und'][0]["uri"]
+        );
+      }
+
+      if (!empty($photo_fc->{$mapping['data_card_product_photos_link']})) {
+        $photo_array["product_link"] = $fc_wrapper->{$mapping['data_card_product_photos_link']}->value();
+      }
+
+      if (!empty($photo_fc->{$mapping['data_card_product_photos_title']})) {
+        $photo_array["product_title"] = $fc_wrapper->{$mapping['data_card_product_photos_title']}->value();
+      }
+
+      $angular_datacard["product_photos"][] = $photo_array;
+    }
+  }
+
+  return $angular_datacard;
+}
+
+/*
+ * Implements hook_smg_angular_add_template().
+ */
+function leadership_smg_angular_add_template() {
+  $templates = array(
+    'dataCard' => '/' . drupal_get_path('module', 'leadership') . '/angular/templates/data_card.html',
+  );
+
+  return $templates;
+}
+
+/**
+ * Implements hook_smg_angular_custom_elements().
+ */
+function leadership_smg_angular_custom_elements() {
+  $custom_elements = array('compile-video-widget', 'compile-data-card', 'taxonomy-list', 'company-list');
+  return $custom_elements;
+}
+
+/**
+ * @param integer $session
+ *
+ * Returns a text file of all the taxonomies and companies associated to it.
+ */
+function leadership_text_output($session = NULL) {
+  $output = '';
+  $taxonomies = leadership_get_taxonomies(TRUE, $session, FALSE, FALSE);
+
+  foreach ($taxonomies as $taxonomy) {
+    $output .= $taxonomy->name . "\n";
+    foreach ($taxonomy->companies as $company_nid => $company) {
+      $output .= $company->title . "\n";
+    }
+    $output .= "\n\n";
+  }
+
+  drupal_add_http_header('Content-Type: text/plain');
+  print drupal_html_to_text($output);
+  exit(0);
+}
+
+/**
+ * Return a list of terms that don't have any companies.
+ *
+ * @param string $site_id
+ *
+ * @return array $terms_without_companies
+ *  List of tids that do not have companies.
+ */
+function leadership_get_terms_without_companies($site_id) {
+  $all_taxonomies = array();
+  $used_taxonomies = array();
+  $terms_without_companies = array();
+
+  // Get Vocabulary IDs.
+  switch ($site_id) {
+    case 'pw':
+      $vocab_ids = array(31);
+      break;
+    case 'aw':
+      $vocab_ids = array(13);
+      break;
+    case 'hcp':
+      $vocab_ids = array(32);
+      break;
+    case 'ppoem':
+      $vocab_ids = array(2, 3, 11);
+      break;
+    case 'pfw':
+      $vocab_ids = array(29);
+      break;
+  }
+
+  // Get all taxonomies for vocabs,
+  $taxonomy_query = db_select('taxonomy_term_data', 't')
+    ->fields('t', array('tid'));
+  $taxonomy_query->condition('t.vid', $vocab_ids, 'IN');
+  $all_taxonomies_result = $taxonomy_query->execute()->fetchAll();
+
+  foreach ($all_taxonomies_result as $result) {
+    $all_taxonomies[] = $result->tid;
+  }
+
+  // Get all taxonomies that were used in this year sessions.
+  if (in_array($site_id, array('pw', 'hcp', 'aw', 'pfw'))) {
+    switch ($site_id) {
+      case 'aw':
+        $category_table = 'field_data_field_ld_categories_technologies';
+        $category_alias = 'categories';
+        $category_column = 'field_ld_categories_technologies_tid';
+        $company_table = 'field_data_field_ld_company';
+        $company_column = 'field_ld_company_nid';
+        break;
+
+      default:
+        $category_table = 'field_data_field_ld_categories';
+        $category_alias = 'categories';
+        $category_column = 'field_ld_categories_tid';
+        $company_table = 'field_data_field_companies';
+        $company_column = 'field_companies_nid';
+        break;
+    }
+
+
+    // Join the print profile to the taxonomy table to see what terms are not
+    // being used or in our case we will see which ones are not being used.
+    $query = db_select('taxonomy_term_data', 't')
+      ->fields('t', array('tid'));
+    $query->distinct();
+
+    $query->leftJoin($category_table, $category_alias, $category_alias . '.' . $category_column . ' = t.tid');
+    $query->isNotNull($category_alias . '.' . $category_column);
+
+    // These joins are to insure that it is this sessions items.
+    $query->leftJoin($company_table, 'company', 'company.entity_id = categories.entity_id');
+    $query->leftJoin('field_data_field_ld_session', 'session', 'session.entity_id = company.' . $company_column);
+    $query->condition('session.field_ld_session_tid', variable_get('leadership_session_term'));
+    // Make sure we only include tids where there is at least one published data card
+    $query->leftJoin(
+      $company_table,
+      'company_data_card',
+      "company.{$company_column} = company_data_card.{$company_column}"
+    );
+    $query->leftJoin('node', 'node', 'node.nid = company_data_card.entity_id');
+    $query->condition('node.type', 'leadership_data_card');
+    $query->condition('node.status', 1);
+
+
+    $used_taxonomies_result = $query->execute()->fetchAll();
+    foreach ($used_taxonomies_result as $data) {
+      $used_taxonomies[] = $data->tid;
+    }
+  }
+  else {
+    // Since PP OEM uses multiple taxonomies, need to run multiple queries.
+    $table_info = array(
+      array(
+        'table' => 'field_data_field_ld_categories_control_prod',
+        'alias' => 'categories_controls',
+        'column' => 'field_ld_categories_control_prod_tid',
+      ),
+      array(
+        'table' => 'field_data_field_ld_categories_technologies',
+        'alias' => 'categories_technologies',
+        'column' => 'field_ld_categories_technologies_tid',
+      ),
+      array(
+        'table' => 'field_data_field_ld_categories_int_equip',
+        'alias' => 'categories_integrated_equip',
+        'column' => 'field_ld_categories_int_equip_tid',
+      ),
+    );
+
+    foreach ($table_info as $info) {
+      $query = db_select('taxonomy_term_data', 't')
+        ->fields('t', array('tid'));
+      $query->distinct();
+      $query->condition('t.vid', $vocab_ids, 'IN');
+      $query->leftJoin($info['table'], $info['alias'], $info['alias'] . '.' . $info['column'] . ' = t.tid');
+      $query->isNotNull($info['alias'] . '.' . $info['column']);
+
+      // These joins are to insure that it is this sessions items.
+      $query->leftJoin('field_data_field_companies', 'company', 'company.entity_id = ' . $info['alias'] . ' .entity_id');
+      $query->leftJoin('field_data_field_ld_session', 'session', 'session.entity_id = company.field_companies_nid');
+      $query->condition('session.field_ld_session_tid', variable_get('leadership_session_term'));
+
+      $used_taxonomies_result = $query->execute()->fetchAll();
+      foreach ($used_taxonomies_result as $data) {
+        $used_taxonomies[] = $data->tid;
+      }
+    }
+  }
+
+  // Go through the taxonomies and find out which ones weren't used.
+  foreach ($all_taxonomies as $tid) {
+    if (!in_array($tid, $used_taxonomies)) {
+      $terms_without_companies[] = $tid;
+    }
+  }
+
+  return $terms_without_companies;
+}
+
+/**
+ * Helps generate google event string for Leadership.
+ *
+ * @param bool   $company_event
+ * @param string $event_action
+ * @param string $event_label
+ *
+ * @return string
+ */
+function leadership_google_event_helper($company_event, $event_action, $event_label) {
+  $event_category = ($company_event) ? 'Leadership Action - Company' : 'Leadership Action - Category';
+  $event_object = "{'eventCategory': $event_category, 'eventAction': $event_action, 'eventLabel': $event_label}";
+  return "ga('send', 'event', $event_object)";
+}
+
+/**
+ * Helper function to get all company profiles in current session.
+ *
+ * @param array $mapping
+ *   The leadership site mappings.
+ *
+ * @param integer $session
+ *   The TID of the session for which to get company profiles.
+ *
+ * @return array
+ */
+function _leadership_get_current_company_profiles($mapping, $session = NULL) {
+  // If no session is supplied, use the current session.
+  if (empty($session)) {
+    $session = variable_get('leadership_session_term');
+  }
+
+  // Get all company profiles in current session
+  /** @var SelectQuery $query */
+  $query = db_select('node', 'node')
+    ->fields('node', array('title', 'nid'))
+    ->condition('type', 'company')
+    ->condition('status', '1')
+    ->orderBy('title', 'asc');
+  $query->leftJoin('field_data_field_ld_session', 'session', 'node.nid = session.entity_id');
+  $query->condition('session.field_ld_session_tid', $session);
+  $query->addField('session', 'field_ld_session_tid');
+  $query->leftJoin($mapping['company_field_table'], 'companies', "companies.{$mapping['company_field_nid']} = node.nid");
+  $query->condition('companies.bundle', 'user');
+  $query->addField('companies', 'entity_id', 'user_id');
+  $query->leftJoin($mapping['company_field_table'], 'print', "print.{$mapping['company_field_nid']} = node.nid");
+  $query->condition('print.bundle', 'leadership_print_profile');
+  $query->addField('print', 'entity_id', 'print_node_id');
+  $query->leftJoin($mapping['company_field_table'], 'datacard', "datacard.{$mapping['company_field_nid']} = node.nid");
+  $query->condition('datacard.bundle', 'leadership_data_card');
+  $query->addField('datacard', 'entity_id', 'datacard_node_id');
+  $query->leftJoin($mapping['company_field_table'], 'online', "online.{$mapping['company_field_nid']} = node.nid");
+  $query->condition('online.bundle', 'leadership_online_profile');
+  $query->addField('online', 'entity_id', 'online_node_id');
+  $result = $query->execute();
+
+  return $result;
+}

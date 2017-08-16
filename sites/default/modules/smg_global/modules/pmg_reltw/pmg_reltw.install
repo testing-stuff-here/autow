@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function pmg_reltw_install() {
+  $query = db_update('field_config')
+    ->fields(array(
+      'type' => 'pmg_reltw_field',
+      'module' => 'pmg_reltw',
+    ))
+    ->condition('type', 'reltw_field')
+    ->condition('module', 'reltw')
+    ->execute();
+}

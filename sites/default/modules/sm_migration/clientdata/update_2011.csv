@@ -1,0 +1,1119 @@
+Joomla ID - just numeric,Joomla Content Type,Column Type,Headline ,"Drupal Industry Type: Can be Discrete, Process or Batch; Process and Discrete or All. ",Industry Type - Primary: Field to be filled when ALL is marked (to be used in URL structure),This column needs to be populated when one story falls into two different Automation strategy Level 1 categories.,Automation Strategies (Level -1),Level - 2 ,Level - 3,Industries ,Keyword Phrases - Editor Tagging
+7972,Primer,,Building Inner Excellence,All,Discrete,,Operations Management
+7973,Primer,,Companies Moving to Adopt Windows...,All,Batch,Information Management,Information Management,,,,"Windows 7, 3M"
+7973,Primer,,Companies Moving to Adopt Windows...,All,Batch,,Security ,Network Security,,,"Windows 7, 3M"
+7974,Column,Economy View,The QEII Has Set..,All,Discrete,,Automation Team,Industry Trends,,"Automotive, Pharmaceutical"
+
+7840,Product,,Versatile Portable Data Logger,All,Process,,Information Management,,,Communication Devices and Equipment
+7839,Product,,"Four-channel, High-speed DAQ ",All,Process,,Information Management,,,Communication Devices and Equipment
+7847,Product,,"Collect, Analyze, Report Factory Data ",All,Process,,Information Management,Quality Management,,Communication Devices and Equipment
+7846,Product,,Explosion-proof Enclosures ,All,Process,,Safety,Process Safety,,Instrumentation Products
+7845,Product,,Laser Module for Machine Vision,All,Discrete,,Asset Management,Vision,,Electronics
+7844,Product,,Firewall Security for OPC Classic ,Discrete,,,Security,Firewalls
+7843,Product,,Digital Pen Streamlines Processes,All,Discrete,,Information Management,Communication,,Communication Devices and Equipment
+7851,Product,,Rugged ORP Sensors,All,Batch,,Asset Management,Sensors,,Instrumentation Products
+7850,Product,,Versatile E-stop Switch Family,All,Discrete,,Safety,,,Instrumentation Products
+7849,Product,,Ultrahigh-temperature UPS,All,Process,,Operations Management,Overall Equipment Effectiveness,,Electronics
+7848,Product,,Drives Provide Better Match,All,Process,,Energy Management,Drives
+7855,Product,,Linear Sensors Extend Range,All,"Discrete, Process",,Asset Management,Sensors,Proximity,Instrumentation Products
+7854,Product,,Controller Boosts Flow Rates,Process,,,Control,Process Controllers,,"Measurement Products, Oil and Gas"
+7853,Product,,Sensor Detects Irregular Shapes,"Discrete, Process",Discrete,,Asset Management,Sensors,Photoelectric,Instrumentation Products
+7852,Product,,End Alarm System Design Guesswork,All,Process,,Safety
+7858,Product,,DIN-rail Fan Hits Hot Spots ,All,Process,,Operations Management
+7856,Product,,HMIs Extend to 24-inch Size,All,Process,,Control,HMI,Display,Control Products
+7857,Product,,"Automate, Optimize Alarm Reponses",All,Process,,Safety,Process Safety,Safety Controllers
+7885,Product,,High-performance Motor Driver Packages ,"Discrete, Process",Discrete,,Energy Management,Motors
+7860,Product,,Remote Control for Liquid Hydrocarbons,All,Process,,Control,Process Controllers
+7859,Product,,Vision Software Surpasses BLOB Tools,"Discrete, Process",Process,,Asset Management,Vision
+7984,Product,,Radar Measures Solids Levels,"Process, Batch",Batch,,Asset Management,Sensors,,Measurement Products
+7983,Product,,pH/ORP Sensor Lowers Costs,"Discrete, Batch",Batch,,Asset Management,Sensors,Photoelectric,Water and Wastewater
+7982,Product,,Flowmeters Measure Conductive Liquids,"Process, Batch",Batch,,Asset Management,Instrumentation,,"Measurement Products, Food and Beverage, Print, Water and Wastewater"
+7981,Product,,Digital Liquid Level Control,Process,,,Asset Management,Sensors,,Measurement Products
+7985,Product,,Four-camera Vision System,"Discrete, Process",Process,,Asset Management,Vision,,Measurement Products
+7987,Product,,"Valve Withstands Washdowns, Contaminants",All,Discrete,,Asset Management,Instrumentation,,Water and Wastewater
+7988,Product,,Connect Distant Ethernet Networks,Discrete,,,Control,Networking,,Communication Devices and Equipment
+7986,Product,,Web-based Training Launched,All,Process,,Control,Process Controllers,,Control Products
+7991,Product,,4-inch HMI Touch Panels,All,Discrete,,Control,HMI,,Instrumentation Products
+7992,Product,,Report Software Marries Excel/Historians,All,Process,,Information Management,Historian
+7990,Product,,SIL 3 Process Safety Relay,All,Discrete,,Safety,Process Safety
+7989,Product,,Quality Reports on the Web,All,Discrete,,Asset Management,Maintenance,information standards,Communication Devices and Equipment
+7995,Product,,Industrial Cables Glow in Dark,All,Discrete,,Energy Management,Power Supplies,,Plastic and Rubber products
+7994,Product,,HMI/SCADA Software Adds Features,All,Discrete,,Control,HMI,Software,Communication Devices and Equipment
+7996,Product,,BI Software Supports iPad,All,Discrete,,Asset Management,Remote Diagnostics,,Communication Devices and Equipment
+7993,Product,,Tees Speed Cable Tray Wiring,All,Discrete,,Asset Management,Instrumentation,,Instrumentation Products
+7997,Product,,Streamline Paper-making Process,Discrete,,,Asset Management,Maintenance,information standards,Print
+7998,Product,,Corrosion Protection for Motors,"Discrete, Process",Discrete,,Energy Management,Motors,,"Control Products, Packaging"
+7999,Product,,Keep Parts Bins Stocked,Discrete,,,Asset Management,,,Measurement Products
+8141,Column,Feed Forward,"Networks, Acquisitions Lead 2011...",All,Process,,Information Management,Networking,,,"Greiner Curve, Software as a Service, WirelessHart, ISA100"
+8088,Column,,Be Aware of Tax Consequences...,All,Discrete,,Operations Management
+8116,Column,Integrator View,"When Partners Collaborate, Customers Win",All,Discrete,,Operations Management,System Integration,,,Partner Networks
+8089,Column,Finance View,A Look Back: 2010 Manufacturing...,All,Process,,Operations Management,,,,Industrial automation
+8114,Column,Enterprise View,Business Process Management Produces..,All,Process,,Operations Management,Business Process Management
+8115,Column,Industry View,Real-Time Video Adds 4th Dimension to HMI Software,All,Process,Control,Control,HMI,Software,,Digital Video Recorder
+8115,Column,Industry View,Real-Time Video Adds 4th Dimension to HMI Software,All,Process,,Operations Management,,,,Digital Video Recorder
+8116,Column,Pinto's Prose,Pinto Prognostications 2011,All,Process,,Control
+8129,Primer,,Social Networking for Automation Professionals,All,Process,,Information Management,,,Water and Wastewater,ISA
+8130,Primer,,Bringing CIOs and Operations Together,All,Process,,Information Management,Networking
+8130,Primer,,Bringing CIOs and Operations Together,All,Process,Asset management,Asset Management
+8131,Primer,,Why Leaders Exist,All,Discrete,,Operations Management,,,,"Michael Hyatt, situational analysis"
+8132,Primer,,"Big Pharma, Oil and Gas Industries Expand",Process,Process,,Operations Management,Enterprise Resource Planning (ERP),,"Oil and Gas, Pharmaceutical","Aspen Technologies, shale gas, liquid gas, fracking, multiphase metering"
+8133,Primer,,The Assembly Plant of the Future,Discrete,Discrete,,Operations Management,,,Automotive,"IDS Manufacturing Reports, global manufacturing, assembly plant"
+8142,Feature Article,,Sourcing Tomorrow's Automation Innovations,All,Process,Control,Control,Networking,,"Power, Oil and Gas, Water and Wastewater, Pharmaceutical, Food and Beverage","ISA95, ISA100.11a, cloud computing, FPGA,"
+8142,Feature Article,,Sourcing Tomorrow's Automation Innovations,All,Process,,Information Management,Ethernet,,"Power, Oil and Gas, Water and Wastewater, Pharmaceutical, Food and Beverage","ISA95, ISA100.11a, cloud computing, FPGA,"
+8142,Feature Article,,Sourcing Tomorrow's Automation Innovations,All,Process,,Energy Management,,,"Power, Oil and Gas, Water and Wastewater, Pharmaceutical, Food and Beverage","ISA95, ISA100.11a, cloud computing, FPGA,"
+8142,Feature Article,,Sourcing Tomorrow's Automation Innovations,All,Process,,Asset Management,Instrumentation,,"Power, Oil and Gas, Water and Wastewater, Pharmaceutical, Food and Beverage","ISA95, ISA100.11a, cloud computing, FPGA,"
+8118,Feature Article,,This Year's Top Innovation Picks,All,Discrete,Control,Control,,,"Automotive, Oil and Gas, Chemical, Pharmaceutical, Food and Beverage","IEC 61131-3, OPC "
+8118,Feature Article,,This Year's Top Innovation Picks,All,Discrete,,Asset Management,Sensors,,"Automotive, Oil and Gas, Chemical, Pharmaceutical, Food and Beverage","IEC 61131-3, OPC "
+8118,Feature Article,,This Year's Top Innovation Picks,All,Discrete,,Information Management,Wireless,,"Automotive, Oil and Gas, Chemical, Pharmaceutical, Food and Beverage","IEC 61131-3, OPC "
+8119,Feature Article,,Is Battery Power the Coming Rage?,Discrete,Discrete,,Energy Management,Power Supplies,,Instrumentation Products
+8120,Feature Article,,The Green Boat: Let's Pull Together,Discrete,,,Energy Management,Power Supplies,,"Instrumentation Products, Automotive","energy consumption,"
+8121,Feature Article,,"Cloud Computing, the Next Big Thing? ",All,,,Operations Management,,,Chemical,"cloud computing, plant data, "
+8122,Case Application,,Metal Fab Plant Finds Cloud Savings,Discrete,,,Operations Management,Enterprise Resource Planning (ERP),,Fabricated Metals,"PLC integration, Precision Metalforming Index"
+8140,News,,ABB Snatches IKS,Process,,,Asset Management,,,Power
+7962,News,,ABB Acquisition of Baldor to Create Syngeries,All,Process,,Energy Management,Drives,,Alternative Energy,"NEMA, industrial motion"
+8039,News,,Industrial Cyber-incidents Database Goes on Sale,All,Process,,Security,cyber-security,,,"Security Incidents Organization, Stuxnet, Repository of Industrial Security Incidents, SCADA "
+8091,News,,Teledyne to Acquire Dalsa for $342 Million,All,Process,,Asset Management,Sensors,,"Instrumentation Products, Aerospace, Pharmaceutical","machine vision, microelectromechanical systems, "
+7959,News,,Beckhoff in Joint Venture to Develop Servo Motors,All,Discrete,,Energy Management,Premium Efficiency Motors,,,"Servo motors, SPS/Drives Fair"
+8090,News,,U.S. Industrial Jobs Decline...,All ,Discrete,,Operations Management,,,,"robotics, manufacturing jobs, "
+8070,News,,ODVA Unveils New Editions of CIP Network Specs,All,Process,,Information Management,Networking,Common Industrial Protocol (CIP),Automotive,"ODVA, QuickConnect, CIP, IP Address Conflict Detection, Auto SIG, IEC 61508"
+8080,News,,We Energies Bags Hart Innovation,Process,Process,,Asset Management,Fieldbuses,,Power,Hart Communication Foundation 
+8080,News,,We Energies Bags Hart Innovation,Process,Process,,Asset Management,Maintenance,Predictive,Power,Hart Communication Foundation 
+7958,News,,Siemens Launches Software Engineering Framework,All,Process,,Operations Management,,,,"TIA Portal, Engineering Development Software"
+8087,News,,"China, India Challenge U.S. Mfg...",All,Batch,,Operations Management,,,,"Asia Market, 2010 Global Manufacturing Competitiveness Index"
+8113,News,,European Automation: IOM and Siemens...,All ,Batch,,Operations Management,,,,"energy consumption, Simulation, OpsManage'10 Paris, "
+8147,Product,,"Rugged, Control Panels",All,Batch,,Control,HMI,,,IP65
+8146,Product,,Intrinsically Safe HMIs,All,Process,,Control,HMI,,,Thin Client
+8145,Product,,Graphic HMIs,All,Process,,Control,HMI
+8144,Product,,iPhone/iPad/iPods as Mobile HMIs,All,Process,,Control,HMI,Mobile,,"Mobile HMIs, 802.11"
+8150,Product,,Class T Fuses,All,Discrete,,Control
+8149,Product,,Power Analyzer,All,Process,,Asset Management,,,,Process Signal Measurements
+8148,Product,,Custom Enclosures,All, Discrete,,Asset Management,,,OEM,"NEMA 4X, "
+8157,Product,,Pressurization System,All,Discrete,,Asset Management
+8156,Product,,HMI Adds 2nd Port,All ,Process,,Control,HMI,Software,,Ethernet Expansion card
+8155,Product,,Motion Controller Extends Range,Discrete,Discrete,,Control,Motion Control,,,IEC 61131-3
+8160,Product,,Monitor Rotating Equipment,All,Process,,Asset Management,Maintenance,,,"Relay module, industrial monitoring"
+8161,Product,,Gateways Connect CANopen...,All,Discrete,,Information Management,Networking,CAN,,CANopen 
+8162,Product,,Colorimetric Online Analyzer,All,Batch,,Asset Management,,,"Water and Wastewater, Chemical, Pharmaceutical, Power"
+8163,Product,,Instrument Diagnostics,Process,Process,,Asset Management,Diagnostics,,,Hart Diagnostics
+8164,Product,,Industrial Wirless Transmitters,Process,Process,,Asset Management,Remote Diagnostics
+8165,Product,,Process Flowmeter,Process,Process,,Asset Management,Instrumentation
+8159,Product,,Safety Relay Family,All,Discrete,,Safety,Process Safety,,,"Safety relays, EN ISO 13849-1"
+8158,Product,,RF Power For Energy Harvesting,All,Process,,Energy Management,Power Supplies,,,Wireless Transmitter
+8227,Column,Feed Forward,Leadership in Automation,All ,Process,,Automation Team,Leadership,,,"Foundation Fieldbus, John Berra"
+8230,Column,Industry View,ARC: Procedural Automation ,"Process, Batch",Process,,Operations Management,Operator Performance,,,"prompted operational procedures, automated procedures, ISA 106"
+8228,Column,Enterprise View,Succeeding in a Recovering Economy,All ,Discrete,,Operations Management,Business Process Management,CRM,"Construction, OEM"
+8229,Column,Finance View,Using the Right Costs for Capacity,All ,Batch,,Operations Management,Business Process Management,,,"capacity utilization, "
+8219,Column,The SetPoint,Noble But Unappreciated,All ,Process,,Operations Management
+8236,Column,Pinto's Prose,Keeping Motivation Up in Down Economy,All ,Discrete,,Operations Management
+8249,Primer,,Manufacturing Software: Tackling the Challenges,All ,Process,,Operations Management,Manufacturing Operations Management (MOM),,,MESA
+8249,Primer,,Manufacturing Software: Tackling the Challenges,All ,Process,,Operations Management,Enterprise Resource Planning (ERP),,,MESA
+8250,Primer,,Technology Will Drive Business..,Process,Process,,Operations Management,Business Process Management
+8251,Primer,,Network Security and Robotics,All ,Discrete,Security,Security,Network Security,,"Food and Beverage, Automotive","Stuxnet, Zeus, ISA99, "
+8251,Primer,,Network Security and Robotics,All ,Discrete,,Asset Management,Robotics,,"Food and Beverage, Automotive","Stuxnet, Zeus, ISA99, "
+8253,Primer,,Future Engineers New New Tech..,All ,Batch,,Operations Management,,,,Brain Drain
+8252,News,,The Future of HMI...,All , Process,,Control,HMI,,Electronics,Tablet Computers
+8192,News,,Rock Auto. to Acquire So. Africa...,Process,Process,,Control,,,"Mining, Power, System Integration","Hiprom Technologies, "
+8125,News,,GE Intell Acquires...,All ,Discrete,,Asset Management,Remote Diagnostics,,"Oil and Gas, Power, ","SmartSignal, Predictive Modeling"
+8139,News,,InMOTx Acquisition Adept Position...,Batch,Batch,,Asset Management,Robotics,,"Packaging, Food and Beverage","MobileRobots, Vision-Guided Robotics"
+8207,News,,MES/MOM Global Educ...,All ,Process,,Operations Management,Manufacturing Operations Management (MOM),,,"MESA Certificate, Education"
+8207,News,,MES/MOM Global Educ...,All ,Process,,Operations Management,Manufacturing Execution System (MES),,,"MESA Certificate, Education"
+8172,News,,OPC Foundation Launches...,All , Process,,Information Management,Networking,OPC,,"OPC UA Test, OPC Foundation"
+8218,News,,Auto. Fed to Lead Intl...,All ,Discrete,,Operations Management,,,,"Automation Federation, ISA, Intelligent Manufacturing Systems"
+8247,News,,Training Grant Targets...,Discrete,Discrete,,Operations Management,Training,,System Integration
+8196,News,,India Defense Ministry...,Discrete,Discrete,,Operations Management,,,"Aerospace, OEM"
+8248,News,,Ukranian Industrial Production...,Discrete,Discrete,,Operations Management,,,"OEM, Mining",Industrial Production
+8231,Case Application,,Control Vendors Put More...,"Discrete, Process",Discrete,,Control,Motion Control,,"OEM, Food and Beverage, Print","Integrated Systems, Integrated Safety, Kinematics, "
+8231,Case Application,,Control Vendors Put More...,"Discrete, Process",Discrete,,Control,PLC,,"OEM, Food and Beverage, Print","Integrated Systems, Integrated Safety, Kinematics, "
+8199,Feature Article,,What's New in Integrated Logic...,Discrete,Discrete,,Control,PLC,,"OEM, Plastic and Rubber Products, Packaging, Automotive, Aerospace, Fabricated Metals","motion control algorithms, IEC61131-3"
+8199,Feature Article,,What's New in Integrated Logic...,Discrete,Discrete,,Control,Motion Control,,"OEM, Plastic and Rubber Products, Packaging, Automotive, Aerospace, Fabricated Metals","motion control algorithms, IEC61131-3"
+8233,Feature Article,,Simulating and Modeling the...,Process,,,Operations Management,Production Management,Simulation,"System Integration, Steel","SCADA, Wonderware"
+8234,Case Application,,DOE Using Simulation to Train....,"Process, Batch",Process,,Operations Management,Training,Operator Training Simulation,Power,"Department of Energy, zero-emission integrated gasification"
+8232,Case Application,,Moving from Models to Control Code,All ,Discrete,,Control,,,"Print, Pharmaceutical","Model-Based Design, MathWorks, Systems Designer, ISA88 Batch Control, Contract Manufacturer"
+8235,Case Application,,Factoring Safety into Factory Controls,Discrete,,,Control,PLC,,Automotive,Integrated Safety
+8235,Case Application,,Factoring Safety into Factory Controls,Discrete,,Safety,Safety ,Process Safety,Safety Controllers,Automotive,Integrated Safety
+8254,Case Application,,Cartridge Maker Boosts Effiiciency...,Discrete,,,Control,PLC,,"OEM, System Integration"
+8258,Product,,"CC-Link Machine-mount I/O, RFID",Discrete,Discrete,,Control,I/O
+8257,Product,,Higher Barcode Read Rates,"Discrete, Process",Discrete,,Asset Management,Vision
+8256,Product,,Compact DPM Imager,"Discrete, Process",Process,,Asset Management,Vision,,"Electronics, Pharmaceutical"
+8255,Product,,Versatile Industrial Code Reader ,"Discrete, Process",Discrete,,Asset Management,Vision
+8262,Product,,"Rugged, Machine-mountable PC ",All,Process,,Control,HMI
+8261,Product,,Combined Vibration/Temperature Monitoring,All,Process,,Asset Management,Sensors
+8260,Product,,High-power Soft Starts,All,Discrete,,Energy Management,Drives
+8263,Product,,"Fast, Accurate Hydraulic Testing",All,Process,,Safety,Process Safety
+8259,Product,,Industrial Safety Lines Debut,All,Discrete,,Safety,Process Safety
+8267,Product,,Enhanced Production Control System,All,Batch,,Control,Process Controllers
+8266,Product,,Keep Tabs on System Health,All,Process,,Operations Management,Manufacturing Operations Management (MOM)
+8265,Product,,Module Provides Encoder Interface,All,Discrete,,Control,I/O
+8264,Product,,Shielded Cables Provide Protection,All,Discrete,,Energy Management,Power Supplies
+8270,Product,,Connect Multiple Wire Gauges,Discrete,Discrete,,Asset Management,Instrumentation
+8269,Product,,Lockout/Tagout Kit,All,Discrete,,Operations Management,Operator Performance
+8268,Product,,"Change Management Enhanced, Simplified",All,Process,,Asset Management,Diagnostics
+8274,Product,,29 Megapixel Sensor Claims Benchmark,"Discrete, Process",Process,,Asset Management,Vision
+8273,Product,,Compact CANopen Motion Control ,All,Discrete,,Control,Motion Control
+8272,Product,,USB-to-WLAN Adapter ,All,Discrete,,Control,Networking
+8271,Product,,Encoder Options Fill Stepper Line,Discrete,Discrete,,Energy Management,Motors
+8278,Product,,Universal OPC Server,All,Discrete,,Information Management,Networking,OPC
+8277,Product,,EtherCat Module for Motion Control,Discrete,Discrete,,Control,Networking
+8276,Product,,Linear Actuators for Hazardous Environments ,All,Discrete,,Control,Process Controllers
+8282,Product,,Long-life Free Chlorine Sensor,All,Batch,,Asset Management,Sensors
+8281,Product,,"Quick, Compact Midrange Robot",Discrete,Discrete,,Asset Management,Robotics
+8280,Product,,Laser Scanner Protects Personnel ,"Discrete, Process",Process,,Asset Management,Vision
+8279,Product,,Converge/Divert Materials Safely,"Batch, Process",Batch,,Asset Management,Instrumentation
+8286,Product,,Program Robots in RSLogix,Discrete,Discrete,,Asset Management,Robotics
+8285,Product,,Enhanced Universal Development Tool ,All,Process,,Control,HMI,Software
+8284,Product,,Motion/Drive Systems Add Ethernet,"Discrete, Process",Discrete,,Energy Management,Motors
+8283,Product,,Process Trending on Mobile Phones,Process,Process,,Asset Management,Remote Diagnostics
+8451,Case Application,,Process and Packaging Integration...,All,Discrete,Control,Control,Industrial PCs,,Pharmaceutical,"Soft PLC, Fargo Automation, Multidisciplinary Controllers "
+8451,Case Application,,Process and Packaging Integration...,All,Discrete,,Operations Management,Manufacturing Execution System (MES),,Pharmaceutical,"Soft PLC, Fargo Automation, Multidisciplinary Controllers "
+8387,Case Application,,Automation Beefs Up Alternative Energy,Process,,,Control,Advanced Control,,Power,Thermal
+8387,Case Application,,Automation Beefs Up Alternative Energy,Process,,,Control,PACs,,Power
+8388,Case Application,,Going for the Wind Above Turbines,Process,,,Control,,,Alternative Energy,"FPGA, Wind Power"
+8472,Feature Article ,,The Secret to Sustainable Machines,All,Discrete,,Energy Management,Premium Efficiency Motors,,"OEM, Food and Beverage","Energy Recovery, Energy On Demand, Pulse-Width Modulation, Power Consumption Analysis"
+8472,Feature Article,,The Secret to Sustainable Machines,All,Discrete,,Energy Management,Variable Frequency Drives,,"OEM, Food and Beverage","Energy Recovery, Energy On Demand, Pulse-Width Modulation, Power Consumption Analysis"
+8427,Case Application,,Mini-Mill Operator Gets a Handle on...,"Process, Discrete",Process,Information Management,Information Management,Communication,OPC,Steel,"Quad Mill Operation System (QMOS), Gerdau Ameristell "
+8427,Case Application,,Mini-Mill Operator Gets a Handle on...,"Process, Discrete",Process,,Operations Management,Manufacturing Execution System (MES),,Steel,"Quad Mill Operation System (QMOS), Gerdau Ameristell "
+8471,Case Application,,"Beyond the Buzz, Sustainable Mfg.",All,Process,Energy Management,Energy Management,,,"Packaging, Power, Chemical","Boiler Efficiency, ARC Advisory Group"
+8471,Case Application,,"Beyond the Buzz, Sustainable Mfg.",All,Process,,Control,DCS,,"Packaging, Power, Chemical","Boiler Efficiency, ARC Advisory Group"
+8476,Case Application,,Gear Mfg. Finds Savings,Discrete,,,Energy Management,,,OEM
+8477,Feature Article,,Tips for Packaging Machinery....,Discrete,,,Energy Management,,,OEM
+8450,Column,,"Continuous Learning, Packaging...",Discrete,,,Operations Management,,,Packaging,"Packaging Automation Forum, PackML"
+8422,Primer,,Making the Case for Auto...,All,Discrete,,Operations Management,,,Fabricated Metals,"Safety, Wire Products"
+8423,Primer,,Different Perspectives on Engineering...,All,Process,,Operations Management,,,,"Steve Rubin, Worcester Polytechnic Institute, Engineering, Education"
+8424,Primer,,Market-Savvy Machine Builders..,Discrete,,Operations Management,Operations Management,Training,,"OEM, Food and Beverage, Packaging, ","Ethernet/IP, ODVA"
+8424,Primer,,Market-Savvy Machine Builders..,Discrete,,,Asset Management,Robotics,,"OEM, Food and Beverage, Packaging, ","Ethernet/IP, ODVA"
+8425,Primer,,OMAC Show Signs of Life...,Discrete,,,Operations Management,,,OEM ,"OMAC, Packaging Workgroup (OPW), PMMI, MT Connect Standards"
+8390,Column,Enterprise View,Compliance with Food Safety..,"Discrete, Batch",Discrete,,Operations Management,Manufacturing Execution System (MES),,Food and Beverage,FDA
+8386,Column,Economy View,High Property Tax Assesments...,All ,Discrete,,Asset Management,,,,"Depreciation Factor, Tax Assesment"
+8378,Column,Integrator View,Integrators Link Wind Farms to...,Process,,,Control,SCADA,,Alternative Energy,"Power Grid, Wind Farms"
+8377,Column,Industry View,Energy Management and Collaborative Mgmt...,All ,Process,,Energy Management,Variable Frequency Drives,,"Chemical, Oil and Gas,","Enterprise Asset Management, Energy Management Systems. "
+8468,Column,Pinto's Prose,Web Media Boosts Automation....,All ,Process,,Operations Management,Training,,"Instrumentation Products, Chemical"
+8407,Column,Feed Forward,A World in Turmoil,All ,Process,,Operations Management,,,Chemical
+8406,News,,Bosch Rexroth Signs On as ODVA Principal Member,All,Discrete,,Information Management,Ethernet,EtherNet/IP,All,"DeviceNet, CompoNet, ControlNet"
+8420,News,,New ISA99 Task Group Targets Cyber Threat Gaps,All,Process,,Security,Cyber-Security ,,All,"Stuxnet, ISA99"
+8481,News,,MES Providers Faces Growth Restraints as Recession Recedes,All,Process,,Operations Management,Manufacturing Execution System (MES),,,Product Lifecycle Management (PLM)
+8499,News,,Yokogawa Joins Profibus User Organization,All,Process,,Information Management,Networking,PROFIBUS,,"Yokogawa, PROFINET"
+8515,News,,Belden Acquisition of GarrettCom Settles In,All,Process,,Information Management,Networking,Switches,,Lean Manufacturing
+8516,News,,Jody Markopoulos Named to Head GE Intelligent Platforms,All,Discrete,,Operations Management,Production Management
+8525,News,,ABB Invests in Concentrated Solar Power,Process,,,Energy Management,"Smart Grid, Software,",,Power,"Solar Power, Renewable Energy"
+8535,News,,Beaulieu to Keynote CSIA Conference,All,Discrete,,Control,Networking,,,"Control System Integrators, Automation Standards"
+8542,News,,Profienergy Savings Reported,All,Discrete,Energy Management,Energy Management,,,,"Profienergy, energy audit"
+8542,News,,Profienergy Savings Reported,All,Discrete,,Information Management,Networking,Profinet,,"Profienergy, energy audit"
+8550,News,,ABB India To Acquire Operating Business of ABS Global Industries,Process,,,Control
+8561,News,,PSU Launches Online Master’s in Engineering Management,All,Discrete,,Operations Management,Manufacturing Operations Management (MOM),,,"engineering, education"
+8562,News,,Dassault Systèmes Acquires Intercim,Discrete,,,Operations Management,Product Lifecycle Management (PLM),Software,,"PLM, Dassault"
+8583,News,,Versatility Helps Drive Vortex Flowmeter Sales,Process,,,Control
+8583,News,,Versatility Helps Drive Vortex Flowmeter Sales,Process,,,Asset Management,Instrumentation,,,"flowmeter, American Petroleum Institute"
+8637,News,,iPad app empowers the mobile manufacturing workforce,Discrete,,,Information Management,Enterprise Resource Planning (ERP),Product Lifecycle Management (PLM),,"Mobile, HMIs"
+8637,News,,iPad app empowers the mobile manufacturing workforce,Discrete,,,Automation Team,Leadership ,,,"Mobile, HMIs"
+8674,News,,TI to Embed EtherCAT Industrial Fieldbus,All,Discrete,,Information Management,Networking,,,"EtherNet, EtherCAT, embedded control"
+8702,News,,Annual Packaging Automation Forum...,Discrete,,,Safety,Machine Safety,,Food and Beverage,PAF
+8709,News,,Raw Materials Costs Top List of Concerns for Manufacturers,All,Process,,Supply chain,,,,"executive management, purchasing, Grant Thornton, Prime Advantage"
+8710,News,,Emerson Expands Asia Flow Technology Center in China,Process,,,Control,Sensors,,,"flowmeters, Emerson, China"
+8711,News,,Hannover Fair 2011 Industrial Technology,All,Discrete,,Control,,,,Hannover Fair
+8712,News,,GE Intelligent Platforms Joins Board of PI North America,All,Process,Control,Control,Networking,,,PI North America
+8712,News,,GE Intelligent Platforms Joins Board of PI North America,All,Process,,Asset management,Fieldbuses,Profibus,,PI North America
+8743,News,,"NEMA Economist Bullish on Trucking, Natural Gas",All,Process,,Automation Team,Project Management,Finance,Oil and gas ,"NEMA, economy"
+8746,News,,"ABB CEO Talks Technology, Investments, Products",All,Process,,Energy Management,Power Supplies
+8748,News,,Avantha Power of India Taps Rockwell,Process,,,Energy Management,Power Supplies,,,India
+8748,News,,Avantha Power of India Taps Rockwell,Process,,,Control,DCS,,,India
+8749,News,,B&R Posts Strong Gains,Discrete,,,Control,Machine Control
+8754,News,,First Registered Hosts with Fieldbus Foundation Host Profile “61b” Named,All,Discrete,,Control,Networking,,,"Emerson, GE"
+8755,news,,"Microsoft ERP Software Combines Discrete, Lean, Process Manufacturing",All,Process,,Information Management,Enterprise Resource Planning (ERP)
+8756,News,,"Study: PLM Can Increase R&D Efficiency, Design Processes",Discrete,,,Information Management,Enterprise Resource Planning (ERP),Product Lifecycle Management (PLM)
+8756,News,,"Study: PLM Can Increase R&D Efficiency, Design Processes",Discrete,,,Operations Management,Product Lifecycle Management (PLM),Software,,"PLM, siemens"
+8807,News,,Packaging in Italy,All,Discrete,,,Machine Control,,Food and Beverage,"Global, Italy"
+8809,News,,ABB Invests in DC Technology for Energy Savings,Discrete,Discrete,,Energy Management,Power Supplies
+8867,News,,Rockwell Automation Acquires U.K. Service Provider,All,Discrete,,Control,,,,"Service, repair, Lektronix, Europe"
+8868,News,,Machine Vision Merger: LMI Joins Augusta,Discrete,,,Vision,,,,GigE
+8871,News,,ABB India Net Profit Zooms,Process,,,Control,,,Power,ABB
+8883,News,,"PAS, NovaTech Partner for Substation Automation",Process,,,Operations management,Business Process Management,,Power,"electric power, operator interface, partnership"
+8901,News,,Lifetime Warranty for Industrial Ethernet Devices,All,Discrete,,Control,Networking,,,"warranty, Belden, Hirschmann"
+8924,News,,Red Lion Increases Staff,All,Discrete,,Control,HMI,,,Red Lion
+8932,News,,Manufacturing Disinvestment in China?,All,Discrete,,Information management,Enterprise Resource Planning (ERP),Supply Chain Management,,"jobs, China"
+8933,News,,"Emerson, NitroSecurity Partner for Power Utility Cyber Security and Compliance",Process,,,Security,Cyber-Security,,Power,"Emerson, NitroSecurity, NERC, CIP, , partnership"
+8934,News,,"Schneider Electric Buys Energy, Automation Companies",All,Discrete,,Energy Management,,,,"Schneider Electric, Harvest Power, China, Europe, partnership"
+8935,News,,Update on Siemens S7 PLC Vulnerabilities,All,Discrete,,Control,PLC,,,"Siemens, Stuxnet, cybersecurity"
+8430,Product,,Display Trends on Smartphones,"Discrete, Process",Process,,Asset Management,Vision
+8429,Product,,Reduce Wi-Fi Roaming Downtime ,"Discrete, Process",Process,,Information Management,Wireless,Wi-fi
+8428,Product,,Housing Adds Wireless Versatility,Discrete,,,Safety,Process Safety,Safety Controllers
+8432,Product,,Multi-function Liquid Level Control ,All,Batch,,Asset Management,Diagnostics,,Measurement Products,"Liquid Level Control, Dignostics"
+8431,Product,,Access HMI/SCADA Via Smartphone,All,Process,,Asset Management,Vision
+8438,Product,,Terminate Fiber in Tight Spaces,Discrete,,,Asset Management
+8435,Product,,Coupler Connects to EtherNet/IP,All,Discrete,,Information Management,Ethernet,EtherNet/IP
+8433,Product,,Flow Computer Cuts Complexity,"Batch, Process",Process,,Asset Management,Sensors,Flow
+8440,Product,,"System Learns, Predicts Failures",Discrete,,,Asset Management,Vision
+8439,Product,,Versatile Universal Thermocouple Connector,All,Process,,Asset Management,Diagnostics
+8442,Product,,Simplify I/O Data Transfer,Discrete,,,Control,Networking
+8441,Product,,Water-resistant USB Connectors,"Discrete, Process",Process,,Information Management,Communication
+8446,Product,,Get Real-time Data Connectivity,Discrete,,,Information Management,Communication,OPC
+8445,Product,,Streamline Hart Instrumentation Upgrade ,"Discrete, Process",Discrete,,Information Management,Networking,Hart,Communication Devices and Equipment,"MCToolkit, Hart, FDC software"
+8449,Product,,Find Instrument Drivers Quickly,"Discrete, Process",Discrete,,Asset Management,Instrumentation,,Instrumentation Products,Drivers
+8448,Product,,Expand RTU Communications,"Discrete, Process",Discrete,,Information Management,Ethernet,Ethernet/IP,,"Modular RTU, Hart, Ethernet"
+8447,Product,,"Rugged, Versatile HM",Discrete,,,Control,HMI,Hardware ,,"Ethernet, HMI"
+8576,Feature Article,,Enhancing Worker Safety....,All ,Process,,Safety,Physical Safety,Real-Time Location Systems,"Oil and Gas, Steel, Chemical, Mining"," RFID tags, Ultra Wide Band Transmission"
+8578,Feature Article,,Safety Networks Are Getting Wired...,"Process, Batch",Process,,Safety,Safety Networks,,"Construction, OEM","Integrated Safety Network, Safety Communication,"
+8577,Case Application,,Dow Employs GPS for Pipeline Worker Safety,Process,,,Safety,Physical Safety,,Oil and Gas
+8579,Feature Article,,CAMotion-Wireless Distributed Control Network,Discrete,,,Control,Motion Control,,OEM,Motion Control
+8580,Feature Article,,A Map to the Latest Safety Standards,All ,,,Safety,Standards,,"OEM, Power, Automotive, ","IEC 61508, Safety Lifecycles, Probalistic Failure Analysis, ISA84, IEC 61511, IEC 61511, Burner Management, IEC 62061, Risk Assessment"
+8581,Feature Article,,A Prescription for Personal Protection,All ,Batch,,Physical Safety,,,,"NFPA 70E, IEEE 1584, Arc-Flash Hazard Calculations"
+8563,Perspective,,Automation Team: Manage...,All ,Discrete,,Automation Team,Leadership
+8564,Perspective,,Leadership: Effective Managers,All ,Batch,,Automation Team,Leadership
+8565,Perspective,,Chemical Industry Grows,"Process, Batch",Process,,Operations Management,,,"Chemical, Oil and Gas","American Chemistry Council, Pharmaceutical Chemicals, Workforce Attrition"
+8567,Perspective,,Internet of Things,All ,Discrete,,Information Management,,,,"Internet of Things, Edge Device, Smart Gride, Smart Device, Pervasive Computing"
+8566,Perspective,,When Things Rule the Internet,All ,Process,,SCADA,,,OEM,"Internet of Things, Machine-to-Machine (M2M), Cloud Computing"
+8560,Column,The SetPoint,Ethics Begins with Integrity,All ,Process,,Operations Management
+8573,Column,Feed Forward,Continuity Amidst Change,All ,Process,,Safety,,,Power,Safety Culture
+8570,Column,Economy View,What in the World? ,All ,Process,,Automation Team,,,,Oil Prices 
+8572,Column,Finance View,Product Cost: Making it Decision Oriented,All ,Discrete,,Operations Management,,,,"Full Cost, Management Accounting, Product Cost, "
+8571,Column,Enterprise View,Unlocking the Promise of Cloud Computing,Discrete,,,Operations Management,Enterprise Resource Planning (ERP),,"Automotive, OEM, ","Cloud Computing, IT Infrastructure"
+8574,Column,Industry View,Problems in Safety Lifecycle Management,All ,Batch,,Safety,Standards,,,"Risk Analysis, Maintenance, Functional Safety"
+8575,Column,Pinto's Prose,The Internet of Things,All ,Process,,Information Management,Databases,Cloud Computing,"Pharmaceutical, Oil and Gas, Water and Wastewater, Power","Internet Protocol Version 4, "
+8586,Product,,"Rugged, Food/Beverage Sensors",All,Discrete,,Asset Management,Sensors,Proximity,Food and Beverage,"photoelectric, inductive"
+8587,Product,,Sensor Gathers Energy Data,All,Discrete,,Asset Management,Sensors,,Instrumentation Products
+8588,Product,,Eco-friendly Sensors Perform,All,Discrete,,Asset Management,Sensors,proximity,Instrumentation Products
+8589,Product,,360° Sensors for Outdoor UseQ,All,Discrete,,Asset Management,Sensors,,Instrumentation Products,360-degree measurement
+8590,Product,,Cellular Router for Remote Monitoring,Process,,,Asset Management,Remote Diagnostics,,Communication Devices and Equipment
+8592,Product,,Enhanced Digital Manufacturing Software,Process,,,Operations Management,Manufacturing Operations Management (MOM)
+8591,Product,,Versatile DC Motor Controller ,Discrete,,,Energy Management,Motors
+8593,Product,,Improve Real-time Data Analysis ,All,Process,,Information Management,Historian
+8594,Product,,Vision Interface Expanded,Discrete,,,Asset Management,Vision
+8595,Product,,DIN Rail Mount DC-DC Converters,All ,Process,,Energy Management,,,,DC-DC converter
+8596,Product,,Touchscreen Sensor Adds Features,Discrete,,,Asset Management,Sensors
+8597,Product,,Headphones Aid Vibration Analysis,All,Process,,Asset Management,Diagnostics
+8598,Product,,Detect Small Contrast Differences,All,Discrete,,Control,Sensors
+8599,Product,,Simplified Panel Meter Programming,All,Process,,Asset Management,Maintenance
+8600,Product,,Panel Performance Rivals IPCs,Discrete,,,Control,Industrial PCs
+8603,Product,,Solar Provides Remote Power,All,Process,,Energy Management,Power Supplies,Power Source Regeneration
+8602,Product,,Detect Four Gases Simultaneously,All,Discrete,,Asset Management,Vision,,,leak detector
+8601,Product,,Extended-temperature Power Supplies,All,Process,,Energy Management,Power Supplies,Power Source Regeneration
+8605,Product,,PACs Feature Dual CPUs ,All,Discrete,,Control,PAC
+8604,Product,,Compact Signal Converter/Isolator,All,Discrete,,Information Management
+8607,Product,,Radio Increases Network Reliability,Process,,,Information Management,Ethernet
+8606,Product,,Low-cost Enclosure “Breakthroughs”,All,Process,,Safety,Machine Safety
+8608,Product,,Small-footprint Power Supplies,All,process,,Energy Management,Power Supplies
+8610,Product,,"Versatile, Fully Managed Switch",All,Discrete,,Information Management,Networking,Switches
+8620,Product,,Wireless Transmitter Completes System,All,Batch,,Information Management,,,"Food and Beverage, Water and Wastewater, Chemical"
+8609,Product,,Fast Customized Front Panels,All,Process,,Asset Management
+8621,Product,,Sensor Line Expanded ,All,Process,,Control,Sensors
+8625,Product,,Low-maintenance ClO² Measurement,Process,,,Asset Management,Sensors,,Water and Wastewater
+8624,Product,,Valves Gain SIL Rating,"Discrete, Process",Process,,Asset Management,Valves
+8623,Product,,Combine Measurement with Control,All,Process,,Asset Management,Instrumentation
+8622,Product,,Air Blast Reduces Maintenance,All,Discrete,,Asset Management,Maintenance
+8763,Column,Feed Forward,Will the Next Gen Automation Professional...,All,Process,,Automation Team,,,,"ISA95, ISA88, ISA99, Packaging Automation Forum"
+8765,Column,Industry View,European Process Industry Debates Security Objectives,Process ,,,Security,Network Security,,,"NA115, NAMUR, VDI 2182, IT Security"
+8764,Column,Integrator View,Learn More About Emulation,Discrete,,,Operations Management,System Integration,,,"Control System, Emulation Tools, "
+8766,Column,Enterprise View,Managing Environmental Health...,All,Discrete,,Operations Management,KPI,,,"Safety, Lockouts/Tagouts"
+8781,Column,Economics View,Manufacturing Economics: Successful,All,Process,,Operations Management,,,,"Tax Assessments, "
+8762,Column,Pinto's Prose,Operator Paradox,All ,Process,,Operations Management,,,,"Process Optimization, Simulators"
+8707,Perspective,,4 Questions Successful Engineering Proj Management,All,Discrete,,Operations Management,Operator Performance,,,Liquid Planner
+8690,Perspective,,Processes Inhibit Industrial Energy Savings,All,Process,,Energy Management,Drives,,"Mining, Chemical, Oil and Gas, Print","ARC analyst, IEC 61850, Motor Failure"
+8733,Perspective,,Schnieder Applauds FERC Ruling,Process ,,,Energy Management,,,Power,Demand Response 
+8736,Perspective,,Exxon Expands Drilling,Process ,,,Operations Management,,,Oil and Gas 
+8735,Perspective,,Government Policy Handcuffs,Process ,,,Energy Management,,,Oil and Gas 
+8737,Perspective,,Biotech Firm Seeks Extreme...,Batch,,,Information Management,Networking,,Pharmaceutical,"Alarms, Gateways"
+8837,Perspective,,The Race Is On for Security,All,Process,,Security,,,,Network Security
+8782,Feature Article,,Doing All You Can to Be Cyber Secure,All ,Process,,Information Management,Ethernet,,Chemical,"Network Security, Security Assurance Level, Industrial Networks, Wi-Fi Protected Access Two, ISA99"
+8783,Feature Article,,Technological Advances ,All ,Process,,Information Management,Ethernet,EtherCAT,,"EtherCAT, Industrial Networks, "
+8782,Feature Article,,Doing All You Can to Be Cyber Secure,All ,Process,,Information Management,Wireless,,Chemical,"Network Security, Security Assurance Level, Industrial Networks, Wi-Fi Protected Access Two, ISA99"
+8784,Feature Article,,Operator Training: Virus Prevention Requires a Human Touch,All ,Discrete,,Operations Management,Training,Operator Training Simulation,,"Industrial Security Standards, Network Security"
+8772,Feature Article,,Securing the U.S. Power Grid from Cyber...,Process ,,Security,Security,Standards,,"Water and Wastewater, Power","Control Systems, Federal Energy Regulatory Commission (FERC), Network Security, North American Electric Reliability Council (NERC), Critical Infrastructure Protection (CIP)"
+8772,Feature Article,,Securing the U.S. Power Grid from Cyber...,Process ,,,Control,,,"Water and Wastewater, Power","Federal Energy Regulatory Commission (FERC), Network Security, North American Electric Reliability Council (NERC), Critical Infrastructure Protection (CIP)"
+8771,Feature Article,,Network Security Requires Multi Layer Defense,All ,Process,,Security,Network Security,Whitelisting,"Pharmaceutical, Chemical, Oil and Gas, ","Threat Signatures, Defense-In-Depth Strategy, ISA99, IEC 62443, Security Information Monitoring (SIM),"
+8769,Feature Article,,Certified Security: Its Coming,All,,,Security,Standards,,,"ISA99, Industrial Security Compliance Institute, WIB, Wurldtech"
+8770,Feature Article,,"Readers Poll: Yes, No, Maybe",All ,Process,,Security,,,,Industrial Networks
+8892,Product,,Video Capabilities Integrated Into Graphic HMIs,All,Process,,Control,HMI,Software
+8893,Product,,In-Line Vision Inspector for Web Materials,Discrete,,,Asset Management,Vision
+8894,Product,,"Smaller, Faster Cameras","Discrete, Process",Process,,Asset Management,Vision,,Communication Devices and Equipment
+8895,Product,,GigE Compatible Line Scan Cameras,"Discrete, Process",Process,,Asset Management,Vision,,Communication Devices and Equipment
+8897,Product,,Wi-Fi Tester for Wireless LANs,All,Discrete,,Information Management
+8899,Product,,Upgrade ABB Symphony Harmony Control Networks,Process,,,Information Management
+8898,Product,,Line of modular power control products,Discrete,,,Control,Process Controllers
+8903,Product,,Temperature Signals without RTD Input Card,Process,,,Asset Management,Instrumentation
+8896,Product,,iPhone-based Mixed Signal Oscilloscope,All,Process,,Asset Management,Instrumentation
+8904,Product,,Industrial Sensors,All,Discrete,,Asset Management,Sensors,Photoelectric
+8905,Product,,Analyzer System for Water / Wastewater Monitoring,Process,,,Asset Management,Instrumentation,,Water and Wastewater
+8906,Product,,Wireless Humidity / Temperature Transmitters,Process,,,Asset Management,Instrumentation,,"Agriculture, Chemical, Medical"
+8907,Product,,10/100BaseTX to 100BaseFX Fiber Media Converters,Discrete,,,Control,Process Controllers
+8910,Product,,Icon-based Interface for Mobile Diagnostics,Discrete,,,Asset Management,Remote Diagnostics
+8911,Product,,Integrated I/O Controller,Discrete,,,Control,I/O
+8908,Product,,SCADA Cyber Security,All,Discrete,,Security,Cyber-Security,,,SCADA
+8909,Product,,ISA100.11a Field Wireless Devices,"Batch, Process",Process,,Information Management,Wireless,ISA100
+8912,Product,,"Wireless Gateways, Nodes for Sensor Networks",Discrete,,,Information Management,Wireless
+8915,Product,,CompactPCI Systems for Challenging Environments,Process,,,Control,,,Automotive
+8913,Product,,Embedded PLCs with Ethernet,Discrete,,,Control,PLC,,,Industrial Ethernet
+8914,Product,,Operator Panels,Process,,,Control,HMI,Hardware
+8916,Product,,Fixed-mount Barcode Reader,Process,,,Asset Management,Sensors,Barcode Reader
+8751,Product,,Dual-scale Gas Detection,Process,,,Asset Management,Sensors
+8750,Product,,"Single-beam, Whole-body Detection",All,Discrete,,Asset Management,Sensors
+8752,Product,,SIS-approved Level Transmitters,Process,,,Asset Management,Instrumentation
+8753,Product,,Intrinsically Safe Modules with Diagnostics,All,Batch,,Control,I/O
+8788,Product,,"Compact, Fusible Switches",Process,,,Safety
+8789,Product,,OEE Software Saves Costs,Process,,,Operations Management,KPI
+8790,Product,,Easily Configurable Transducer,All,Discrete,,Energy Management
+8791,Product,,Diagnostics on Multiple Networks,All,Process,,Asset Management,Diagnostics
+8792,Product,,Terminal Block Saves Time,All,Discrete,,Asset Management
+8793,Product,,VFD Gets Performance Boost,Discrete,,,Energy Management,Motors
+8794,Product,,Avoid Dangerous Overpressures,"Batch, Process",Process,,Asset Management,Valves
+8795,Product,,Actuator Integrates Proximity Sensor,All,Discrete,,Asset Management,Sensors,Proximity
+8796,Product,,Motor-mounted Gearboxes Save Space,Discrete,,,Energy Management,Motors
+8797,Product,,Reader Combines ID/Verification,Discrete,,,Asset Management,Sensors,Barcode Reader
+8798,Product,,More Effective Energy Management,Process,,,Energy Management
+8799,Product,,Read 12 Thermocouple Channels,Discrete,,,Asset Management,Instrumentation
+8800,Product,,"Rugged, 3D Industrial Camera","Discrete, Process",Process,,Asset Management,Vision,,Communication Devices and Equipment 
+8801,Product,,Download Product CAD Drawings,All,,,Production Management,Modeling
+8802,Product,,Measure Bi-directional Flows,Process,,,Asset Management,Instrumentation,,"Measurement Products, Food and Beverage, Print, Water and Wastewater","Slurries, Flowmeter, Measurement"
+8890,Column,Feed Forward,Are We Making a MES of IT,All,Discrete,,Operations Management,Manufacturing Execution System (MES),,"Automotive, Pharmaceutical, Semiconductors","Enterprise Resource Planning (ERP), ISA 95, Manufacturing Operations Management (MOM)"
+8891,Column,,What Makes a Great Leader?,All,Process,,Automation Team,Leadership,,,"Foundation Fieldbus, Intellution"
+8846,Column,Economy View,Quantitative Easing: What’s On the Horizon ,All,Batch,,Automation Team,,,"Aerospace, OEM, Computers",Quantitative Easing
+8849,Column,,German Cost Accounting,All,Discrete,,Automation Team,Project Management,Finance
+8847,Column,Enterprise View,Rebalancing the Manufacturing Supply Base...,All,Discrete,,Operations Management,Business Process Management,,,"Accenture, onshoring, nearshoring, total cost analysis, "
+8852,Column,Pinto's Prose,Automation in the Cloud,All,Process,,Information Management,Cloud Computing,,"Instrumentation Products, Oil and Gas, ","Cloud based applications, "
+8848,Column,Finance View,Understanding Operations Management...,All,Process,,Operations Management,,,,"Operations Managers, Cost Modeling"
+8850,Column,Industry View,Process Industries Rediscover Collaborative Production....,Process,,,Operations Management,Production Management,,,"Collaborative Production Management, Performance Management"
+8851,Column,IT View,Need MES/MOM Software? Get Educated,All,Discrete,,Operations Management,Manufacturing Execution System (MES),,,"Commercial Off-The-Shelf (COTS) Software,"
+8925,Column,,CPM Software Suppliers,All,Process,,Operations Management
+8875,Perspective,,Comparing Automated Label Inspection,Discrete,,,Asset Management,Vision,,Pharmaceutical,Good Manufacturing Practices (GMP)
+8872,Perspective,,Enterprise Connectivity Takes,Process,,,Information Management,Systems Administration,,Mining,"Programmable Automation Controller (PAC), eATM"
+8873,Perspective,,"Oil and Gas: Recovery, Is Thy Name Shale Gasa",Process,,,Automation Team,Industry Trends,,Oil and Gas,"Marcellus Shale, Hydro-Fracking, "
+8874,Perspective,,Food/Bev: Process Genealogy Supports...,"Batch, Process",Batch,,Operations Management,Manufacturing Execution System (MES),,Food and Beverage,"Traceability, Food Safety, "
+8876,Perspective,,Monitoring Green Roof Runoff,,,,Asset Management,Sensors,,Water and Wastewater,Wi-Fi devices
+8877,Perspective,,Breakthrough Material System May Enable ,All ,,,Automation Team,Industry Trends,,Electronics
+8853,Feature Article,,Cloud Computing Finds Its Target with Mid-Size Manufactuers,"Discrete, Process",Discrete,,Operations Management,Cloud Computing,,"Automotive, OEM, Fabricated Metals, Power","IT Infrastructure, Application Software, Remote Monitoring, Preventive Maintenance"
+8853,Feature Article,,Cloud Computing Finds Its Target with Mid-Size Manufactuers,"Discrete, Process",Discrete,Information Management,Information Management,Cloud Computing,,"Automotive, OEM, Fabricated Metals, Power","IT Infrastructure, Application Software, Remote Monitoring, Preventive Maintenance"
+8853,Case Application,,Cloud Computing Finds Its Target with Mid-Size Manufactuers,"Discrete, Process",Discrete,,Asset Management,Remote Diagnostics,,"Automotive, OEM, Fabricated Metals, Power","IT Infrastructure, Application Software, Remote Monitoring, Preventive Maintenance"
+8866,Case Application,,MES/MOM Delivers Power to...,All,Discrete,Operations Management,Operations Management,Manufacturing Operations Management (MOM),,"Food and Beverage, Oil and Gas, Print","Preventive Maintenance, MES,"
+8866,Case Application,,MES/MOM Delivers Power to...,All,Discrete,,Asset Management,Maintenance ,Preventive,"Food and Beverage, Oil and Gas, Print","Preventive Maintenance, MES,"
+8854,Feature Article,,Consulting the Cloud,All,Process,,Operations Management,Cloud Computing
+8862,Feature Article,,Packaging Robots:  More than...,Discrete,,Asset Management,Asset Management,Robotics,,"Packaging, Food and Beverage","Robotic Packaging, Embedded Integration"
+8862,Feature Article,,Packaging Robots:  More than...,Discrete,,,Control,PLC,,"Packaging, Food and Beverage","Robotic Packaging, Embedded Integration"
+8863,Case Application,,Robot Rescues Work Crew from Heavy Loads,Discrete,,Asset Management,Robotics,,,"Packaging, ","Case Packaging, Palletize"
+8861,Case Application,,Custom Filling System,Discrete,,Operations Management,Production Management,,,Pharmaceutical
+9004,Product,,Inverter Drives for Motion Control,Discrete,,,Energy Management,Drives
+9003,Product,,Variable Speed Drive,All,Process,,Energy Management,Variable Frequency Drives
+9005,Product,,Closed Loop DC Speed Control,Discrete,,,Energy Management,Motors,,,"DC speed control, Closed-loop Feedback"
+9006,Product,,Explosion-proof Motors for Hazardous Locations,Process ,,,Energy Management,Motors,,"Chemical, Mining, Agriculture"
+9007,Product,,Energy Monitoring Unit Connects Via Ethernet,"Process, Batch",Process,,Asset Management,Sensors,Level
+9008,Product,,Industrial Network Wireless Receiver,Discrete,,,Information Management,Networking
+9009,Product,,Photoelectric Sensor Line,All,Discrete,,Asset Management,Sensors,Photoelectric
+9014,Product,,VLT Drive for Food & Beverage Applications,Discrete,,,Energy Management,Drives,,Food and Beverage
+9015,Product,,40mm Brushless Motor,Discrete,,,Energy Management,Motors,,"Packaging, Communication Devices and Equipment",Brushless
+8994,Case Application,,PLM Propels Productivity...,Discrete,,,Operations Management,Product Lifecycle Management (PLM),Software,"OEM, Aerospace, Semiconductors","Collaborative Manufacturing, CAD software,"
+8990,Case Application,,Tracing Quality Improvement Shows,All ,,,Operations Management,Traceability,,"Automotive, Food and Beverage"
+8990,Case Application,,Tracing Quality Improvement Shows,All ,Discrete,,Operations Management,Traceability,,"Automotive, Food and Beverage"
+8992,Feature Article,,More Benefits of Track and Trace ,All ,Process,,Operations Management,Traceability,,Food and Beverage
+8989,Case Application,,Automated Testing Safeguards Quality,All ,Discrete,Operations Management,Operations Management,Quality,,"Automotive, Food and Beverage"
+8989,Case Application,,Automated Testing Safeguards Quality,All ,,,Information Management,Historian,,"Automotive, Food and Beverage"
+8977,Perspective,,Pulp & Paper: Lean mfg....,Discrete,,,Automation Team,Industry Trends,,"Print, Packaging"
+8978,Perspective,,Leadership Requires,All ,Discrete,,Automation Team ,Leadership
+8979,Perspective,,Focus on Efficiency: Bird...,Discrete,,,Energy Management,,,Aerospace
+8980,Perspective,,Refinery Benefits from Smart,Process,,,Asset Management,Maintenance
+8984,Column,Feed Forward ,Manufacturing Matters,Discrete,,,Operations Management,,,Automotive
+8986,Column,Industry View,Track and Trace for Anti-Counterfeiting,All,Batch,,Operations Management,Traceability,,"Power, Pharmaceutical, Electronics","Risk Modeling, Unit Serialization, "
+8987,Column,Industry View,Fighting Fake Drugs in Africa...,Batch,,,Operations Management,Traceability,,"Pharmaceutical, Packaging"
+8985,Column,Pinto's Prose,Manufacturing Jobs are returning,All ,Discrete,,Automation Team,Manufacturing
+8969,News,,"Wireless Sensor Network Demo, Powered Completely by Harvested Energy ",All,Process,,Control,Sensors
+8969,News,,"Wireless Sensor Network Demo, Powered Completely by Harvested Energy ",All,Process,Information Management,Information management,Wireless
+8971,News,,Obama Administration Supports Advanced Manufacturing,All,Discrete,,Operations Management,Business Process Management,,,"Economy, Manufacturing, Engineering, Innovaiton "
+8972,News,,Turbine Generator Captures and Re-uses Wasted Energy,All,Process,,Control,Machine control ,,,"Turbine, Generator"
+8972,News,,Turbine Generator Captures and Re-uses Wasted Energy,All,Process,Energy Management,Energy Management,Co-generation Boiler Management
+9001,News,,Swedish M2M Service Provider Plans U.S. Expansion,All,Discrete,,Control,Machine control ,,,"M2M, wireless, business systems"
+9002,News,,Accelerated Automation Use In India Is Needed,All,Discrete,,Operations Management,Business Process Management,,,"India, China"
+9027,news,,"2011 Siemens Automation Summit: Automation ""Amusement""",All,Process,,Control,Motion control,,,"Siemens, Summit"
+8988,News,,Siemens Targets Process Industries in a Big Way,Process,,,Control,DCS,,,"Siemens, Summit"
+9000,News,,Motion Control and More: Siemens “Almost Everywhere”in Walt Disney World,Discrete,,,Control,Motion control,,,"Siemens, Summit"
+9037,News,,PLM Software Partnership Targets Mid-Size Manufacturers,Discrete,,,Operations Management,Product Lifecycle Management (PLM),,,"Siemens, PLM, mid-size, digital manufacturing"
+9038,News,,Wireless Control System Access Enabled by iOS App,All,Discrete,,Information management,Wireless,Mobile,,"PAC, smart phone, iPad, Opto 22"
+9039,News,,"Focus on Quality to Ensure Profitable Growth, says Conference Board",All,Discrete,,Information management,Quality management,,,"CEO, Conference Board, economy"
+9060,News,,Invensys Operations Management Selected as Microsoft Industry Partner of the Year,All,Discrete,,Control,HMI,Software,,"Invensys, Microsoft, operations"
+9067,news,,Honeywell Partners with SAP for ERP,Process,,,Information management,Enterprise Resource Planning (ERP),,,"Honeywell, SAP"
+9072,news,,Manufacturing Outlook Survey Indicates Continuing Uncertainty,All,Discrete,,Operations Management,Business Process Management,,,"Economy, Manufacturing, Engineering,"
+9079,news,,ArchestrA Addresses Mobile and MES Data,All,Process,,operations management,Manufacturing Execution System (MES),,,"Invensys, ArchestrA, Mobile"
+9090,news,,Heat Wave And Demand-Response Automation,All,Process,,Energy Management,Smart Grid,,Power,Demand Response
+9161,news,,New uses for Old Batteries,All,Discrete,,Energy Management,,,Automotive,"Battery technology, ABB, General Motors"
+9148,News,,European Technology on Stage,all,Discrete,,Control,Machine Control,,,"Europe, Italy, machine vision, cabinets"
+9145,News,,Self-Powered IPV6 Wireless Sensor Network Debuts,All,Process,,Control,Networking,,,"wireless, sensors"
+9169,News,,Yokogawa Announces New Version of Centum VP,All,Process,,Control,Advanced Control,,,"Yokogawa, operations, software"
+9195,News,,Nl Smart Grid Experts Discuss Electric Utility Plans and Challenges,All,Process,,Energy Management,Smart Grid,,Power,"National Instruments, NI Week, "
+9196,News,,Commercial Space Travel Gets Controls Boos,All,Discrete,,Asset management,Instrumentation,,OEM,aerospace
+9096,Column,Feed Forward,Check It Out for Operations...,All,Discrete,,Automation Team 
+9115,Perspective,,Boiler Upgrade: Chemical Recovery,Process,,Operations Management,Operations Management,Production Management,,"Power, Print, Chemical","UBE Chemicals, Combustion Process"
+9115,Perspective,,Boiler Upgrade: Chemical Recovery,Process,,,Asset Management,Valves,,"Power, Print, Chemical","UBE Chemicals, Combustion Process"
+9116,Perspective,,How to Keep your CEO Lean...,All,Process,,Operations Management,Lean Manufacturing,,,"Real-Time Instrumentation, Sensor Data"
+9117,Perspective,,Understanding Energy Demand,Process,,,Energy Management,,,Power,Demand-Response
+9118,Perspective,,"Power Industry Refocuses, Faces",Process,,,Energy Management,Smart Grid,,"Power, Chemical, Mining",Transmission and Distribution
+9049,Perspective,,Modern Drive Tech. Helps Streetcars,Discrete,,,Energy Management ,Drives,,,"Electric Motor, light rail vehicle"
+9049,Perspective,,Modern Drive Tech. Helps Streetcars,Discrete,,,Energy Management ,Motors,,,"Electric Motor, light rail vehicle"
+9122,Perspective,,Fan Builder Seeks Ideal Motor,Discrete,,,Energy Management,Motors,,,OEM
+9102,Case Application,,Real-Time Profitability,All,Process,Asset Management,Asset Management,Sensors ,Pressure,"Instrumentation Products, Pharmaceutical, Food and Beverage, Oil and Gas, Water and Wastewater","Real-Time Data, Energy Costs, Measurement Devices, Fault Monitoring Diagnostics (FMD),"
+9102,Case Application,,Real-Time Profitability,All,Process,,Control,PLC,,"Instrumentation Products, Pharmaceutical, Food and Beverage, Oil and Gas, Water and Wastewater","Real-Time Data, Energy Costs, Measurement Devices, Fault Monitoring Diagnostics (FMD),"
+9102,Case Application,,Real-Time Profitability,All,Process,,Operations Management,,,"Instrumentation Products, Pharmaceutical, Food and Beverage, Oil and Gas, Water and Wastewater","Real-Time Data, Energy Costs, Measurement Devices, Fault Monitoring Diagnostics (FMD),"
+9102,Case Application,,Real-Time Profitability,All,Process,,Information Management,Historian,,"Instrumentation Products, Pharmaceutical, Food and Beverage, Oil and Gas, Water and Wastewater","Real-Time Data, Energy Costs, Measurement Devices, Fault Monitoring Diagnostics (FMD),"
+9104,Feature Article,,IT Supports Lean Thinking,Discrete,,,Operations Management,Lean Manufacturing,,"Instrumentation Products, Packaging","On-Time Delivery, Kanban, ERP Tools"
+9104,Feature Article,,IT Supports Lean Thinking,Discrete,,,Operations Management,Business Process Management,,"Instrumentation Products, Packaging","On-Time Delivery, Kanban, ERP Tools"
+9103,Feature Article,,HMI: Going From Cute to...,All,Batch,,Control,HMI,,Oil and Gas,"ISA101, Abnormal Situation Management Consortium (ASM)"
+9089,Case Application,,Energy Saving Opportunities,Discrete,,,Control,PAC,,Food and Beverage,"Managed Demand Response, Distribution Centers, Energy Monitoring"
+9089,Case Application,,Energy Saving Opportunities,Discrete,,,Asset Management,Sensors,,Food and Beverage,"Managed Demand Response, Distribution Centers, Energy Monitoring"
+9105,Column,Economy View,What Do National Debt...,All,Process,,Automation Team
+9093,Column,Enterprise View,Transforming Manufacturing Into a...,All,Discrete,,Operations Management,Supply Chain,,Electronics,Contract Manufacturing
+9094,Column,Finance View,Lean Manufacturing and Managerial...,All,Batch,,Operations Management,Lean Manufacturing,,,Toyota Production System
+9092,Column,Industry View,Process Historians Evolving into Ops...,Process,,Information Management,Information Management,Historian,,,"SharePoint, Collaborative Process Automation Systems, Risk Management"
+9092,Column,Industry View,Process Historians Evolving into Ops...,Process,,,Operations Management,,,,"SharePoint, Collaborative Process Automation Systems, Risk Management"
+9095,Column,The Setpoint,What Makes a Leader...Part 2,All,Process,,Automation Team,Leadership,,,Rosemount
+9091,Column,Pinto's Prose,Creating Wealth ,All ,Discrete,,Automation Team,Manufacturing,,"Mining, Agriculture, Electronics "
+9124,Product,,Industrial Frequency Hopping Ethernet Radios,Discrete,,,Information Management,Ethernet,,,"SCADA, Wireless"
+9123,Product,,Modbus Gateway Communications Module,All,Process,,Information Management,Networking,Modbus,,NetEdit
+9125,Product,,Bluetooth Ethernet Gateway,Discrete,,,Information Management,Networking,PROFINET
+9125,Product,,Bluetooth Ethernet Gateway,Discrete,,,Information Management,Networking,Modbus
+9125,Product,,Bluetooth Ethernet Gateway,Discrete,,,Information Management,Ethernet,EtherNet/IP
+9126,Product,,Wireless Ethernet for Video Surveillance,All,Process,,Information Management,Networking,,Communication Devices and Equipment,video surveilance
+9127,Product,,Line of 11 Pressure Sensors,Process,,,Control,Sensors,,"Food and Beverage, Water and Wastewater"
+9128,Product,,Safety Controller Monitoring Module,Batch,,,Safety,Safety Networks,,,"ODVA, CompactLogix, ControlLogix"
+9130,Product,,Add MPI Connectivity to HMIs,Process,,,Information Management,Networking,,,G3 HMIs
+9129,Product,,High-Speed Wireless Ethernet Bridge,All,Discrete,,Information Management,Networking
+9131,Product,,Integrated I/O Controller,All,Process,,Control,I/O,,,AMD LX800 500 MHz controller
+9133,Product,,Adjustable Limit Switch Style Sensors,All,Process,,Control,Sensors,,,LEDs
+9132,Product,,Fiber Media Converters,,,,Information Management,Networking,,,100Base-FX fiber to 10/100Base-TX STP converter
+9134,Product,,Radar-grade 10 Gigabit Ethernet Switch,Discrete,,,Information Management,Networking,OPC,,"communications, ISR, radar, HPC"
+9153,Product,,Safety Motor Management Solution,Discrete,,,Safety,Process Safety,Safety Controllers
+9108,Product,,Gateway for In-the-Cabinet Distributed I/O,Discrete,,,Control,I/O,,,"Gateway, Ethernet/IP, Modbus TCP"
+9110,Product,,Switches with Extended Operating Temperatures ,Discrete,,,Information Management,,,,"vibration-resistant, PoE, hazardous area approvals"
+9109,Product,,PLC with Embedded Ethernet ,Discrete,,,Control
+9111,Product,,Wireless DIN Rail Monitoring and Control Device ,Discrete,,,Control,Machine Control,,,Wireless
+9112,Product,,Wireless Bridge for Industrial Communication ,Discrete,,,Information Management,Networking
+9113,Product,,CompactPCI Serial Gigabit Ethernet Switch ,Discrete,,,Control
+9331,Feature Article,,Bringing Safety Production Equation...,Discrete,,,Safety ,Machine Safety,"ISO13849, ANSI/PMMI B155.1","Packaging, OEM, ","Production Machines, Integrated Control"
+9331,Feature Article,,Bringing Safety Product Equation,Discrete,,,Safety ,Functional Safety,IEC 61508,"Packaging, OEM, ","Production Machines, Integrated Control"
+9329,Column,,Technology Improves Machine...,Discrete,,,Safety ,Machine Safety,,OEM
+9332,Case Application,,More Sausages Plus More Safety..,Discrete,,,Safety,Machine Safety,,,Komet
+9288,Column,,,All,Discrete,,Automation Team
+9282,Column,Feed Forward,,All,Batch,,Automation Team,,,,"iPad, Apps"
+9352,Perspective,,Join the Discussion,All,Process,,Automation Team
+9088,Perspective,,,All,Discrete,,Automation Team,Manufacturing,,,"LinkedIn, John Berra"
+9279,Perspective,,"Teamwork, New PLCs Improve..",Discrete,,Control,Control,PLC,,"Print, System Integration, "
+9279,Perspective,,"Teamwork, New PLCs Improve..",Discrete,,,Safety,,,"Print, System Integration, "
+9281,Perspective,,U.S Auto Industry ,Discrete,,,Automation Team ,Industry Trends,,Automotive,"GM, Ford, Chrysler"
+9161,Perspective,,New Uses for Old Batteries,Discrete,,,Automation Team,Industry Trends,,Automotive,"GM, ABB"
+9155,Perspective,,Quality Control Gets Automated...,,,,Asset Management,,,"Aerospace, Automotive","Meyer Tool, Eponsa"
+9289,Case Application,,Digging Through Data to find Mfg...,"Discrete, Batch",Discrete,,Operations Management,KPI,,"Food and Beverage, Print, "
+9289,Case Application,,Digging Through Data to find Mfg...,"Discrete, Batch",Discrete,,Operations Management,Production Management,,"Food and Beverage, Packaging, Print"
+9291,Feature Article,,How EMI Software....,"Discrete, Batch",,,Operations Management,Production Management,,"Print, Food and Beverage, Packaging"
+9292,Feature Article,,5 EMI Core Functions,All,Process,,Operations Management,KPI
+9296,Feature Article,,Industrial Megaprojects,Process,,,Automation Team ,Project Management,,"Oil and Gas, Chemical"
+9293,Feature Article,,Automation Professionals iPads...,All,Process,,Automation Team ,Industry Trends
+9294,Feature Article,,Automation Applications for...,All,Process,,Automation Team,Industry Trends
+9295,Feature Article,,New Plant Project Management,All,Process,,Automation Team,Project Management,"Engineering Procurement and Construction (EPCs), Main Automation Contractors (MACs), Services, Finance","Oil and Gas, Plastic and Rubber Products"
+9302,Case Application,,Striving for Perfection - WIT,Batch,,,Safety,,,"Oil and Gas, Plastic and Rubber Products",Workflow-Instruction Technology
+9302,Case Application,,Striving for Perfection - WIT,Batch,,Operations Management,Operations Management ,Manufacturing Execution System (MES),,"Food and Beverage, Pharmaceutical, Chemical",Workflow-Instruction Technology
+9284,Column,Economics View,,All,Discrete,,Automation Team 
+9285,Column,Integrator View,Global Food Manufacturer,Batch,,,Operations Management,Traceability,,,SharePoint
+9286,Column,Enterprise View,The Benefits of Energy Intell....,All,Batch,,Energy Management,Software
+9287,Column,Industry View,Multivariate Analysis Prevents...,Batch,,,Operations Management,Production Management,,Pharmaceutical
+9283,Column,Pinto's Prose,People Matter: Valuing Human...,All,Process,,Automation Team,,,,Human Capital
+9333,Product,,RobotStudio Palletizing PowerPac,Process,,,Control,Motion Control,Robotic
+9334,Product,,Programmable Safety Controllers,Process,,,Safety,Process Safety,Safety controllers,"Packaging, Food and Beverage"
+9335,Product,,Multi-Pixel Array Sensors,All,Discrete,,Asset Management,Sensors,Photoelectric
+9336,Product,,DC Brushless Motors,Discrete,,,Energy Management,Motors
+9339,Product,,"High-Speed, 3D Camera",All,Batch,,Asset Management,Vision
+9340,Product,,Sensors With 18mm Threaded Lens,All,Process,,Asset Management,Sensors,Photoelectric
+9337,Product,,Sensor Mounting Fasteners,Discrete,,,Asset Management,Sensors
+9310,Product,,EtherCAT Control Solution for Motion Apps,Process,,,Control,Motion Control
+9311,Product,,"Profinet, Profibus Rotary Encoders",Discrete,,,Control,Motion Control,Robotic
+9312,Product,,Planetary Gearheads for Harsh Environments,Discrete,,,Asset Management,,,"Food and Beverage, Pharmaceutical, Packaging"
+9315,Product,,Frequency Analysis Software,All,Process,,Control
+9316,Product,,Arc-Resistant MCCs Comply with C37.20.7,Discrete,,,Energy Management,Motors,,"Water and Wastewater, Oil and Gas"
+9314,Product,,Network Scanner/Recorder,Process,,,Asset Management
+9317,Product,,PLC with Integrated HMI,Discrete,,,Control,PLC
+9318,Product,,For Ultra High Speed Motors and Spindles,Discrete,,,Energy Management,Drives
+9320,Product,,Drive A-B RIO as a Master or Respond as a Slave,Process,,,Control,I/O
+9321,Product,,24 VDC Temperature Controllers,Process,,,Control,Process Controllers
+9319,Product,,Real-Time Control with Profinet,Process,,,Control,PAC
+9322,Product,,Release 5 of Centum VP Control System,Process,,,Control,I/O
+9325,Product,,C Programmable Control System,Process,,,Control
+9323,Product,,Safety Controller Monitoring,Process,,,Safety,Process Safety,Safety Controllers
+9326,Product,,Measuring Array Sensors with IO-Link,Discrete,,,Asset Management,Sensors,,"Packaging, Print"
+9324,Product,,Electrode-less Conductivity Measurement,Discrete,,,Asset Management
+9327,Product,,Programmable Fieldbus Controller with SD Card,Discrete,,,Control,I/O
+9556,News,,,Process,,Control,Control,I/O,,Chemical
+9556,News,,,Process,,,Safety,,,Chemical
+9554,News,,,All,Process,Energy Management,Energy Management,,,"Oil and Gas, Power"
+9554,News,,,All,Process,,Information Management,Wireless,,"Oil and Gas, Power"
+9494,Blog,,,All,Discrete,,Operations Management,Manufacturing Execution System (MES)
+9518,Blog,,,Discrete,,,Operations Management,Cloud Computing
+9479,Blog,,Tofino Security product,All,Process,,Operations Management,Production Management,Simulation,"Power, Oil and Gas, Chemical, Water and Wastewater"
+9477,Blog,,Remote monitoring,All,Discrete,,Operations Management,Production Management
+9400,Blog,,Extreme Application Pump,All,Process,,Asset Management,Maintenance,,Oil and Gas
+9414,Blog,,Process Control Ethernet...,Process,,,Information Management,Networking
+9423,Blog,,MIT Research on Energy Harvesting..,All,Process,Asset Management,Asset Management,Sensors
+9423,Blog,,MIT Research on Energy Harvesting..,All,Process,,Energy Management
+9378,Blog,,Flex. Thermo Cables,"Discrete, Batch",Discrete,,Asset Management,Maintenance,,"Packaging, OEM, Plastic and Rubber Products"
+9377,Blog,,Energy Management..,All,Discrete,,Asset Management,Diagnostics
+9353,Blog,,Self-Healing Wirless,Process,,,Control,Sensors,,Power
+9328,Blog,,EE Compact motor,All,Discrete,,Energy Management,Motors
+8135,Blog,,POE: Embedded Vision ,All,Discrete,,Asset Management,Vision,,"Automotive, Packaging, Pharmaceutical"
+8902,Blog,,OEM: Micro Controllers,Discrete,,,Control,I/O,,OEM
+8840,Blog,,Wireless Push Button...,Discrete,,,Control,,,"Automotive, Food and Beverage, Packaging, MIning"
+7336,Blog,,New ipad app for operators,Process,,,Operations Management,,,Water and Wastewater
+6362,Blog,,DIN rail UPS modules,All,Process,,Energy Management,UPS
+8949,Blog,,SCADA Client App,Process,,,Asset Management,Remote Diagnostics,,Water and Wastewater
+9255,Blog,,Critical Security,All,Process,,Security,Network Security,Whitelisting,"Power, Oil and Gas, Chemical, Water and Wastewater"
+7501,Blog,,Solar tracking...,Process,,,Control,Sensors,,Power
+4960,Blog,,Low Cost brick PLC,All,Discrete,,Control,PLC
+6518,Blog,,"Web-Based HMI, SCADA...",All,Process,Asset Management,Asset Management
+6518,Blog,,"Web-Based HMI, SCADA...",All,Process,,Control
+6546,Blog,,Fingerprint recongnition...,All,Discrete,,Security,Physical Security
+6460,Blog,,PLC Functionality in a PC,All,Process,,Control ,Industrial PCs
+8134,Blog,,USB Virus Detector,All,Batch,,Security,Malware
+8306,Blog,,SaaS Machine Learning ,All,Process,,Operations Management,Cloud Computing
+5656,Blog,,Open Source Mfg Software,All,Process,,Operations Management,Enterprise Resource Planning (ERP)
+8337,Blog,,Network Security,All,Discrete,,Security,Network Security
+8947,Blog,,Energy VSD,Batch,,,Energy Management,Drives,,"Food and Beverage, Packaging"
+8545,Blog,,Robotic Gripper,All,Discrete,,Asset Management,Robotics
+7779,Blog,,HMI Devices IP69,Discrete,,Control,Control,HMI
+7779,Blog,,HMI Devices IP69,Discrete,,,Asset Management,HMI
+9264,Blog,,Wind Turbine OPC Server,Process,,,Information Management,Networking,OPC,Power
+9236,Blog,,Honeywell Expands Sensor line,Discrete,,,Asset Management,Sensors 
+9219,Blog,,High-Speed Tire Assembly,Discrete,,,Asset Management,Robotics,,Automotive
+9339,Blog,,High Speed Vision,All,Batch,,Asset Management,Vision
+9159,Blog,,DC Current Measurement,Discrete,,,Asset Management,Sensors ,,Power
+9168,Blog,,Cooling Units,All,Discete,,Operations Management,,,Electronics
+9160,Blog,,Networked Infrared Thermometers,"Discrete, Batch",Discrete,,Asset Management,Sensors,Temperature
+9158,Blog,,Controllers/Process/Temperature,"Process, Discrete",Process,,Control
+8585,News,,Industrial Automation Competition,Discrete,,Safety,Machine Safety,,,OEM,Machine Safeguarding
+8559,News,,Invensys Names New,Process,,Operations Management,,,,,Sudipta Bhattacharya
+8536,News,,Bullish on Manufacturing and Automation,"Process, Discrete",Discrete,Automation Team,,,,"Power, Alternative Energy"
+8509,News,,Automation and Control Company,Process,,Advanced Control,Advanced Control,,,"Oil and Gas, Power, Water and Wastewater, Chemical, Mining","HMI, DCS, Historians"
+8509,News,,Automation and Control Company,Process,,,Operations Management,,,"Oil and Gas, Power, Water and Wastewater, Chemical, Mining","HMI, DCS, Historians"
+8513,News,,Will Automation Put Us All..,All,Discrete,,Information Management
+8389,News,,Automation Partnerships,All,Discrete,,Information Management,Ethernet,EtherNet/IP,OEM,"ODVA, Reflective Memory"
+8376,News,,Industrial Safety,All,Process,Safety,Safety,,,Oil and Gas,"Dread Factor, Journal of Applied Pyschology"
+8376,News,,Industrial Safety,All,Process,,Operations Management,Training,,Oil and Gas,"Dread Factor, Journal of Applied Pyschology"
+8360,News,,Acquisition Activity Heats Up,All,Process,,Operations Management,,,"Power, Oil and Gas"
+8309,News,,ARC 2011: Yokogawa,Process,,,Control,,,Oil and Gas,VigilantPlant Services
+8308,News,,ARC 2011: Apprion Release,Process,,Safety,Safety,Process Safety,,,"ION Location, ION Personnel Tag, IONite Asset Tag"
+8308,News,,ARC 2011: Apprion Release,Process,,,Security,,,,"ION Location, ION Personnel Tag, IONite Asset Tag"
+8319,News,,ARC 2011: News & Products...,All,Process,Asset Management,Asset Management,,,Water and Wastewater,World Industry Forum
+8319,News,,ARC 2011: News & Products...,All,Process,,Operations Management,,,Water and Wastewater,World Industry Forum
+8316,News,,ARC 2011: Invensys Announces ArchestrA..,All,Process,,Operations Management,,,,"Enterprise Control System, Workflow Software"
+8307,News,,Pepperl + Fuchs Introduces Dynamic Arc...,All,Process,,Energy Management,Power Supplies
+9392,News,,Marketing and Sales: ISA,All,Process,,Automation Team ,,,,ISA 
+9257,News,,M&A Activity in Industrial....,All,Process,,Automation Team ,Mergers & Acquisitions,,Power
+9071,News,,Industrial Control Sys...,All,Discrete,,Security,Cyber-Security,,"Power, Water and Wastewater, Oil and Gas",Joe Weiss
+9070,News,,Abb still filling Portfolio,"Discrete, Batch",,,Automation Team ,Mergers & Acquisitions,,"Print, Automotive"
+9068,News,,Demand Healthy but Softening..,All,Process,,Automation Team ,Industry Trends,,"Food and Beverage, Packaging, Oil and Gas, Automotive, Chemical"
+9066,News,,MES/MOM,All,Process,,Operations Management,Manufacturing Operations Management (MOM),,,MESA
+8961,News,,When Executives Diss,Discrete,,,Automation Team ,Manufacturing  ,,Automotive,Bob Lutz
+8946,News,,Honeywell User,All,Process,,Automation Team ,Conference Coverage,,,Norm Gilsdorf
+8865,News,,All About Batch,Batch,,,Automation Team ,Manufacturing,,,ARC Advisory Group
+8856,News,,Energy: Smoothing Power,Process,,,Energy Management,,,,Energy Storage
+8836,News,,Invensys Reveals positive,All,Process,,Operations Management,,,,Sudipta Bhattacharya
+8768,News,,Accounting for Process,Process,,,Operations Management,,,,Bill Waddell
+8721,News,,Lifehack Getting things done,All,Discrete,,Information Management,Networking
+8691,News,,2011 ABB Automation...,All,Discrete,,Automation Team ,Mergers & Acquisitions,,,Joe Hogan
+8684,News,,ABB: A Technology Company,All,Discrete,,Automation Team ,Conference Coverage
+8660,News,,ISA Automation Weed,All,Process,,Automation Team 
+8669,News,,Business Growth,All ,Discrete,,Automation Team ,Industry Trends,,,Jim Pinto
+8630,News,,Hannover Fair 2011,All,Process,,Automation Team ,Conference Coverage
+8814,News,,Update on Nestle PackML,Discrete,,Control,Control,,,OEM,"Nestle, ISA 88"
+8814,News,,Update on Nestle PackML,Discrete,,,Operations Management,,,OEM,"Nestle, ISA 88"
+8831,News,,Take Heart - our education,All,,,Automation Team ,Manufacturing
+8833,News,,Are there Vultures Flying ,,,,Automation Team ,Industry Trends,,Automotive
+8832,News,,PackML World Tour ,Discrete,,,Operations Management,,,"Packaging, OEM","ISA 88, OMAC"
+8375,News,,Nestle Views on OMAC Packaging.,"Process, Discrete",,,Automation Team ,Industry Trends,,,Dr. Bryan Griffen
+8349,News,,Security - Another reason...,All,Process,,Security,Cyber-Security,,"Chemical, Power",ISA 99
+8348,News,,PMMI and Nestle step up,Discrete,,,Automation Team ,Industry Trends,,Packaging,"PMMI, Packaging Automation Forum"
+8347,News,,Government Officials Warn of Cyber,All,Process,,Security,Cyber-Security,,Power
+8320,News,,ARC World Industry Forum Points,Discrete,,,Information Management,,,"Oil and Gas, Chemical"
+8223,News,,Implications for packaging..,Discrete,,,Automation Team ,Manufacturing
+8085,News,,Documentation - The most important,All,Discrete,,Asset Management,Maintenance
+7638,News,,Clarification on PackML,Discrete,,,Asset Management,,,OEM,Dave Chappell
+8013,News,,PMMI Word Cited...,Discrete,,,Automation Team ,Manufacturing
+7637,News,,Another Important Concept..,Discrete,,,Operations Management,,,"OEM, Packaging",Mechatronics
+9427,News,,Using OEE to ,All,Discrete,,Operations Management,Overall Equipment Effectiveness,,Food and Beverage,Statistical Process Control
+9426,News,,Trouble Finding Automation,All,Process,,Automation Team ,Manufacturing
+9425,News,,Investing in Manufacturing,All,Batch,,Automation Team ,Industry Trends
+9425,News,,,All ,Discrete,,Automation Team ,Manufacturing,,,Jim Pinto 
+9449,Perspective,,,All ,Process,,Automation Team ,Industry Trends
+9429,Perspective,,,Discrete,,,Automation Team ,Industry Trends,,Aerospace
+9430,Perspective,,,All,Discrete,,Asset Management,Sensors ,3D,OEM
+9430,Perspective,,,All,Discrete,,Asset Management,Robotics,,OEM
+9431,Perspective,,,All,Batch,,Automation Team ,Manufacturing,,,Jim Pinto
+9432,Perspective,,,Discrete,,,Control,PLC,,OEM
+9433,Perspective,,,Discrete,,,Operations Management,Business Process Management,,Semiconductors
+9434,Perspective,,,Discrete,,,Asset Management,Instrumentation,,"Print, Chemical"
+9435,Perspective,,,Discrete,,,Control,PLC,,"OEM, System Integration","Source Forge, 61131-3"
+9447,Feature Article ,,,Process,,Information Management,Information Management,Wireless ,ISA100,"Oil and Gas, Power",IEC 62591
+9447,Feature Article ,,,Process,,,Asset Management,Instrumentation,,"Oil and Gas, Power",IEC 62591
+9447,Feature Article ,,,Process,,,Information Management,Networking,,"Oil and Gas, Power",IEC 62591
+9448,Feature Article ,,,Discrete,,,Information Management,Networking,,Automotive
+9450,Feature Article ,,,Process,,,Information Management,Ethernet,,Water and Wastewater
+9450,Feature Article ,,,Process,,,Information Management,Wireless ,Cellular,Water and Wastewater
+9541,Feature Article ,,,All,Process,,Operations Management,Overall Equipment Effectiveness
+9452,Case Application,,,Process,,Operations Management,Operations Management,Manufacturing Operations Management (MOM)
+9452,Case Application,,,Process,,,Control,DCS,ISA88
+9437,Column,Economy View,,All,Discrete,,Automation Team 
+9439,Column,Finance View,,All,Process,,Operations Management,Production Management
+9440,Column,Enterprise View,,Discrete,,,Automation Team ,Industry Trends,,Automotive
+9441,Column,Industry View,,"Process, Discrete",Discrete,Information Management,Information Management,Ethernet
+9441,Column,Industry View,,"Process, Discrete",Discrete,,Control,Motion Control
+9442,Column,The Setpoint,,All,Process,,Automation Team ,Leadership
+9443,Column,Pinto's Prose,,All,Process,,Automation Team ,Manufacturing
+9462,Product,,"Remote I/O as Master or Slave Interface
+",All,Discrete,,Control,I/O
+9460,Product,,Ethernet/IP-based Remote I/O Modules,All,Process,,Control,I/O
+9461,Product,,Digital I/O Handbook,All,Discrete,,Control,I/O
+9463,Product,,AS-Interface G11 Module,All,Process,,Information Management,Networking,AS-Interface
+9464,Product,,"Controllers, Software Target Small Machine Applications",Discrete,,,Control,Machine Control
+9465,Product,,Machine-to-Enterprise Integration,Process,,,Information Management,Ethernet
+9466,Product,,EtherCAT I/O Delivers Smart Functionality,Discrete,,,Control,I/O
+9476,Product,,"Software New Product Briefs: Web Based SCADA, Machine Vision, more",All,Process,Control,Control,SCADA,,"Oil and Gas, Chemical, Power"
+9476,Product,,"Software New Product Briefs: Web Based SCADA, Machine Vision, more",All,Process,,Asset Management,Vision,,"Oil and Gas, Chemical, Power"
+9476,Product,,"Software New Product Briefs: Web Based SCADA, Machine Vision, more",All,Process,,Asset Management,HMI,,"Oil and Gas, Chemical, Power"
+9469,Product,,Real-Time Control with Profinet,All,Process,,Control,PAC
+9468,Product,,Multi-axis Motor Control,Discrete,,,Energy Management,Motors
+9467,Product,,Inverter Drive,Discrete,,,Energy Management,Drives
+9471,Product,,RS-485 Stepper Motor Drive,All ,Discrete,,Energy Management,Motors
+9470,Product,,Connection Cables,All,Process,,Asset Management,Maintenance,Cable
+9472,Product,,"Ethernet Switch with GigE, 10 GigE Ports",All,Batch,,Information Management,Ethernet
+9474,Product,,PLC with Embedded Ethernet,All,Batch,,Control,PLC
+9475,Product,,M23 Circular Connectors,All,Discrete,,Asset Management,Maintenance
+9473,Product,,Compact Safety Isolators for Hazardous Areas,All,Process,,Information Management,Networking
+8529,White Paper,,,Process,,Asset Management,Asset Management,Valves
+8529,White Paper,,,Process,,,Information Management,Networking
+9061,White Paper,,,All,Discrete,,Information Management,Networking
+8057,White Paper,,,All,Batch,,Asset Management,Maintenance,Cable
+8058,White Paper,,,All,Process,,Asset Management,Maintenance,Cable
+8059,White Paper,,,All,Discrete,,Asset Management,Maintenance,Preventive
+8060,White Paper,,,All,Process,,Asset Management,Maintenance,Wire
+8061,White Paper,,,All,Batch,,Asset Management,Maintenance,Cable
+8063,White Paper,,,All,Batch,Energy Management,Energy Management,Variable Frequency Drives
+8063,White Paper,,,All,Batch,,Asset Management,Maintenance,Cable
+8064,White Paper,,,All,Process,,Asset Management,Maintenance,Cable
+8676,White Paper,,,Process,,,Control,DCS
+8991,White Paper,,,Process,,,Information Management,Networking,OPC
+8960,White Paper,,,Process,,,Control,DCS,,Power
+8835,White Paper,,,Process,,,Control,DCS,,Power
+8508,White Paper,,,All,Discrete,,Energy Management
+6391,White Paper,,,All,Process,,Information Management,Communication,HART
+6930,White Paper,,,All,Batch,,Information Management,Ethernet
+7780,White Paper,,,All,Discrete,,Information Management,Networking,OPC
+7707,White Paper,,,All ,Batch,Information Management,Information Management,Networking,OPC
+7707,White Paper,,,All,Batch,,Security,Network Security
+7706,White Paper,,,Batch,,,Information Management,Networking, OPC
+7705,White Paper,,,All,Discrete,,Information Management,Networking,OPC
+7454,White Paper,,,Process,,,Control,SCADA,,Power
+7454,White Paper,,,Process,,Information Management,Information Management,Ethernet,,Power
+7453,White Paper,,,All,Discrete,,Information Management,Ethernet
+7452,White Paper,,,All,Process,,Asset Management,Maintenance
+7344,White Paper,,,Discrete,,,Asset Management,Sensors,Displacement
+7343,White Paper,,,All,Discrete,,Asset Management
+7342,White Paper,,,Discrete,,,Asset Management,Vision
+6511,White Paper,,,All,Process,,Asset Management,Instrumentation
+6512,White Paper,,,All,Process,,Asset Management,Instrumentation
+7189,White Paper,,,All,Batch,,Information Management,Networking
+7069,White Paper,,,All ,Process,,Information Management,Historian
+7068,White Paper,,,All,Batch,,Operations Management,Traceability,,Food and Beverage
+7067,White Paper,,,All,Process,,Security,Content Security,,Water and Wastewater
+7066,White Paper,,,Discrete,,,Control,PAC,,OEM
+7066,White Paper,,,Discrete,,,Control,Motion Control,,OEM
+7065,White Paper,,,All,Process,,Operations Management,Lean Manufacturing
+7064,White Paper,,,All,Discrete,,Asset Management
+7063,White Paper,,,Batch,,,Operations Management,Quality
+7062,White Paper,,,Process,,,Control,PAC
+7061,White Paper,,,All,Process,,Information Management,Networking
+7061,White Paper,,,All,Process,Operations Management,Operations Management,Manufacturing Operations Management (MOM)
+7060,White Paper,,,All,Batch,,Energy Management,Software
+7060,White Paper,,,All,Batch,Information Management,Information Management,Quality Management
+6803,White Paper,,,Process,,,Control,DCS
+6803,White Paper,,,Process,,,Control,PLC
+6925,White Paper,,,"Discrete, Process",Discrete,,Asset Management,Maintenance,Cable,"Automotive, Food and Beverage, Packaging, Semiconductors"
+5700,White Paper,,,Discrete,,,Operations Management,Product Lifecycle Management (PLM)
+6785,White Paper,,,Process,,Asset Management,Asset Management,Remote Diagnostics,,Oil and Gas
+6785,White Paper,,,Process,,,Information Management,Wireless,,Oil and Gas
+6784,White Paper,,,Process,,,Control,PLC,,Oil and Gas
+6784,White Paper,,,Process,,,Control,SCADA,,Oil and Gas
+6783,White Paper,,,Process,,,Control,SCADA,,"Water and Wastewater, Oil and Gas"
+6782,White Paper,,,Process,,,Control,SCADA,,"Water and Wastewater, Oil and Gas"
+6781,White Paper,,,Process,,,Control,SCADA,,Water and Wastewater
+6780,White Paper,,,Process,,,Information Management,Wireless
+6779,White Paper,,,Process,,,Information Management,Networking,DNP
+6779,White Paper,,,Process,,,Information Management,Networking,Modbus
+6778,White Paper,,,Process,,,Control,SCADA
+6778,White Paper,,,Process,,,Security
+6776,White Paper,,,Process,,,Information Management,Wireless
+6771,White Paper,,,All,Discrete,,Asset Management,Vision
+6769,White Paper,,,All,Batch,,Asset Management,Maintenance ,Cable,,IEEE 1394
+6768,White Paper,,,Discrete,,,Asset Management,Vision,,OEM
+6767,White Paper,,,"Batch, Discrete",Discrete,,Asset Management,Sensors
+6766,White Paper,,,All,Proces,,Asset Management,Vision
+6684,White Paper,,,"Batch, Discrete",Batch,,Control,Industrial PCs,,Pharmaceutical
+6683,White Paper,,,Discrete,,,Control,Industrial PCs,,Packaging
+5435,White Paper,,,All,Discrete,,Control,HMI,Panel PC
+5434,White Paper,,,All,Process,,Information Management,Ethernet,EtherCAT
+5444,White Paper,,,All,Batch,,Control,I/O
+6632,White Paper,,,All,Discrete,,Energy Management,Motors
+6626,White Paper,,,All,Process,,Information Management,Ethernet,IEEE 802.3
+6625,White Paper,,,All,Batch,,Information Management,Ethernet
+6624,White Paper,,,All,Process,,Information Management,Networking,DHCP
+6622,White Paper,,,Discrete,,,Asset Management,Vision,GigE,Packaging
+6621,White Paper,,,Discrete,,Asset Management,Asset Management,Vision,,"Food and Beverage, Packaging"
+6621,White Paper,,,Discrete,,,Control,Robotics,,"Food and Beverage, Packaging"
+6620,White Paper,,,Discrete,,,Asset Management,Vision,,Aerospace
+6619,White Paper,,,Discrete,,,Asset Management,Vision,,OEM
+6618,White Paper,,,"Discrete, Process",Discrete,,Control
+6544,White Paper,,,All,Process,,Information Management,Wireless,,,EtherNet/IP
+3054,White Paper,,,Process,,Asset Management,Asset Management,Maintenance,Predictive
+3054,White Paper,,,Process,,,Information Management,Wireless
+3804,White Paper,,,Process,,Information Management,Information Management,Wireless
+3804,White Paper,,,Process,,,Asset Management,Fieldbuses,OPC
+3805,White Paper,,,Discrete,,,Information Management,Wireless,Mobile
+6602,White Paper,,,All,Process,,Information Management,Wireless,Cellular
+6539,White Paper,,,All,Batch,,Information Management,Ethernet,Power over Ethernet (PoE)
+6538,White Paper,,,All ,Process,,Information Management,Wireless,Dual-RF Technology
+6537,White Paper,,,Process,,,Information Management,Ethernet,,Oil and Gas
+6536,White Paper,,,All,Discrete,,Information Management,Communication,Serial
+6535,White Paper,,,Discrete,,,Information Management,Networking,Switches
+6534,White Paper,,,All,Process,,Control
+6533,White Paper,,,Process,,,Asset Management,Vision
+6531,White Paper,,,All ,Process,,Information Management,Communication ,OPC
+6530,White Paper,,,Process,,Control,Control,Advanced Control,,Power
+6530,White Paper,,,Process,,,Automation Team,Industry Trends,,Power
+6529,White Paper,,,All,Batch,,Information Management,Networking,Modbus
+6528,White Paper,,,All ,Discrete,,Information Management,Networking,DF1
+6528,White Paper,,,All ,Discrete,,Information Management,Ethernet,EtherNet/IP
+6517,White Paper,,,Discrete,,,Asset Management,Vision,,Automotive
+6516,White Paper,,,Discrete,,,Asset Management,Vision,2D,OEM
+6510,White Paper,,,All,Process,,Information Management,Wireless
+6508,White Paper,,,All,Process,,Information Management,Wireless,,"Water and Wastewater, Oil and Gas"
+6507,White Paper,,,Process,,Security,Security,Physical Security
+6507,White Paper,,,Process,,,Information Management,Wireless
+6506,White Paper,,,All,Process,,Information Management,Wireless
+6505,White Paper,,,Process,,Information Management,Information Management,Wireless,,Chemical
+6505,White Paper,,,Process,,,Asset Management,Maintenance,,Chemical
+6482,White Paper,,,All,Discrete,,Information Management,Networking,Redundancy
+6481,White Paper,,,Process,,Control,Control,SCADA
+6481,White Paper,,,Process,,,Information Management,Wireless
+6061,White Paper,,,Discrete,,,Asset Management,Vision
+6062,White Paper,,,Discrete,,,Asset Management,Vision
+6062,White Paper,,,Discrete,,,Control,Motion Control
+6063,White Paper,,,Discrete,,,Asset Management,Vision
+6049,White Paper,,,Discrete,,,Control,Robotics,,Packaging
+5888,White Paper,,,Discrete,,,Asset Management,Robotics,,Packaging
+5881,White Paper,,,All,Process,,Information Management,Ethernet,,"Water and Wastewater, Oil and Gas, Mining, Power"
+5879,White Paper,,,All,Discrete,,Energy Management,Variable Frequency Drives
+5876,White Paper,,,All,Process,,Asset Management,Maintenance,Condition
+5875,White Paper,,,Process,,Operations Management,Operations Management,Manufacturing Execution System (MES),,Oil and Gas
+5875,White Paper,,,Process,,,Security
+5760,White Paper,,,All,Discrete,,Asset Management
+5698,White Paper,,,"Process, Batch",Process,,Control,DCS,,"Oil and Gas, Mining, Print"
+5697,White Paper,,,Process,,Control,Control,SCADA,,Oil and Gas
+5697,White Paper,,,Process,,,Energy Management,,,Oil and Gas
+5696,White Paper,,,All,Process,,Control,DCS
+5695,White Paper,,,Discrete,,,Energy Management,,,Print
+2454,White Paper,,,All,Process,,Operations Management,Lean Manufacturing
+2877,White Paper,,,Process,,,Control,DCS
+2878,White Paper,,,Process,,,Control,DCS
+2881,White Paper,,,Process,,,Operations Management,Enterprise Resource Planning (ERP)
+2883,White Paper,,,All,Batch,,Energy Management
+5693,White Paper,,,All,Process,,Operations Management,Manufacturing Operations Management (MOM)
+5685,White Paper,,,All,Discrete,,Operations Management,Production Management
+5684,White Paper,,,All,Process,,Operations Management,Production Management
+5683,White Paper,,,All,Discrete,,Operations Management,Overall Equipment Effectiveness
+5667,White Paper,,,Discrete,,,Safety,Machine Safety
+5583,White Paper,,,All,Batch,,Information Management,Communication,Drivers
+5585,White Paper,,,All,Process,,Information Management,Communication,SNMP
+5586,White Paper,,,All,Process,,Information Management,Communication,SNMP
+5569,White Paper,,,All,Discrete,,Operations Management,Manufacturing Execution System (MES)
+5310,White Paper,,,"Batch, Process",Process,,Information Management,Wireless
+5312,White Paper,,,Process,,Security,Security,Network Security
+5312,White Paper,,,Process,,,Information Management,Wireless
+5303,White Paper,,,Discrete,,,Energy Management,Machines
+5302,White Paper,,,Discrete,,,Energy Management,Motors
+5302,White Paper,,,Discrete,,,Energy Management,Drives
+5301,White Paper,,,Discrete,,,Control,Motion Control,,Semiconductors
+5300,White Paper,,,Discrete,,,Control,Motion Control,,Medical
+5299,White Paper,,,Discrete,,,Energy Management,Motors ,,OEM
+5299,White Paper,,,Discrete,,,Energy Management,Drives,,OEM
+5298,White Paper,,,Discrete,,,Safety,Machine Safety,,OEM
+5254,White Paper,,,All,Process,,Control,PLC
+3405,White Paper,,,All,Discrete,,Asset Management,HMI
+5222,White Paper,,,Process,,,Information Management,Wireless
+5118,White Paper,,,All,Batch,,Control
+5121,White Paper,,,All,Process,,Information Management,Wireless
+5123,White Paper,,,All,Process,,Control
+5125,White Paper,,,All,Process,,Information Management,Networking,Modbus
+5122,White Paper,,,All,Discrete,,Information Management,Networking,DNP
+5120,White Paper,,,All,Process,,Information Management,Ethernet
+5119,White Paper,,,All,Process,,Information Management,Networking
+5117,White Paper,,,All,Discrete,,Operations Management
+5151,White Paper,,,All,Discrete,,Asset Management,Remote Diagnostics
+4993,White Paper,,,All,Process,,Asset Management
+4599,White Paper,,,All,Discrete,,Control,HMI
+4571,White Paper,,,All,Process,,Operations Management,Lean Manufacturing
+4570,White Paper,,,All,Discrete,,Operations Management,Business Process Management
+4569,White Paper,,,All,Process,,Operations Management,Business Process Management
+4556,White Paper,,,All,Discrete,,Operations Management,Manufacturing Operations Management (MOM)
+4327,White Paper,,,All,Process,,Safety,Process Safety
+4305,White Paper,,,All,Batch,,Control,Industrial PCs
+4304,White Paper,,,All,Process,,Information Management,Communication
+4112,White Paper,,,All,Batch,,Information Management,Networking,PROFIBUS
+4111,White Paper,,,All,Process,,Information Management,Networking,Modbus
+4110,White Paper,,,All,Discrete,,Information Management,Ethernet,EtherNet/IP
+4109,White Paper,,,All,Process,,Information Management,Ethernet,Modbus TCP
+4097,White Paper,,,All,Batch,,Information Management,Wireless,Zigbee
+3942,White Paper,,,All,Discrete,,Asset Management,Maintenance,Standards
+3940,White Paper,,,Discrete,,,Operations Management,Overall Equipment Effectiveness,,"Food and Beverage, Packaging"
+3938,White Paper,,,Batch,,Operations Management,Operations Management,Manufacturing Operations Management (MOM),,Food and Beverage
+3938,White Paper,,,Batch,,,Control,PAC,,Food and Beverage
+3934,White Paper,,,Discrete,,,Operations Management,Manufacturing Execution System (MES),,Automotive
+3933,White Paper,,,All,Process,Information Management,Information Management,Communication
+3933,White Paper,,,All,Process,,Control
+3536,White Paper,,,All,Discrete,,Information Management,Networking,CC-link
+3459,White Paper,,,All,Process,Asset Management,Asset Management,Fieldbuses
+3459,White Paper,,,All,Process,,Control,Industrial PCs
+3393,White Paper,,,Discrete,,,Energy Management,Motors,,Automotive
+3392,White Paper,,,All,Discrete,,Energy Management,Motors
+3381,White Paper,,,All,Discrete,,Energy Management,Motors
+3385,White Paper,,,All,Discrete,,Control,Industrial PCs
+3384,White Paper,,,All,Process,,Control,PLC
+3360,White Paper,,,Discrete,,,Safety,Machine Safety
+9478,White Paper,,,All,Process,Operations Management,Operations Management
+9478,White Paper,,,Process,,,Asset Management
+9258,White Paper,,,All,Discrete,,Information Management
+8886,Video,,,All,Process,,Information Management,Ethernet,PROFINET
+8478,Video,,,All,Batch,,Control ,PAC
+8478,Video,,,All,Batch,,Control ,PLC
+8104,White Paper,,,Process,,,Asset Management,Remote Diagnostics
+8104,White Paper,,,Process,,,Asset Management,Maintenance ,Preventive
+8103,Product,,,All,Discrete,,Control ,HMI,Hardware,,Ethernet Port
+9044,Product,,,All,Process,,Control ,Industrial PCs,,,Intel
+9018,White Paper,,,All,Process,,Information Management,Ethernet,Power over Ethernet (PoE)
+8717,Product,,,All,Batch,,Asset Management,Instrumentation
+9046,Product,,,All,Process,,Control ,I/O
+8884,Video,,,All,Discrete,,Information Management,Ethernet,PROFINET
+8226,Video,,,All,Process,,Energy Management,Drives
+9047,Product,,,All,Discrete,,Information Management,Networking
+8887,Video,,,All,Process,,Information Management,Ethernet,PROFINET
+8718,Product,,,All,Discrete,,Asset Management,Sensors
+8888,White Paper,,,All,Discrete,,Information Management,Ethernet,PROFINET
+9041,Video,,,All,Process,,Information Management,Networking
+8105,White Paper,,,All,Process,Asset Management,Asset Management,Instrumentation
+8105,White Paper,,,All,Process,,Control 
+9040,Video,,,All,Discrete,,Control ,HMI,Panel PC
+9040,Video,,,All,Discrete,,Control ,HMI,Software
+9045,Product,,,Process,,,Control ,I/O
+9042,Product,,,All,Discrete,,Control ,HMI,,Food and Beverage
+8480,Video,,,All,Process,,Control ,HMI
+8399,Product,,,All,Batch,,Control 
+8716,Product,,,All,Discrete,,Asset Management,Sensors,Position
+8392,Video,,,All,Process,,Control ,PAC
+8224,White Paper,,,All,Batch,,Energy Management,Motors
+9190,Video,,,All,Process,,Control ,Machine Control
+8948,Video,,,All,Process,,Asset Management,Instrumentation
+9175,Video,,,All,Process,Automation Team,Automation Team,Leadership
+9175,Video,,,All,Process,,Security
+9175,Video,,,Process,,,Energy Management,,,Power
+9209,Video,,,Process,,,Automation Team,Conference Coverage
+9197,Video,,,All,Discrete,,Manufacturing Operations Management (MOM)
+9172,Video,,,All,Process,,Asset Management,Instrumentation
+9176,Video,,,Discrete,,,Control ,Machine Control
+9174,Video,,,Discrete,,,Asset Management,Vision,,Food and Beverage
+8629,Video,,,All,Process,,Automation Team,Manufacturing
+9424,Video,,,Discrete,,,Safety,,,Packaging
+9413,Video,,,Discrete,,,Asset Management,Vision
+9412,Video,,,All,Batch,,Operations Management
+9411,Video,,,All,Discrete,,Asset Management,Vision,,"Print, Packaging, OEM"
+9410,Video,,,All,Discrete,,Operations Management
+9415,Video,,,All,Discrete,,Asset Management
+9409,Video,,,All,Process,,Operations Management,,,OEM
+9396,Video,,,Process,,,Energy Management
+9424,Video,,,Discrete,,,Safety,Machine Safety
+9483,Video,,,All,Discrete,,Motion Control,Robotic
+9481,Video,,,Discrete,,,Control ,Industrial PCs
+9482,Video,,,Discrete,,,Machine Control
+9391,Video,,,All,Process,,Automation Team
+9379,Video,,,Process,,,Energy Management
+9369,Video,,,Batch,,,Control ,,,Food and Beverage
+9359,Video,,,Process,,,Control 
+9194,Video,,,Discrete,,,Asset Management,Vision
+9193,Video,,,All,Discrete,,Motion Control
+9192,Video,,,Discrete,,,Control 
+9502,Video,,,Discrete,,,Asset Management,Vision,,Pharmaceutical
+9514,Video,,,Discrete,,,Control ,Machine Control,,"Packaging, Semiconductors"
+9514,Video,,,Discrete,,,Control ,Motion Control,,"Packaging, Semiconductors"
+9519,Video,,,"Process, Discrete",Discrete,,Control ,Machine Control,,Packaging 
+9519,Video,,,"Process, Discrete",Discrete,,Operations Management,Manufacturing Execution System (MES),,Packaging 
+8361,Video,,,Process,,Automation Team,Automation Team,Industry Trends
+8361,Video,,,Process,,,Asset Management,HMI
+8302,Video,,,"Discrete, Process",Process,Automation Team,Automation Team,Industry Trends,,Packaging
+8302,Video,,,"Discrete, Process",Process,,Operations Management,Manufacturing Operations Management (MOM),,Packaging
+8193,Video,,,All,Process,,Operations Management,Lean Manufacturing
+7960,Video,,,All,Process,Automation Team,Automation Team,Conference Coverage
+7960,Video,,,All,Process,,Information Management,Ethernet
+7890,Video,,,All ,Process,Automation Team,Automation Team,Conference Coverage
+7890,Video,,,All ,Process,,Control 
+7801,Video,,,"Process, Batch",Process,,Asset Management,Remote Diagnostics
+7804,Video,,,Discrete,,,Energy Management
+7806,Video,,,Discrete,,,Control 
+9173,Video,,,All,,,Automation Team,Manufacturing
+8719,Video,,,Process,,Automation Team,Automation Team,Conference Coverage
+8719,Video,,,Process,,,Safety,Machine Safety
+8830,Video,,,Batch,,,Energy Management,Variable Frequency Drives
+8655,Video,,,All,Process,Energy Management,Energy Management
+8655,Video,,,All,Process,,Information Management,Networking
+8650,Video,,,All,Process,,Information Management,Wireless,ISA100
+8649,Video,,,All,Batch,,Information Management,Wireless
+8648,Video,,,Discrete,,,Control ,Motion Control,Robotic
+8638,Video,,,All,Discrete,Information Management,Asset Management,Fieldbuses,OpenSafety
+8638,Video,,,All,Discrete,,Safety
+8632,Video,,,All,Discrete,Information Management,Information Management,Ethernet,PROFINET,Automotive
+8632,Video,,,All,Discrete,,Safety,,,Automotive
+8644,Video,,,All,Discrete,,Control ,Motion Control
+8540,Video,,,All,Process,,Operations Management,,,Power
+8469,Video,,,All,Process,,Information Management,Communication,,Power
+8484,Video,,,Discrete,,,Automation Team
+8517,Video,,,Discrete,,,Information Management,Networking
+8523,Video,,,Discrete,,,Security,Standards
+7931,Video,,,All,Batch,,Automation Team,Leadership
+7808,Video,,,All,Process,,Operations Management,Cloud Computing
+7782,Video,,,"Batch, Discrete",Discrete,,Control ,Motion Control,,Packaging
+7794,Video,,,Discrete,,,Safety,Machine Safety,,Packaging
+7789,Video,,,Discrete,,,Control ,Motion Control,,"Food and Beverage, Packaging"
+7880,Video,,,Discrete,,,Control ,Motion Control,Robotic
+7881,Video,,,Discrete,,,Energy Management,Drives
+7884,Video,,,Discrete,,,Information Management,Networking,PackML
+7763,Video,,,All,Process,Operations Management,Operations Management,,,Power
+7763,Video,,,All,Process,,Security,Cyber-Security,,Power
+7652,Video,,,"Process, Batch",Process,,Automation Team,Industry Trends
+7734,Video,,,All,Process,,Automation Team,Conference Coverage
+7636,Video,,,"Process, Batch",Process,Operations Management,Operations Management
+7636,Video,,,"Process, Batch",Process,,Information Management,Wireless
+7651,Video,,,"Process, Batch",Process,Information Management,Information Management,Wireless
+7651,Video,,,"Process, Batch",Process,,Asset Management,Instrumentation
+7586,Video,,,Process,,,Automation Team,Manufacturing
+7500,Video,,,All,Discrete,,Automation Team,Industry Trends
+7432,Video,,,All,Discrete,,Automation Team,Leadership
+7415,Video,,,All,Process,,Control 
+7422,Video,,,Process,,,Security
+7421,Video,,,Process,,,Operations Management
+7370,Video,,,Process,,,Security
+7349,Video,,,All,Process,Security,Security,Cyber-Security,,"Oil and Gas, Power"
+7349,Video,,,All,Process,,Safety,Process Safety,,"Oil and Gas, Power"
+7349,Video,,,All,Process,,Control ,SCADA,,"Oil and Gas, Power"
+7298,Video,,,All,Process,,Operations Management,Product Lifecycle Management (PLM)
+7369,Video,,,All,,,Security
+7215,Video,,,All,Discrete,Operations Management,Operations Management
+7215,Video,,,All,Discrete,,Energy Management
+7126,Video,,,"Batch, Process",,,Automation Team,Industry Trends
+7107,Video,,,All,Process,,Automation Team,Manufacturing
+7087,Video,,,All,Process,,Operations Management
+6952,Video,,,All,Discrete,,Automation Team,Conference Coverage
+6917,Video,,,All,Process,,Information Management,Ethernet
+6802,Video,,,All,Discrete,,Automation Team
+6729,Video,,,All,Batch,,Automation Team,Manufacturing
+6663,Video,,,Discrete,,,Automation Team,Industry Trends
+6682,Video,,,"Process, Batch",Process,,Asset Management,Sensors ,Pressure
+6681,Video,,,All,Process,,Asset Management
+6679,Video,,,All,Discrete,,Energy Management,Drives
+6678,Video,,,All,Discrete,,Control ,Industrial PCs
+6614,Video,,,All,Process,,Automation Team,Conference Coverage
+6545,Video,,,All,Batch,,Operations Management
+6567,Video,,,Discrete,,,Operations Management,Production Management
+6492,Video,,,All,Process,,Automation Team,Manufacturing
+6541,Video,,,Process,,,Asset Management
+6212,Video,,,Process,,,Operations Management,Manufacturing Execution System (MES)
+6279,Video,,,All,Process,,Automation Team,Conference Coverage
+6256,Video,,,Process,,Operations Management,Operations Management,Production Management
+6256,Video,,,Process,,,Control ,SCADA
+6195,Video,,,All,Process,,Control 
+6136,Video,,,Discrete,,,Information Management,Wireless,,Packaging
+6110,Video,,,Discrete,,Control,Control ,Motion Control,,Packaging
+6110,Video,,,Discrete,,,Operations Management,System Integration,,Packaging
+6126,Video,,,Discrete,,,Asset Management,Vision,,Packaging
+6125,Video,,,Discrete,,,Control ,Motion Control,Robotic,Packaging
+6132,Video,,,Discrete,,,Control ,Motion Control,Robotic,Packaging
+6133,Video,,,Discrete,,,Control ,Machine Control
+6034,Video,,,All,Process,Operations Management,Operations Management
+6034,Video,,,All,Process,,Automation Team,Conference Coverage
+5988,Video,,,Discrete,,,Asset Management
+5672,Video,,,All,Process,,Automation Team,Conference Coverage
+5668,Video,,,All,Process,Control,Control ,PAC
+5668,Video,,,All,Process,,Information Management,Wireless
+5671,Video,,,All,Process,,Energy Management,,,Power
+5351,Video,,,All,Discrete,,Automation Team,Conference Coverage
+5086,Video,,,All,Process,,Information Management,Wireless,,Packaging
+5084,Video,,,All,Discrete,,Information Management,Networking,,Packaging
+4970,Video,,,All,Process,,Control ,I/O
+4977,Video,,,Process,,,Information Management,Communication,EDDL
+5085,Video,,,Process,,,Control ,I/O
+5083,Video,,,All,Process,,Control 
+5082,Video,,,Discrete,,,Control ,,,"Packaging, OEM"
+5081,Video,,,Discrete,,,Control ,Industrial PCs,,Packaging 
+5080,Video,,,Discrete,,,Control ,,,Packaging
+5087,Video,,,All,Discrete,,Asset Management
+4976,Video,,,All,Process,,Asset Management,HMI,,"Oil and Gas, Power"
+4975,Video,,,All,Process,,Control ,HMI
+4974,Video,,,All,Process,,Control ,HMI,Panel PC
+4972,Video,,,All,Process,,Information Management,Ethernet
+4971,Video,,,Process,,,Asset Management
+4969,Video,,,All,Process,Asset Management,Asset Management,HMI
+4969,Video,,,All,Process,,Control ,HMI
+4965,Video,,,Discrete,,,Automation Team,Conference Coverage
+4952,Video,,,All,Batch,,Automation Team,Conference Coverage
+4951,Video,,,Process,,,Asset Management,Remote Diagnostics
+4950,Video,,,Process,,,Asset Management,Sensors
+4949,Video,,,Process,,,Control ,I/O
+4948,Video,,,All,Process,,Information Management,Wireless
+4947,Video,,,Process,,,Operations Management,,,"Chemical, Oil and Gas"
+4946,Video,,,All,Process,,Information Management,Communication ,OPC
+4945,Video,,,Process,,,Control ,I/O
+4944,Video,,,Process,,,Information Management,Wireless
+4943,Video,,,Process,,,Information Management,Wireless
+4943,Video,,,Process,,,Information Management,Ethernet
+4942,Video,,,Process,,,Information Management,Wireless
+4941,Video,,,Process,,,Information Management
+4940,Video,,,Process,,,Information Management,Wireless
+4939,Video,,,Process,,,Information Management,Communication
+4938,Video,,,All,Process,,Information Management,Wireless,WirelessHart
+4937,Video,,,All,Process,,Information Management,Networking
+4936,Video,,,All,Batch,,Information Management,Communication,FDT
+4935,Video,,,All,Process,,Information Management,Wireless,WirelessHart
+4934,video,,,All,Process,Information Management,Information Management,Wireless
+4934,video,,,All,Process,,Asset Management
+4933,Video,,,All,Process,,Asset Management,Sensors
+4932,Video,,,All,Process,,Information Management,Wireless
+4931,Video,,,All,Process,,Asset Management,Maintenance,Cable
+4930,Video,,,All,Process,,Control ,PAC
+4929,Video,,,All,Process,,Asset Management
+4853,Video,,,All,Discrete,,Control ,PAC
+4852,Video,,,All,Process,,Energy Management,Motors
+4850,Video,,,All,Process,,Asset Management,Instrumentation
+4715,Video,,,Process,,Information Management,Information Management,Wireless,WirelessHart
+4715,Video,,,Process,,,Operations Management
+4476,Video,,,Discrete,,,Operations Management,System Integration
+4401,Video,,,Process,,,Automation Team,Conference Coverage
+4316,Video,,,Process,,,Control ,PAC
+4236,Video,,,Discrete,,,Control ,I/O
+4235,Video,,,Process,,,Control 
+3404,Video,,,All,Process,,Control 
+3403,Video,,,All,Batch,,Asset Management,Maintenance
+3402,Video,,,All,Process,,Control ,I/O
+3401,Video,,,All,Discrete,,Control ,PLC
+7750,Video,,,Process,,,Operations Management,Cloud Computing
+7749,Video,,,Process,,,Operations Management,Training,Operator Training Simulation
+7714,Video,,,All,Batch,,Operations Management,Cloud Computing
+6428,Video,,,All,Process,,Asset Management,Vision
+6107,Video,,,All,Process,,Control 
+5497,Video,,,"Process, Batch",Batch,,Operations Management
+5497,Video,,,"Process, Batch",Batch,Control,Control ,I/O
+5863,Video,,,All,Discrete,,Information Management,Networking
+3400,Video,,,All,Process,,Control 
+3398,Video,,,All,Process,,Control ,HMI
+3383,Video,,,All,Process,,Control 
+3382,Video,,,All,Discrete,,Control 
+3381,Video,,,Discrete,,,Control ,I/O
+3359,Video,,,Batch,,,Energy Management,Drives,,Food and Beverage
+3358,Video,,,Discrete,,,Energy Management,Drives,,Packaging
+3356,Video,,,Discrete,,,Control ,Motion Control,Robotic,Packaging
+3354,Video,,,Discrete,,,Control 
+3353,Video,,,Discrete,,,Control ,Motion Control,Robotic,Packaging
+3352,Video,,,Discrete,,,Control 

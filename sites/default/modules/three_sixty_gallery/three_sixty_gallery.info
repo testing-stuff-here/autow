@@ -1,0 +1,4 @@
+name = 360 Product Spin Photo Gallery
+description = Module that ads the 360 Product Spin Photo Gallery to a node
+package = "custom"
+core = 7.x

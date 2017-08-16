@@ -1,0 +1,345 @@
+.expo-countdown {
+  padding-top: 4px; }
+
+.expo-countdown {
+  overflow: auto;
+  width: 100%;
+  background: #FFFFFF;
+  z-index: 0; }
+
+.pack-expo-east .expo-countdown-banner {
+  margin-bottom: 45px; }
+
+.expo-countdown-banner {
+  display: inline-block;
+  padding: 5px 15px 5px 12.9%;
+  background: #0C56A4;
+  color: #FFFFFF;
+  font-weight: bold;
+  margin: 14px 0 8px;
+  font-size: 145%;
+  position: relative;
+  float: left; }
+  .expo-countdown-banner:after {
+    content: "";
+    width: 0;
+    height: 0;
+    border-top: 21px solid transparent;
+    border-bottom: 21px solid transparent;
+    border-left: 7px solid #0C56A4;
+    position: absolute;
+    left: 100%;
+    top: 1px; }
+
+.expo-countdown-logo {
+  max-width: 68px;
+  position: absolute;
+  top: -17px; }
+
+.expo-countdown-banner-text {
+  font-size: 80%; }
+
+.expo-countdown-time-count {
+  display: inline-block;
+  float: left;
+  margin-top: 3px; }
+  .expo-countdown-time-count:first-child {
+    margin-left: 1.5em; }
+
+.expo-countdown-days-count .flip-clock-wrapper {
+  margin-left: 1.6em; }
+
+.expo-countdown-flip-title {
+  display: block;
+  text-align: center;
+  font-weight: bold;
+  font-size: 110%;
+  color: #000000; }
+
+.expo-countdown-register {
+  display: inline-block;
+  vertical-align: middle;
+  margin-top: 20px; }
+  .expo-countdown-register a {
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #FDB239), color-stop(1, #B96C00));
+    background: -moz-linear-gradient(top, #FDB239 5%, #B96C00 100%);
+    background: -webkit-linear-gradient(top, #FDB239 5%, #B96C00 100%);
+    background: -o-linear-gradient(top, #FDB239 5%, #B96C00 100%);
+    background: -ms-linear-gradient(top, #FDB239 5%, #B96C00 100%);
+    background: linear-gradient(to bottom, #FDB239 5%, #B96C00 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='$start', endColorstr='$end',GradientType=0);
+    background-color: #FDB239;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    /*border:1px solid $border;*/
+    display: inline-block;
+    cursor: pointer;
+    color: #ffffff;
+    font-weight: bold;
+    padding: 5px 7px;
+    text-decoration: none;
+    text-shadow: 0px 1px 0px #B96C00;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FDB239', endColorstr='#B96C00', GradientType=0);
+    position: relative;
+    padding-right: 16px; }
+    .expo-countdown-register a:hover {
+      background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #B96C00), color-stop(1, #FDB239));
+      background: -moz-linear-gradient(top, #B96C00 5%, #FDB239 100%);
+      background: -webkit-linear-gradient(top, #B96C00 5%, #FDB239 100%);
+      background: -o-linear-gradient(top, #B96C00 5%, #FDB239 100%);
+      background: -ms-linear-gradient(top, #B96C00 5%, #FDB239 100%);
+      background: linear-gradient(to bottom, #B96C00 5%, #FDB239 100%);
+      filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='$end', endColorstr='$start',GradientType=0);
+      background-color: #B96C00;
+      filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#B96C00', endColorstr='#FDB239', GradientType=0);
+      text-decoration: none; }
+
+.expo-countdown-border-bottom {
+  border-bottom: 1px solid gray;
+  width: 100%;
+  margin-bottom: 10px; }
+
+/* Flip clock overrides */
+.flip-clock-wrapper {
+  margin: 0.4em 1em; }
+  .flip-clock-wrapper ul {
+    width: 27px;
+    height: 42px;
+    line-height: 40px;
+    margin: 2px; }
+    .flip-clock-wrapper ul li {
+      padding-bottom: 0; }
+      .flip-clock-wrapper ul li a div.up:after {
+        top: 20px;
+        background-color: #000000; }
+      .flip-clock-wrapper ul li a div div.inn {
+        font-size: 28px;
+        color: #FFFFFF; }
+
+/* Responsive */
+@media (min-width: 501px) and (max-width: 991px) {
+  .expo-countdown-container {
+    margin-top: 50px; } }
+@media (min-width: 480px) and (max-width: 991px) {
+  .expo-countdown-banner {
+    width: 84%;
+    padding: 5px 50px 5px 29.9%; }
+
+  #expo-countdown-timer {
+    float: right; } }
+@media (max-width: 991px) {
+  .expo-countdown-banner {
+    display: inline-block;
+    padding: 5px 15px 5px 12.9%;
+    background: #0C56A4;
+    color: #FFFFFF;
+    font-weight: bold;
+    margin: 14px 0 8px;
+    font-size: 145%;
+    position: relative;
+    float: left; }
+
+  .expo-countdown-logo {
+    max-width: 60px; }
+
+  .expo-countdown-banner {
+    font-size: 115%;
+    line-height: 24px;
+    padding-left: 24%; }
+    .expo-countdown-banner:after {
+      border-top: 17px solid transparent;
+      border-bottom: 17px solid transparent; }
+
+  /* Flip clock overrides */
+  .flip-clock-wrapper {
+    margin: 0.4em 1em; }
+    .flip-clock-wrapper ul {
+      width: 29px;
+      height: 44px;
+      line-height: 42px;
+      margin: 2px; }
+      .flip-clock-wrapper ul li {
+        padding-bottom: 0; }
+        .flip-clock-wrapper ul li a div.up:after {
+          top: 21px;
+          background-color: #000000; }
+        .flip-clock-wrapper ul li a div div.inn {
+          font-size: 29.33333px; } }
+@media (min-width: 991px) {
+  .container .expo-countdown {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    top: -15px;
+    position: relative; }
+
+  .expo-countdown-banner {
+    margin: 15px 0 27px; } }
+@media (max-width: 650px) {
+  .flip-clock-wrapper {
+    margin: 0.4em 0.5em; } }
+@media (min-width: 480px) {
+  .expo-countdown-register a:after {
+    content: "";
+    display: inline-block;
+    height: 0;
+    width: 0;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    border-left: 4px solid #FFFFFF;
+    position: absolute;
+    top: 50%;
+    margin-top: -5px;
+    margin-left: 5px; }
+
+  .expo-countdown-logo {
+    left: 10%; } }
+@media (max-width: 480px) {
+  .expo-countdown-logo {
+    left: 5%; }
+
+  .expo-countdown-days-count {
+    clear: both; }
+
+  .expo-countdown-register {
+    float: left;
+    margin: 15px 0 0 8px; }
+
+  .expo-countdown-banner {
+    padding-left: 24%;
+    margin-bottom: 20px; }
+
+  .pack-expo-east .expo-countdown-banner {
+    margin-bottom: 32px; }
+
+  .expo-countdown-time-count {
+    float: none; }
+
+  #expo-countdown-timer {
+    display: -webkit-flex;
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    -webkit-justify-content: center;
+    margin-bottom: 10px; }
+
+  .expo-countdown-min-count {
+    display: none; }
+
+  .expo-countdown-time-count:first-child {
+    margin-left: 0; }
+
+  .expo-countdown-days-count .flip-clock-wrapper {
+    margin-left: 0; } }
+@media (max-width: 325px) {
+  .expo-countdown-banner {
+    padding-left: 28%;
+    margin-bottom: 20px;
+    font-size: 100%; }
+
+  .expo-countdown-hours-count {
+    display: none; } }
+.expo-countdown-container {
+  max-height: 67px;
+  padding: 0;
+  background-color: #eeeeee; }
+  @media (max-width: 991px) {
+    .expo-countdown-container {
+      max-height: inherit;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 0;
+      width: calc(100% + 30px);
+      margin-left: -15px; }
+      .expo-countdown-container .expo-countdown-banner {
+        line-height: 30px; } }
+  @media (min-width: 992px) and (max-width: 1200px) {
+    .expo-countdown-container .expo-countdown-banner-text {
+      font-size: 0.65em !important;
+      margin-right: 0 !important; } }
+  .expo-countdown-container .expo-countdown-banner {
+    display: inline-block;
+    padding: 5px 15px 5px 12.9%;
+    background: #99c42f;
+    color: #FFFFFF;
+    font-weight: bold;
+    font-size: 100%;
+    position: relative;
+    float: left;
+    flex-basis: 55%;
+    margin: 15px 0 10px;
+    text-align: right; }
+    .expo-countdown-container .expo-countdown-banner .expo-countdown-logo {
+      top: -10px;
+      padding: 0 15px;
+      background-color: #eeeeee;
+      max-width: inherit !important;
+      left: 10%; }
+      @media (min-width: 991px) and (max-width: 1199px) {
+        .expo-countdown-container .expo-countdown-banner .expo-countdown-logo {
+          top: 0;
+          max-width: 220px !important; } }
+    .expo-countdown-container .expo-countdown-banner:after {
+      top: 0;
+      border-bottom: 21px solid transparent;
+      border-top: 21px solid transparent;
+      border-left: 25px solid #99c42f; }
+    .expo-countdown-container .expo-countdown-banner .expo-countdown-banner-text {
+      margin-right: 10px;
+      color: #022745; }
+  .expo-countdown-container #expo-countdown-timer {
+    flex-basis: calc(45% - 25px);
+    margin-left: 25px; }
+    .expo-countdown-container #expo-countdown-timer .flip-clock-wrapper ul {
+      width: 20px !important;
+      height: 40px;
+      padding: 15px; }
+    .expo-countdown-container #expo-countdown-timer .expo-countdown-flip-title {
+      font-size: 70%; }
+    .expo-countdown-container #expo-countdown-timer .flip-clock-wrapper {
+      margin: 0 1em !important; }
+    .expo-countdown-container #expo-countdown-timer .expo-countdown-register {
+      margin-top: 15px !important; }
+      .expo-countdown-container #expo-countdown-timer .expo-countdown-register a {
+        color: #ffffff;
+        padding: 5px 20px 5px 16px;
+        background: linear-gradient(to bottom, #f5a14e 5%, #f85900 100%);
+        text-shadow: -2px 2px 3px rgba(0, 0, 0, 0.35);
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        border-radius: 5px; }
+
+.banner-secondary {
+  width: 100%; }
+
+@media (min-width: 769px) and (max-width: 991px) {
+  nav#tablet-nav {
+    display: flex;
+    justify-content: space-around; }
+    nav#tablet-nav li {
+      font-size: 12px; } }
+
+header#navbar.navbar-default.smaller #banner-secondary-wrapper {
+  height: 68px !important; }
+
+.expo-countdown-container .expo-countdown-banner {
+  flex-basis: calc(55% + 25px);
+  padding: 5px 15px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  height: 42px; }
+  .expo-countdown-container .expo-countdown-banner .expo-countdown-logo {
+    height: auto;
+    width: 100%;
+    left: 0;
+    max-width: 160px !important;
+    position: static;
+    background: none !important;
+    top: 0; }
+  .expo-countdown-container .expo-countdown-banner .expo-countdown-banner-text {
+    flex: 1 0 0; }
+
+/*# sourceMappingURL=expoCountdown_pfw.css.map */

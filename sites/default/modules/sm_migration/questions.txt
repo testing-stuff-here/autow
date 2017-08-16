@@ -1,0 +1,27 @@
+- Perspective content type is not mentioned in the migration document. Are we migrating them?
+- In Migration doc, 1.1.1 Mapping from Joomla to Drupal
+  - there are 2 results for M. which is which?
+- In Migration doc, 1.4 - Importing meta data from "Column Type"
+  - http://screencast.com/t/qYUoFrDI
+  - If I need to follow the table list, are we adding the following as subtypes?
+    Feed Forward
+    Integrator View
+    Enterprise View
+    Economics View
+    Pinto's Prose
+    Industry View
+    Economy View
+    IT View
+    Finance View
+    Setpoint
+- supplier data - http://screencast.com/t/saHPtj4oGcRu
+- what is the Remote URL?
+- filename is also used for Podcast only?  
+  
+To migrate  
+- Blog. see 1.3 - Migrating blog info
+
+
+==
+it seems that duped=9 means NO. and duped=1 means YES
+http://screencast.com/t/tYo6WrlEE6

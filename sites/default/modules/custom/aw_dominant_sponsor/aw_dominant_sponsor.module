@@ -1,0 +1,260 @@
+<?php
+
+/**
+ * Implements hook_init()
+ */
+function aw_dominant_sponsor_init() {
+	//Adding this here becasue had cache problems in other places
+	drupal_add_css(drupal_get_path('module', 'aw_dominant_sponsor') . '/css/aw_dominant_sponsor.css'); 
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function aw_dominant_sponsor_block_info() {
+  // This example comes from node.module.
+  
+  $blocks['aw_dominant_sponsor_1'] = array(
+    'info' => t('Dominant Sponsor #1 -  Embedded Control'), 
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function aw_dominant_sponsor_block_view($delta = '') {		
+	switch($delta){
+	  case 'aw_dominant_sponsor_1':
+	    $block['subject'] = t('');
+			$block['content'] = theme('aw_dominant_sponsor_block', array(
+				'delta' => 'aw_dominant_sponsor_1',
+	      'display_options' => 'title_only',
+	    ));
+
+	    break;
+	}
+	return $block;
+}
+		
+
+/**
+ * Implements hook_block_configure().
+ */
+function aw_dominant_sponsor_block_configure($delta = '') {
+	$form = array();
+	
+	$form['title_1'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Category Title'),
+    '#default_value' => variable_get('aw_dom_category_title_' . $delta, NULL),
+    '#size' => 100,
+    '#description' => t('The main category title'),
+  );
+  $form['title_2'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Subcategory Title'),
+    '#default_value' => variable_get('aw_dom_sub_category_title_' . $delta, NULL),
+    '#size' => 100,
+    '#description' => t('The subcategory title'),
+  );
+	
+  $form['sponsor_name'] = array(
+	  '#type' => 'textfield',
+    '#title' => t('Sponsor'),
+    '#default_value' => variable_get('aw_dom_sponsor_' . $delta, NULL),
+    '#size' => 100,
+    '#description' => t('Main Sponsor'),
+  );
+  
+  $form['sponsor_image'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Image Full Path'),
+    '#default_value' => variable_get('aw_dom_image_' . $delta, NULL),
+    '#size' => 100,
+    '#description' => t('Full path to image.  Ex. http://www.packworld.com/sites/default/files/styles/165x135/public/images/issues/01_11/Images%20Products/webilapak.jpg'),
+  );
+  $form['left_category_sponsor_name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Left Company Name'),
+    '#default_value' => variable_get('aw_dom_left_company_name_' . $delta, NULL),
+    '#size' => 100,
+    '#description' => t('Right Category Sponsor Name'),
+  );  
+  $form['left_nid_1'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Left Article NID #1'),
+    '#default_value' => variable_get('aw_dom_left_nid_1_' . $delta, NULL),
+    '#size' => 15,
+    '#description' => t('The NID of the the article that should be displayed. (To get the NID go to the article you wish to add. Select edit. Look at the URL. The numbers after node is the NID.  EX: node/48905/edit  the NID = 48905.)'),
+  );
+  $form['left_nid_2'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Left Article NID #2'),
+    '#default_value' => variable_get('aw_dom_left_nid_2_' . $delta, NULL),
+    '#size' => 15,
+    '#description' => t('The NID of the the article that should be displayed. (To get the NID go to the article you wish to add. Select edit. Look at the URL. The numbers after node is the NID.  EX: node/48905/edit  the NID = 48905.)'),
+  );
+
+  $form['right_category_sponsor_name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Right Company Name'),
+    '#default_value' => variable_get('aw_dom_right_company_name_' . $delta, NULL),
+    '#size' => 100,
+    '#description' => t('Right Category Sponsor Name'),
+  );
+  $form['right_nid_1'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Right Article NID #1'),
+    '#default_value' => variable_get('aw_dom_right_nid_1_' . $delta, NULL),
+    '#size' => 15,
+    '#description' => t('The NID of the the article that should be displayed. (To get the NID go to the article you wish to add. Select edit. Look at the URL. The numbers after node is the NID.  EX: node/48905/edit  the NID = 48905.)'),
+  );
+  $form['right_nid_2'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Right Article NID #2'),
+    '#default_value' => variable_get('aw_dom_right_nid_2_' . $delta, NULL),
+    '#size' => 15,
+    '#description' => t('The NID of the the article that should be displayed. (To get the NID go to the article you wish to add. Select edit. Look at the URL. The numbers after node is the NID.  EX: node/48905/edit  the NID = 48905.)'),
+  ); 
+  return $form;
+}
+
+
+/**
+ * Perform the "save" op for hook_block().
+ *
+ * @param $delta
+ *   String specifying which block to proocess.
+ * @param $edit
+ *   Array containg the form input.
+ *
+ * @return
+ *   None. Values are saved as system variables.
+ */
+function aw_dominant_sponsor_block_save($delta = '', $edit = array()) {
+  variable_set('aw_dom_category_title_' . $delta, $edit['title_1']);
+  variable_set('aw_dom_sub_category_title_' . $delta, $edit['title_2']);
+  variable_set('aw_dom_sponsor_' . $delta, $edit['sponsor_name']);
+  variable_set('aw_dom_image_' . $delta, $edit['sponsor_image']);
+  variable_set('aw_dom_left_company_name_' . $delta, $edit['left_category_sponsor_name']);
+  variable_set('aw_dom_left_nid_1_' . $delta, $edit['left_nid_1']);
+  variable_set('aw_dom_left_nid_2_' . $delta, $edit['left_nid_2']);
+  variable_set('aw_dom_right_company_name_' . $delta, $edit['right_category_sponsor_name']);
+  variable_set('aw_dom_right_nid_1_' . $delta, $edit['right_nid_1']);
+  variable_set('aw_dom_right_nid_2_' . $delta, $edit['right_nid_2']);
+}
+/**
+ * Implements hook_theme().
+ */
+function aw_dominant_sponsor_theme() {
+	return array(
+    'aw_dominant_sponsor_block' => array(
+      'template'  => 'aw-dominant-sponsor-block',
+      'variables' => array('display_options' => NULL, 'nodes' => NULL),
+    ),
+  );
+}
+
+/**
+ *  Preprocess of aw-sponsored_block.tpl.php
+ */
+function template_preprocess_aw_dominant_sponsor_block(&$vars) {
+	$delta = $vars['delta'];
+	if(!variable_get('aw_dom_right_company_name_' . $delta, NULL)) {
+		drupal_add_css('.aw-dom-right .aw-dom-company-name {display:none;}.aw-dom-right{padding-top:20px;}',$option['type'] = 'inline');
+	}
+	$left_node1 = variable_get('aw_dom_left_nid_1_' . $delta, NULL);
+	$left_node2 = variable_get('aw_dom_left_nid_2_' . $delta, NULL);
+	$right_node1 = variable_get('aw_dom_right_nid_1_' . $delta, NULL);
+	$right_node2 = variable_get('aw_dom_right_nid_2_' . $delta, NULL);
+	$class = str_replace('_','-',$delta);
+	$content = '<div id="aw-dom-sponsor-' . $class . '">';
+	  $content .= '<div class="aw-dom-top">';
+	    $content .= '<h1 class="aw-dom-title">' . variable_get('aw_dom_category_title_' . $delta, NULL) . '</h1>';
+			$content .= '<h2 class="aw-dom-sub-category">' . variable_get('aw_dom_sub_category_title_' . $delta, NULL) . '</h2>';
+	    $content .= '<div class="aw-dom-sponsor-message"><div class="aw-dom-sponsor-text">This category is sponsored by</div><img class="aw-dom-company-image" src="'. variable_get('aw_dom_image_' . $delta, NULL) .'" alt="'. variable_get('aw_dom_sponsor_' . $delta, NULL) . '""/></div>';
+	    
+	  $content .= '</div>'; //end aw-dom-top
+	  $content .= '<div class="aw-dom-bottom">';
+	    $content .= '<div class="aw-dom-left">';
+	      $content .= '<div class="aw-dom-company-name">' . variable_get('aw_dom_left_company_name_' . $delta, NULL) . '<span class="aw-dom-category-sponsor">Category sponsor</span></div>';
+	      if($left_node1) {
+	        $content .= '<div class="aw-dom-company-nid1">' . aw_dominant_sponsor_get_node($left_node1) . '</div>';
+	      }
+	      if($left_node2) {
+		      $content .= '<div class="aw-dom-company-nid1">' . aw_dominant_sponsor_get_node($left_node2) . '</div>';
+	      }
+	    $content .= '</div>';	//end aw-dom-left
+      $content .= '<div class="aw-dom-right">';
+	      $content .= '<div class="aw-dom-company-name">' . variable_get('aw_dom_right_company_name_' . $delta, NULL) . '<span class="aw-dom-category-sponsor">Category sponsor</span></div>';
+	      if($left_node1) {
+	        $content .= '<div class="aw-dom-company-nid1">' . aw_dominant_sponsor_get_node($right_node1) . '</div>';
+	      }
+	      if($left_node2) {
+		      $content .= '<div class="aw-dom-company-nid1">' . aw_dominant_sponsor_get_node($right_node2) . '</div>';
+	      }
+	    $content .= '</div>';//end aw-dom-right
+	  $content .= '</div>'; //end aw-dom-bottom
+	$content .= '</div>'; //end aw-dominant-sponsor
+
+  $vars['items'] = $content;	
+}
+
+/**
+ * Function for printing out the node teaser
+ *
+ * @pararm $nid
+ *  The NID of the node
+ */
+function aw_dominant_sponsor_get_node($nid) {
+	global $base_url;
+	$node = node_load($nid);
+	
+	if($node) {
+		$content = '<div class="aw-dom-image">';
+	
+		if($node->type == 'video') {
+	    if(isset($node->field_viddler_id['und'][0]['value'])) {
+	      $file = file_load($node->field_viddler_id['und'][0]['thumbnail_fid']);
+	      $image = array(
+	        'path' => $file->uri,
+	      );
+	      $image['style_name'] = 'aw_dominant_sponsor_video';  //83x74
+	      $content .= '<a href="' . url( 'node/' . $node->nid ) .'">' . theme('image_style', $image) .'</a>';
+	    }
+	    else {
+	      $content .= '<a href="' . url( 'node/' . $node->nid ) .'"><img src="'. $base_url .'/' . drupal_get_path('module', 'aw_dominant_sponsor') . '/css/images/video_placeholder.png" /></a>';;
+	    }		
+		}
+		elseif($node->type == 'whitepaper') {
+			 $content .= '<a href="' . url( 'node/' . $node->nid ) .'"><img src="'. $base_url . '/' . drupal_get_path('module', 'aw_dominant_sponsor') . '/css/images/whitepaper_placeholder.png" /></a>';
+		}
+		elseif($node->type == 'article') {
+		  if(isset($node->field_image[$node->language])) {
+	      $item = $node->field_image[$node->language][0];
+    
+	      $image = array(
+	        'path' => $item['uri'],
+	        'alt' => $item['alt'],
+	      );
+	      $image['style_name'] = 'aw_dominant_sponsor';  //83x74
+	      $content .= '<a href="' . url( 'node/' . $node->nid ) .'">' . theme('image_style', $image) . '</a>';
+	    }
+	    else {
+	      $content .= '<a href="' . url( 'node/' . $node->nid ) .'"><img src="'. $base_url . '/' . drupal_get_path('module', 'aw_dominant_sponsor') . '/css/images/article_placeholder.png" /></a>';
+	    }
+		}
+	  $content .= '</div>';
+		$content .= '<div class="aw-dom-text"><span class="aw-dom-type">' . $node->type .' | </span><a href="' . url( 'node/' . $node->nid ) .'">' . $node->title . '</a></div>';
+		$content .= '<div class="clearfix"></div>';
+	}
+	
+	return $content;
+}
+
+
+
+
+

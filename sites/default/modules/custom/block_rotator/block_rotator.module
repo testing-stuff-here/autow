@@ -1,0 +1,127 @@
+<?php
+
+/**
+ *  @file
+ *  This module is designed to make it so that a collection of blocks can be
+ *  rotated based on a chose percentage
+ */
+
+
+/**
+ * Implements hook_menu().
+ */
+function block_rotator_menu() {
+  $items = array();
+
+  $items['admin/config/block-rotator'] = array(
+    'title' => 'Block Rotator Configuration Menu',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('block_rotator_form'),
+    'access arguments' => array(0),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'block_rotator.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function block_rotator_block_info() {
+  $blocks['rotating_block'] = array(
+    'info' => t('Rotating Block'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+
+  return $blocks;
+}
+
+
+/**
+ * Implements hook_block_view().
+ */
+function block_rotator_block_view($delta = '') {
+  $block = array();
+
+  switch ($delta) {
+    case 'rotating_block':
+      $block['subject'] = '';
+      $block['content'] = 'Something else';
+      $block['cache'] = DRUPAL_NO_CACHE;
+      break;
+  }
+  return $block;
+}
+
+function block_rotator_preprocess_block(&$variables) {
+  $menu_object = menu_get_object();
+
+  // Select at random the block to be displayed.
+  if ($variables['block']->delta == 'rotating_block') {
+
+    if ($menu_object) {
+      // #946 Don't show any block on FDT pages
+      if (isset($menu_object->field_term_coverage_type) && !empty($menu_object->field_term_coverage_type)) {
+        foreach ($menu_object->field_term_coverage_type['und'] as $term) {
+          if ($term['tid'] == '2218') {            
+            $variables['content'] = FALSE;
+            return;
+          }
+        }
+      }      
+    }
+
+    // Prep the base array for shuffling.
+    $base_array = variable_get('rotating_block_array', NULL);
+    // Prep the current block array and use the $base_array if the current array
+    // isn't set.
+    $block_array = variable_get('shuffled_rotating_block_array', $base_array);
+    // Get the counter to tell which block should be called next.
+    $rotator_count = variable_get('rotating_block_counter', 0);
+    // If the counter is maxed, then reset it.  This will reset at 100 since
+    // the keys max at 99.
+    if ($rotator_count == 100) {
+      // Reset the block array to the base, unshuffled array.
+      $block_array = $base_array;
+      $rotator_count = 0;
+    }
+    if ($rotator_count == 0) {
+      // Shuffle the array if it's been reset.
+      shuffle($block_array);
+    }
+    // Get the current block to be used.
+    $this_block_string = $block_array[$rotator_count];
+    // Increment the rotator.
+    $rotator_count++;
+    // Set the variables for the next run.
+    variable_set('rotating_block_counter', $rotator_count);
+    variable_set('shuffled_rotating_block_array', $block_array);
+    // Explode the block name with the module and delta into an array.
+    $this_block_array = explode('|', $this_block_string);
+    // Use the exploded string to load the block into a renderable array.
+    $block_object = (_block_get_renderable_array(_block_render_blocks(array(block_load($this_block_array[0], $this_block_array[1])))));
+    // Send that renderable array to the tpl file
+    $variables['content'] = $block_object;
+  }
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function block_rotator_theme_registry_alter(&$theme_registry) {
+  // Defined path to the current module.
+  $module_path = drupal_get_path('module', 'block_rotator');
+  // Find all .tpl.php files in this module's folder recursively.
+  $template_file_objects = drupal_find_theme_templates($theme_registry, '.tpl.php', $module_path);
+  // Iterate through all found template file objects.
+  foreach ($template_file_objects as $key => $template_file_object) {
+    // If the template has not already been overridden by a theme.
+    if (!isset($theme_registry[$key]['theme path']) || !preg_match('#/themes/#', $theme_registry[$key]['theme path'])) {
+      // Alter the theme path and template elements.
+      $theme_registry[$key]['theme path'] = $module_path;
+      $theme_registry[$key] = array_merge($theme_registry[$key], $template_file_object);
+      $theme_registry[$key]['type'] = 'module';
+    }
+  }
+}

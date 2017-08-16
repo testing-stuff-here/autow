@@ -1,0 +1,721 @@
+<?php 
+
+include_once(drupal_get_path('module', 'aquafadas').'/includes/templateController.php');
+
+
+/**
+ * Implements hook_menu()
+ */
+function aquafadas_menu(){
+  $items['app-export-article/%'] = array(
+    'page callback' => 'aquafadas_generate_export',
+    'page arguments' => array(1),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/content/aquafadas'] = array(
+    'title' => 'Aquafadas',
+    'description' => 'Aquafadas Integration',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('administer aquafadas'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
+  $items['admin/content/aquafadas/app-export-batch'] = array(
+    'title' => 'Batch Export Content for Aquafadas Integration',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('aquafadas_batch_export'),
+    'access arguments' => array('administer aquafadas'),
+  );
+  return $items;
+}
+
+/**
+ * Implement hook_permission()
+ */
+function aquafadas_permission(){
+  return array(
+    'administer aquafadas' => array(
+      'title' => 'Administer Aquafadas Integration Settings',
+    ),
+  );
+}
+
+/**
+ * Callback function.  Generates a zip file containing a directory with the necessary files for 
+ * Aquafadas integration
+ *
+ * @param (node object) $nid
+ *  - The nid of the node object
+ * @param (array) $batch
+ *  - If this is set, then we're performing a batch export, not an export on a single node
+ */
+function aquafadas_generate_export($nid, $batch = false){
+  include_once(drupal_get_path('module', 'smg_global') . '/includes/templateController.php');
+  
+  $node = node_load($nid);
+  $brand = 'hcp';
+  $data = array();
+  if(sizeof(module_implements('aquafadas_data')) > 0){
+    $data = module_invoke_all('aquafadas_data');
+    $brand = $data['brand'];
+  }
+  
+  // If batch is not false, add the Node object to the $batch array, so we can use it in the download_files fcts
+  if($batch){
+    $batch['node'] = $node;
+  }
+  
+  if($node->type == '360_package_spin_rotate'){
+    // Check to see if there is a 360 gallery directory for this node in public://360_gallery/[nid]
+    $node_360_dir = "public://360_gallery/" . $node->nid;
+    if(file_prepare_directory($node_360_dir)){
+      $template_location = drupal_get_path('module','smg_global') . '/includes/templates/360Export.phtml';
+      $three_sixty_template = new SmgGlobalTemplateController();
+      // Create the array that contains the name of each Large, Small, and Navigator file in their correct order
+      $three_sixty_data = aquafadas_generate_360_data_array($node);
+      $three_sixty_template->node = $node;
+      $three_sixty_template->data = $three_sixty_data;
+      $output = $three_sixty_template->render($template_location);
+      aquafadas_download_360_files($output, $three_sixty_data, $nid, $batch);
+    }
+    else {
+      drupal_set_message("No image files detected for this 360", "error");
+    }    
+  }
+  else {
+    $template_dir = drupal_get_path('module','aquafadas') . '/includes/templates/';
+  
+    $t = new AquafadasTemplateController($template_dir);
+    $content = aquafadas_generate_content_array($node);
+    $t->content = $content;
+    $value = $t->render($brand.'_index.phtml');
+  
+    aquafadas_download_files($value, $content, $data, $batch);
+  }
+}
+
+/**
+ * Callback for the Batch Export page
+ */
+function aquafadas_batch_export($form, &$form_state){
+  
+  // Create an array of Year-Month pairs representing issues
+  $issues = array();
+  for($i=-6; $i<4; $i++){
+    $month = ($i >= 0) ? '+'.$i : $i;
+    $issues[date('F_Y', strtotime("$month months"))] = date('Y-M', strtotime("$month months"));
+  }
+  // Create an array containing all of the node types for this site
+  $types = array();
+  foreach(node_type_get_types() as $key => $value){
+    $exclude_types = array('white_paper', 'article', 'html_content', 'registration_form', 'stage_one_form', 'webform', 'webinar_registration', 'playbook', 'form_template', 'pop_up_registration', 'mobile_webform', 'expert', 'premier_supplier_data_card', 'magazine', 'company', 'podcast');
+    if(!in_array($key, $exclude_types)){
+      $types[$key] = $value->name;
+    }    
+  }
+
+  $form['issue'] = array(
+    '#type' => 'select',
+    '#title' => t('Issue'),
+    '#options' => $issues,
+    '#default_value' => date('F_Y'),
+    '#description' => t('Please choose the issue that you would like to export'),
+  );
+  $form['node_types'] = array(
+    '#type' => 'checkboxes',
+    '#options' => $types,
+    '#title' => t('Extra Content Types'),
+    '#description' => t('By default, this export script will only export Articles.  Optionally select other content types to be exported'),
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Export',
+    '#submit' => array('aquafadas_batch_export_submit'),
+  );
+  
+  return $form;
+}
+
+/**
+ * Submit Handler for Batch Export page
+ */
+function aquafadas_batch_export_submit($form, $form_state){
+ 
+  $issue = $form_state['values']['issue'];
+  $node_types = array('article');
+  foreach($form_state['values']['node_types'] as $key => $value){
+    if($value){
+      $node_types[] = $key;
+    }
+  }
+  
+  // The issue date is in the format Month_Year.  We convert this value into a datetime format so 
+  // that we can get the first and last day of that month
+  $issue = str_replace('_', ' ', $issue); // So that we can use in strtotime function
+  $month_first_day = date('Y-m-01', strtotime($issue));
+  $month_last_day = date('Y-m-t', strtotime($issue));
+  
+  $query = db_select('node','n');
+  $query->fields('n', array('nid'));
+  $query->join('field_data_field_issue_date','issue','issue.entity_id = n.nid');
+  $query->condition('n.type', $node_types, 'IN');
+  $query->condition('issue.field_issue_date_value', array($month_first_day, $month_last_day), 'BETWEEN');
+  
+  $result = $query->execute();
+  
+  // If no rows returned then exit the operation
+  if($result->rowCount() == 0){
+    drupal_set_message(t('No content found for this issue date'), 'error');
+    return false;
+  }
+  
+  // Generate a temp directory that will hold all of the exported nodes
+  $base_temp = tempnam(file_directory_temp(), 'aquafadas_export_');
+  if(file_exists($base_temp)){
+    unlink($base_temp);
+  }
+  mkdir($base_temp);
+  
+  while($record = $result->fetchAssoc()){
+    $nid = $record['nid'];
+    $operations[] = array('aquafadas_batch_export_node', array($nid, $base_temp));
+  }
+  
+  batch_set(aquafadas_batch_export_issue($operations));
+
+
+}
+
+/**
+ * Goes through each node for a given issue and queues it up for batch export
+ */
+function aquafadas_batch_export_issue($operations){
+  drupal_set_message('Generating Export File');
+  
+  // build the batch instructions
+  $batch = array(
+    'operations' => $operations,
+    'finished' => 'aquafadas_batch_export_finished',
+    'process_message' => t('Processed @percentage'),
+  );
+  
+  return $batch;
+}
+
+/**
+ * The actual batch export function performed on each node
+ *
+ * @param (string) $nid
+ *  - Node ID
+ * @param (string) $base_temp
+ *  - The location of the temp directory that will store all of the exported nodes
+ * @param (array) $context
+ *  - An argument that is automatically added by the Batch API
+ *  - @see http://www.drupology.co.uk/blog/using-batch-api-drupal-7-batch-api-tutorial
+ */
+function aquafadas_batch_export_node($nid, $base_temp, &$context){
+  aquafadas_generate_export($nid, array('base_temp' => $base_temp));
+  // Remember the base_temp location for the finish function
+  $context['results']['base_temp'] = $base_temp;
+}
+
+/**
+ * Batch API finish function
+ */
+function aquafadas_batch_export_finished($success, $results, $operations){
+  if($success){
+    // Get the path to the directory containing all of the nodes
+    $dir = $results['base_temp'];
+    // Zip up the directory
+    $zip_path = aquafadas_archive($dir, 'batch');
+    $zip_basename = basename($zip_path);
+    
+    drupal_set_message(t('Export Complete'));
+    
+    drupal_add_http_header('Content-Type', 'application/zip');
+    drupal_add_http_header('Content-Transfer-Encoding', 'binary');
+    drupal_add_http_header('Content-Length', filesize($zip_path));
+    drupal_add_http_header('Content-disposition', 'attachment; filename=' . $zip_basename);
+    readfile($zip_path);
+    
+    unlink($zip_path);
+    drupal_exit();
+    
+    //drupal_goto('/admin/content/aquafadas/app-export-batch');
+    
+  }
+  else {
+    drupal_set_message(t('An error occurred in the Batch Export process'), 'error');
+  }
+}
+
+/**
+ * Handles the generation of the content array that is passed into the template file
+ */
+function aquafadas_generate_content_array($node){
+  
+  // Collect information from modules that implemented hook_aquafadas_node_data
+  $node_data = array();
+  foreach(module_implements('aquafadas_node_data') as $module) {
+    $function = $module . '_aquafadas_node_data';
+    $node_data = $function($node);
+  }
+  
+  $content = array();
+  $content['title'] = $node->title; // Set the title
+  $content['deckhead'] = (property_exists($node, 'field_deckhead') && isset($node->field_deckhead['und'])) ? $node->field_deckhead['und'][0]['value'] : '';
+  $new_body = aquafadas_generate_content_body($node);
+  $content['body'] = $new_body['new_body'];
+  $content['link_mapping'] = $new_body['mapping'];
+  $content['images'] = aquafadas_get_images($node);
+  $content['author_name_title'] = $node_data['author_name_title'];
+  
+  // Node Type
+  $types = node_type_get_types();
+  $content['node_type'] = $types[$node->type]->name;
+  // On articles the subtype replaces the node type
+  if(isset($node->field_term_subtype['und'][0]['tid'])) {
+    $tid = $node->field_term_subtype['und'][0]['tid'];
+    $content['node_type'] = taxonomy_term_load($tid)->name;
+  }
+  
+  // Node Path
+  $options = array('absolute' => TRUE);
+  $content['url'] = url('node/' . $node->nid, $options);
+  
+  return $content;
+}
+
+/**
+ * Generates an array that will be used for exporting 360 nodes.  This array will contain
+ * information that is relevant for the template file that will be used to construct the
+ * index.html file.  
+ */
+function aquafadas_generate_360_data_array($node){
+  $three_sixty_data = array(
+    'files' => array(),
+  );
+  if(property_exists($node, 'field_360_images') && isset($node->field_360_images['und'])){
+    $three_sixty_images = $node->field_360_images['und'];
+    // Check for the "Reverse" boolean field
+    if(property_exists($node, 'field_360_images_reverse') && isset($node->field_360_images_reverse['und']) && $node->field_360_images_reverse['und'][0]['value']){
+      $three_sixty_images = array_reverse($three_sixty_images);
+    } 
+    foreach($three_sixty_images as $key => $value){
+      $fc = entity_load("field_collection_item", array($value['value']));
+      $fc = $fc[$value['value']];
+      $three_sixty_data['files'][$key] = array(
+        'large' => array(
+          'filename' => $fc->field_360_fc_large['und'][0]['filename'],
+          'fid' => $fc->field_360_fc_large['und'][0]['fid'],
+          'uri' => $fc->field_360_fc_large['und'][0]['uri'],
+        ),
+        'small' => array(
+          'filename' => $fc->field_360_fc_small['und'][0]['filename'],
+          'fid' => $fc->field_360_fc_small['und'][0]['fid'],
+          'uri' => $fc->field_360_fc_small['und'][0]['uri'],
+        ),
+        'nav' => array(
+          'filename' => $fc->field_360_fc_nav['und'][0]['filename'],
+          'fid' => $fc->field_360_fc_nav['und'][0]['fid'],
+          'uri' => $fc->field_360_fc_nav['und'][0]['uri'],
+        ),
+      );
+    }
+  }
+  
+  return $three_sixty_data;
+}
+
+/**
+ * Helper function.  Parses the body of a node and looks for hyperlinks and converts them
+ * to a format that is friendly for the Aquafadas app
+ */
+function aquafadas_generate_content_body($node){
+  $body = (isset($node->body['und'])) ? $node->body['und'][0]['value'] : '';
+  $count = 1;
+  $regexp = '|href=([\"\'])([^\"\']*)\\1|iU';
+  /*$new_body = preg_replace_callback(
+    $regexp,
+    function($matches) use(&$count) {
+      $new_string = 'href="javascript:callAction(\'link_' . $count. '\')"';
+      $count++;
+      return $new_string;
+    },
+    $body
+  );*/
+  $replaceCallback = new AquafadasCallback;
+  $new_body = preg_replace_callback(
+    $regexp,
+    array(&$replaceCallback, 'replace'),
+    $body
+  );
+  $return_body = array();
+  $return_body['new_body'] = $new_body;
+  $return_body['mapping'] = $replaceCallback->getMapping();
+  return $return_body;
+}
+
+function aquafadas_get_images($node){
+  $images = array(
+    'main' => array(),
+    'additional' => array(),
+  );
+  if(property_exists($node, 'field_image') && isset($node->field_image['und'])){
+    $images['main']['filename'] = $node->field_image['und'][0]['filename'];
+    $images['main']['image_style_url'] = image_style_url('aquafadas_width_280', $node->field_image['und'][0]['uri']);
+    $images['main']['title'] = $node->field_image['und'][0]['title'];
+    $images['main']['alt'] = $node->field_image['und'][0]['alt'];
+  }
+  if(property_exists($node, 'field_article_images') && isset($node->field_article_images['und'])){
+    foreach($node->field_article_images['und'] as $key => $value){      
+      $images['additional'][$key]['filename'] = $value['filename'];
+      $images['additional'][$key]['image_style_url'] = image_style_url('aquafadas_width_280', $value['uri']);
+      $images['additional'][$key]['title'] = $value['title'];
+      $images['additional'][$key]['alt'] = $value['alt'];
+    }
+  }
+  return $images;
+}
+
+/**
+ * This function generates a directory, zips it up and then sends it back to the requestor as a file download
+ *
+ * @param (string) $value
+ *  - The index.html file
+ * @param (array) $content
+ *  - Name/Location of all images, generated by aquafadas_generate_content_array
+ * @param (array/boolean) $batch
+ *  - If this is not false, then we're performing a batch export.
+ */
+function aquafadas_download_files($value, $content, $data, $batch){
+  
+  // Make a temporary directory
+  if($batch){
+    $node = $batch['node'];
+    $title = $node->title;
+    $title = str_replace(' ', '_', $title); //Replace whitespace with underscores
+    $title = preg_replace("/[^A-Za-z0-9_]/", '', $title); // Remove non-alphanumeric and underscore characters
+    
+    // Get the page number, if one is set
+    $page_num = 'no_page_num'; // This will be the default for nodes where the page number field isn't set
+    if(property_exists($node, 'field_page_num') && isset($node->field_page_num['und'])){
+      $page_num = 'page_' . $node->field_page_num['und'][0]['value'];
+    }
+    
+    // Since several nodes may share the same page, check to see if the directory has been created already
+    if(!file_exists($batch['base_temp'] . '/' . $page_num)){
+      mkdir($batch['base_temp'] . '/' . $page_num);
+    }
+    
+    // Make a directory for this node
+    $temp = $batch['base_temp'] . '/' . $page_num . '/' . $title;
+    mkdir($temp);
+  }
+  else{
+    // else, we're doing an export on a single node, not a batch export
+    $temp = tempnam(file_directory_temp(), 'aquafadas_export');
+    if(file_exists($temp)){
+      unlink($temp);
+    }
+    mkdir($temp);
+  }
+  if(is_dir($temp)){
+    $index = 'index.html';
+    $handle = fopen($temp . '/' . $index, 'w') or die('Cannot open file: ' . $temp. '/' . $index);
+    fwrite($handle, $value);
+    fclose($handle);
+    
+    // Copy js lib files
+    copy(drupal_get_path('module', 'aquafadas').'/includes/files/afdpLib.js', $temp . '/afdpLib.js');
+    copy(drupal_get_path('module', 'aquafadas').'/includes/files/afdpLibInit.js', $temp . '/afdpLibInit.js');
+    
+    // Create the links-mapping file
+    if(sizeof($content['link_mapping']) > 0){
+      $links_map_handle = fopen($temp . '/links_mapping.txt', 'w') or die('Cannot open file links_mapping.txt');
+      foreach($content['link_mapping'] as $key => $value){
+        $mapping = $key . ': ' . $value . "\n";
+        fwrite($links_map_handle, $mapping);
+      }
+      fclose($links_map_handle);
+    }
+    
+    // Create an images directory
+    mkdir($temp . '/images');
+    if(sizeof($content['images']['main']) > 0){
+      $image_content = file_get_contents($content['images']['main']['image_style_url']);
+      $save_location = $temp . '/images/' . $content['images']['main']['filename'];
+      file_put_contents($save_location, $image_content);
+    }
+    foreach($content['images']['additional'] as $key => $value){
+      $image_content = file_get_contents($value['image_style_url']);
+      $save_location = $temp . '/images/' . $value['filename'];
+      file_put_contents($save_location, $image_content);
+    }
+    copy(drupal_get_path('module', 'aquafadas').'/includes/files/emailbtn.png', $temp . '/images/emailbtn.png');  
+  }
+  
+  // If we're doing an export on a single node, then zip it up and return it to the user.  
+  if(!$batch){
+    $zip_path = aquafadas_archive($temp);
+    $zip_basename = basename($zip_path);
+  
+    // @see http://blog.sebcorbin.fr/en/how-force-downloading-file-drupal-7
+    drupal_add_http_header('Content-Type', 'application/zip');
+    drupal_add_http_header('Content-Transfer-Encoding', 'binary');
+    drupal_add_http_header('Content-Length', filesize($zip_path));
+    drupal_add_http_header('Content-disposition', 'attachment; filename=' . $zip_basename);
+    readfile($zip_path);
+  
+    unlink($zip_path);
+    drupal_exit();
+  }
+  
+}
+
+/**
+ * This function does the same as aquafadas_download_files, except specifically for 360 nodes.
+ * 
+ * @param (string) $index_html
+ *  - The value for the index.html value
+ * @param (array) $data
+ *  - An array containing info about each image file for the 360
+ * @param (string) $nid
+ *  - The node ID of the 360 node
+ * @param (array/boolean) $batch
+ *  - If this is not false, then we are performing a batch export
+ **/
+function aquafadas_download_360_files($index_html, $data, $nid, $batch){
+  
+  // Make a temp directory
+  if($batch){
+    $node = $batch['node'];
+    $title = $node->title;
+    $title = str_replace(' ', '_', $title); //Replace whitespace with underscores
+    $title = preg_replace("/[^A-Za-z0-9_]/", '', $title); // Remove non-alphanumeric and underscore characters
+    
+    // Get the page number, if one is set
+    $page_num = 'no_page_num'; // This will be the default for nodes where the page number field isn't set
+    if(property_exists($node, 'field_page_num') && isset($node->field_page_num['und'])){
+      $page_num = 'page_' . $node->field_page_num['und'][0]['value'];
+    }
+    
+    // Since several nodes may share the same page, check to see if the directory has been created already
+    if(!file_exists($batch['base_temp'] . '/' . $page_num)){
+      mkdir($batch['base_temp'] . '/' . $page_num);
+    }
+    
+    // Make a directory for this node
+    $temp = $batch['base_temp'] . '/' . $page_num . '/' . $title;
+    mkdir($temp);
+  }
+  else{
+    $date = date('Md_y__h.i.s', time());
+    $temp = file_directory_temp() . '/aquafadas_export_' . $date;
+    if(file_exists($temp)){
+      unlink($temp);
+    }
+    mkdir($temp);
+  }
+  if(is_dir($temp)){
+    $handle = fopen($temp . '/index.html', 'w') or die('Cannot open file' . $temp . '/index.html');
+    fwrite($handle, $index_html);
+    fclose($handle);
+    
+    // Get the location of the skin_round_silver directory
+    $three_sixty_dir = drupal_get_path('module', 'smg_global') . '/360_includes';
+    $skin = $three_sixty_dir . '/skin_round_silver';
+    // Create an skin_round_silver directory, the skin subdirectory and the css_graphics subdirectory
+    mkdir($temp . '/skin_round_silver');
+    mkdir($temp . '/skin_round_silver/skin');
+    mkdir($temp . '/skin_round_silver/css_graphics');
+    aquafadas_copy($skin . '/skin', $temp . '/skin_round_silver/skin');
+    aquafadas_copy($skin . '/css_graphics', $temp . '/skin_round_silver/css_graphics');
+    // Copy the global.css file
+    copy($skin . '/global.css', $temp . '/skin_round_silver/global.css');
+    
+    // Copy the java directory
+    mkdir($temp . '/java');
+    aquafadas_copy($three_sixty_dir . '/java', $temp . '/java');
+    
+    // Create the small_images directory, then copy all of this nodes small images into it
+    mkdir($temp . '/skin_round_silver/small_images');
+    $small_realpath = drupal_realpath("public://360_gallery/" . $nid . '/small_images');
+    aquafadas_copy($small_realpath, $temp . '/skin_round_silver/small_images');
+    
+    mkdir($temp . '/skin_round_silver/large_images');
+    $large_realpath = drupal_realpath("public://360_gallery/" . $nid . '/large_images');
+    aquafadas_copy($large_realpath, $temp . '/skin_round_silver/large_images');
+    
+    mkdir($temp . '/skin_round_silver/navigator_images');
+    $navigator_realpath = drupal_realpath("public://360_gallery/" . $nid . '/navigator_images');
+    aquafadas_copy($navigator_realpath, $temp . '/skin_round_silver/navigator_images');
+  }
+  
+  // If we're not performing a batch export, then zip up the directory and return it to the user
+  if(!$batch){
+    $zip_path = aquafadas_archive($temp);
+    $zip_basename = basename($zip_path);
+    drupal_add_http_header('Content-Type', 'application/zip');
+    drupal_add_http_header('Content-Transfer-Encoding', 'binary');
+    drupal_add_http_header('Content-Length', filesize($zip_path));
+    drupal_add_http_header('Content-disposition', 'attachment; filename=' . $zip_basename);
+    readfile($zip_path);
+  
+    unlink($zip_path);
+    //aquafadas_delete_dir($temp);
+    drupal_exit();
+  }
+}
+
+/**
+ * Function for copying @see http://stackoverflow.com/questions/2050859/copy-entire-contents-of-a-directory-to-another-using-php
+ **/
+function aquafadas_copy($src, $dst){
+  $src_dir = opendir($src);
+  $dest_dir = opendir($dst);
+  while(false !== ($file = readdir($src_dir))){
+    if(($file != '.') && ($file != '..')){
+      if(is_dir($src . '/' . $file)){
+        aquafadas_copy($src . '/' . $file, $dst . '/' . $file);
+      }
+      else {
+        copy($src . '/' . $file, $dst . '/' . $file);
+      }
+    }
+  }
+  closedir($src_dir);
+  closedir($dest_dir);
+}
+
+/**
+ * Function for deleting an entire directory
+ * @see http://stackoverflow.com/questions/1653771/how-do-i-remove-a-directory-that-is-not-empty
+ */
+function aquafadas_delete_dir($dir) {
+    if (!file_exists($dir)) return true;
+    if (!is_dir($dir)) return unlink($dir);
+    foreach (scandir($dir) as $item) {
+        if ($item == '.' || $item == '..') continue;
+        if (!deleteDirectory($dir.DIRECTORY_SEPARATOR.$item)) return false;
+    }
+    return rmdir($dir);
+}
+
+/**
+ * Archiving function
+ * 
+ * @param (string) $dir
+ *  - The location of the export directory, most likely in /tmp
+ * @param (string) $type
+ *  - The type of node, or it could be the string batch 
+ *  - @TODO not really being used, maybe remove.  Although could be useful later on
+ * 
+ * @return a .zip archive
+ */
+function aquafadas_archive($dir, $type = 'article'){
+  // Initialize archive object
+  $zip = new ZipArchive;
+  $zip_name = $dir . '.zip';
+  $zip->open($zip_name, ZipArchive::CREATE);
+  
+  // Create recursive directory iterator
+  $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir), RecursiveIteratorIterator::LEAVES_ONLY);
+  
+  foreach($files as $name => $file) {
+    // Get real path for current file
+    $filePath = $file->getRealPath();
+    $filePath = (string)$filePath;
+    
+    // Remove the relative path leading up to the export directory and save as string
+    //$file_name = str_replace(file_directory_temp(),'',$filePath);
+    
+    $file_path = substr($filePath, strpos($filePath, 'aquafadas_export'));
+    if($file->getFilename() != '.DS_Store'){
+      $zip->addFile($filePath, $file_path);
+    }
+  }
+  
+  $zip_path = $zip->filename; 
+  
+  $zip->close();
+  
+  return $zip_path;
+}
+
+/**
+ * Implements hook_form_alter()
+ */
+function aquafadas_form_alter(&$form, &$form_state, $form_id){
+  if(isset($form['nid']['#value']) && isset($form['#node_edit_form']) && $form['#node_edit_form']){
+    drupal_add_css(drupal_get_path('module', 'aquafadas').'/css/aquafadas.css', array('type'=>'file', 'every_page'=>false, 'preprocess'=>false));
+    $form['phone_export'] = array(
+      '#type' => 'fieldset',
+      '#access' => TRUE,
+      '#title' => 'Export article for phone version',
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#weight' => 10,
+      '#group' => 'additional_settings'
+    );
+    $form['phone_export']['generate_template'] = array(
+      '#type' => 'markup',
+      '#markup' => '<a class="app-export-page" href="/app-export-article/' . $form['nid']['#value'] . '/"><div class="app-export-page-div">Export Article for Phone Version</div></a>',
+    );
+  }
+  
+  if(array_key_exists('field_360_multi_upload', $form)){
+    drupal_add_css(drupal_get_path('module', 'aquafadas').'/css/aquafadas.css', array('type'=>'file', 'every_page'=>false, 'preprocess'=>false));
+    /*$form['field_360_multi_upload']['und']['delete'] = array(
+      '#type' => 'submit',
+      '#value' => t('Delete All Above'),
+      //'#submit' => array('aquafadas_multi_upload_delete_all'),
+      '#ajax' => array(
+        'path' => 'file/ajax/field_360_multi_upload/und/' . $form['#build_id'],
+        //'callback' => 'aquafadas_multi_upload_delete_all',
+        'wrapper' => 'edit-field-360-multi-upload-und-ajax-wrapper',
+        'effect' => 'none',
+      ),
+      '#submit' => array('file_managed_file_submit', 'aquafadas_multi_upload_delete_all'),
+    );*/
+   
+  }
+  //dpm($form);
+}
+
+/**
+ * Submit handler for the added "Delete All Above" button to the Multi Upload widget
+ */
+function aquafadas_multi_upload_delete_all(&$form, &$form_state){
+  foreach($form_state['values']['field_360_multi_upload']['und'] as $key => $value){
+    if(array_key_exists('fid', $value)){
+      unset($form_state['values']['field_360_multi_upload']['und'][$key]);
+    }
+  }
+  //file_managed_file_submit($form, &$form_state);
+  return file_field_widget_submit($form, $form_state); 
+}
+
+
+/**
+ * Class that contains a callback function for replacing href content.  I need to use this class
+ * because PHP < 5.3 doesn't support anonymous functions
+ */
+class AquafadasCallback 
+{
+  protected $count;
+  protected $mapping = array();
+  public function __construct($count = null){
+    $this->count = 1;
+  }
+  function replace($matches){
+    $new_string = 'href="javascript:callAction(\'link_' . $this->count . '\')"';
+    $this->mapping[$this->count] = $matches[2];
+    $this->count++;
+    return $new_string;
+  }
+  function getMapping(){
+    return $this->mapping;
+  }
+}

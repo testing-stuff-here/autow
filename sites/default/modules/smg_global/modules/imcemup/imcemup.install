@@ -1,0 +1,45 @@
+<?php
+
+/**
+ * Implementation of hook_install()
+ */
+function imcemup_install() {
+  //update profiles.
+  $profiles = variable_get('imce_profiles', array());
+  foreach ($profiles as $i => $profile) {
+    $profiles[$i]['mupnum'] = $i == 1 ? 20 : 2;//default number of simultaneous uploads
+  }
+  variable_set('imce_profiles', $profiles);
+
+  //register custom content function
+  $funcs = variable_get('imce_custom_content', array());
+  $funcs['imcemup_imce_content'] = 1;
+  variable_set('imce_custom_content', $funcs);
+
+  //register custom profile process
+  $funcs = variable_get('imce_custom_process', array());
+  $funcs['imcemup_process_profile'] = 1;
+  variable_set('imce_custom_process', $funcs);
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function imcemup_uninstall() {
+  //update profiles.
+  $profiles = variable_get('imce_profiles', array());
+  foreach ($profiles as $i => $profile) {
+    unset($profiles[$i]['mupnum']);
+  }
+  variable_set('imce_profiles', $profiles);
+
+  //unregister custom content function
+  $funcs = variable_get('imce_custom_content', array());
+  unset($funcs['imcemup_imce_content']);
+  variable_set('imce_custom_content', $funcs);
+
+  //unregister custom profile process
+  $funcs = variable_get('imce_custom_process', array());
+  unset($funcs['imcemup_process_profile']);
+  variable_set('imce_custom_process', $funcs);
+}

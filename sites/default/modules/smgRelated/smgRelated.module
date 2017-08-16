@@ -1,0 +1,770 @@
+<?php
+
+/**
+ * @author Albert Jankowski <ajankowski@summitmediagroup.com>
+ *
+ * Module for getting all the related nodes based on the taxonomy of the article
+ *
+ */
+
+/**
+ * Implements hook_menu()
+ */
+function smgRelated_menu() {
+
+  $items['admin/config/content/smgRelated'] = array(
+    'title' => 'Related Block',
+    'description' => 'Setting for the Related Articles Block',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('smgRelated_admin_settings_form'),
+    'access arguments' => array('administer smgRelated settings'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'smgRelated.admin.inc',
+  );
+
+  return $items;
+
+}
+
+/**
+ * Implements hook_permission()
+ */
+function smgRelated_permission() {
+  return array(
+    'administer smgRelated settings' => array(
+      'title' => t('Administer smgRelated Settings'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_hook_info()
+ */
+function smgRelated_hook_info() {
+  $hooks = array(
+    'smgRelated_get_nodes',
+  );
+
+  $hooks = array_combine($hooks, $hooks);
+  foreach ($hooks as $hook => $info) {
+    $hooks[$hook] = array('group' => 'smgRelated');
+  }
+
+  return $hooks;
+}
+
+/**
+ * Implements hook_block_view()
+ */
+function smgRelated_block_view($delta = '') {
+
+  $block = array();
+
+  $block = array(
+    'subject' => t('RELATED ARTICLES'),
+    'content' => theme('smgRelated_block', array(
+      'related_nodes' => smgRelated_nodes($delta),
+      'delta' => $delta,
+    )),
+  );
+
+  return $block;
+}
+
+/**
+ * Implements hook_block_info()
+ */
+function smgRelated_block_info() {
+
+  $blocks['smgRelated_default'] = array(
+    'info' => t('Related Nodes using SMG Related'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
+  $blocks['smgRelated_video'] = array(
+     'info' => t('Related video nodes selected using SMG Related'),
+     'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
+
+  return $blocks;
+
+}
+
+/**
+ * Main function that returns node array
+ *
+ * @delta - block delta
+ * @sponsored - boolean
+ *
+ * @return $related_nodes - array (array of related nodes, and tid)
+ */
+function smgRelated_nodes($delta, $sponsored = FALSE) {
+
+  // Only Do more logic if one of these blocks
+  if($delta != 'smgRelated_default' && $delta != 'smgRelated_video') {
+    return '';
+  }
+
+  $related_nodes = '';
+  $already_used_nodes = array();
+  $this_node_is_sponsored = FALSE;
+  $display_sponsored = TRUE;
+
+  $node = menu_get_object();
+  if($node) {
+
+    // Also use the related articles that were set in the node
+    if(isset($node->field_related['und'][0])) {
+
+      $count = 1;
+      foreach($node->field_related['und'] as $value) {
+        $node_object = node_load($value['nid']);
+
+        // If Video smgRelated_video block than only allow video nodes
+        if($delta == 'smgRelated_video') {
+          if($node_object->type == 'video') {
+            $node_object->count = $count;
+            $node_object->smgRelated_type = 'related_overwrite';
+            $related_overwrite['related_overwrite']['nodes'][] = $node_object;
+          }
+        }
+        else {
+          $node_object->count = $count;
+          $node_object->smgRelated_type = 'related_overwrite';
+          $related_overwrite['related_overwrite']['nodes'][] = $node_object;
+        }
+        $already_used_nodes[] = $value['nid'];
+        $count++;
+      }
+      if(isset($related_overwrite)) {
+        $related_overwrite_nodes = $related_overwrite;
+      }
+    }
+
+    // if it doesn't have any taxonomy terms than make sure the overwrite nodes are set
+    if(isset($related_overwrite_nodes) && !isset($node->field_allterms['und'][0])) {
+      $related_nodes = $related_overwrite_nodes;
+    }
+
+    // Find out if it is sponsored
+    if(isset($node->field_term_source_type['und'][0]['tid'])) {
+      $this_node_is_sponsored = in_array($node->field_term_source_type['und'][0]['tid'], array_keys(variable_get('smgRelate_sponsored_terms')));
+    }
+
+    // If it has taxonomy terms
+    if(isset($node->field_allterms['und'][0])) {
+
+      // Get all taxonomy
+      $taxonomy = smgRelated_get_taxonomy_structure($node->field_allterms['und']);
+
+      // Make sure that the current node doesn't show up
+      $already_used_nodes[] = $node->nid;
+
+      // Get all related nodes
+      $related_nodes = smgRelated_get_related($delta, $taxonomy, $already_used_nodes, $sponsored);
+
+      if(isset($related_overwrite_nodes) && $related_nodes) {
+        $related_nodes = array_merge($related_overwrite_nodes, $related_nodes);
+      }
+
+      if(!variable_get('smgRelated_on_sponsored', FALSE) && $this_node_is_sponsored) {
+        $display_sponsored = FALSE;
+      }
+
+      // Sponsored Articles
+      if($display_sponsored) {
+        $sponsored_items = smgRelated_get_related($delta, $taxonomy, $already_used_nodes, TRUE);
+        if($sponsored_items) {
+          $sponsored_articles['sponsored_articles'] = $sponsored_items;
+          $related_nodes = array_merge($sponsored_articles, $related_nodes);
+        }
+      }
+
+    }
+
+    if($delta == 'smgRelated_video') {
+
+      // If empty array than search for any nodes with this content type
+      if(!$related_nodes) {
+        $related_videos = array();
+
+        $nodes = smgRelated_get_nodes($delta, array(), array($node->nid));
+        $count = 1;
+        foreach($nodes as $node) {
+          $n = node_load($node['nid']);
+          $n->smgRelated_type = 'any';
+          $n->count = $count;
+          $related_nodes['related_videos']['nodes'][] = node_load($node['nid']);
+          $count++;
+        }
+      }
+
+    }
+
+  }
+
+  return $related_nodes;
+
+}
+
+/**
+ * Implements hook_theme()
+ */
+function smgRelated_theme() {
+
+  return array(
+    'smgRelated_block' => array(
+      'template' => 'smgRelated-block',
+      'variables' => array('display_options' => NULL, 'related_nodes' => NULL, 'delta' => NULL),
+    ),
+
+    'smgRelated_videos' => array(
+      'variables' => array(
+        'nodes' => NULL,
+        'image_style' => NULL,
+      ),
+    ),
+  );
+
+}
+
+/**
+ * Preprocess for smgRelated-block
+ */
+function template_preprocess_smgRelated_block(&$variables) {
+  $variables['items'] = '';
+  $rendered = NULL;
+
+  $related_nodes = $variables['related_nodes'];
+  $delta = $variables['delta'];
+
+  // Default
+  if($delta == 'smgRelated_default') {
+    if($related_nodes) {
+      // Get rendered array
+      $variables['items'] .= smgRelated_get_related_rendered_default($related_nodes, 'With this Article');
+    }
+  }
+
+  // Video Block
+  if($delta == 'smgRelated_video') {
+    if($related_nodes) {
+      // Get rendered array
+      $variables['items'] .= smgRelated_get_related_rendered_video($related_nodes);
+    }
+  }
+
+
+}
+
+/**
+ * Function for getting rendered default array
+ */
+function smgRelated_get_related_rendered_video($related_nodes, $prefix_title = '') {
+
+  $rendered = '';
+  $output = '';
+
+  foreach($related_nodes as $nodes) {
+    if(isset($nodes['tid'])) {
+      $title = taxonomy_term_load($nodes['tid'])->name;
+    }
+    else if(isset($nodes['title'])) {
+      $title = 'Sponsored Videos';
+    }
+    else {
+      $title = $prefix_title;
+    }
+
+    $node_links = array();
+    // Get links paths
+    $render_array = array(
+      'related_terms' => array(
+        '#prefix' => '<div class="smgRelated-topic"><div class="category-title">' . $title . '</div><hr>',
+        '#nodes' => $nodes['nodes'],
+        '#image_style' => 'video_thumbnail_small',
+        '#theme' => 'smgRelated_videos',
+        '#suffix' => '</div>',
+      ),
+    );
+
+     $rendered .= render($render_array);
+  }
+
+  return $rendered;
+}
+
+/**
+ * Returns the HTML for a list of video nodes
+ *
+ * @param $vars
+ *  An associative array containing:
+ *   - nodes - the group of node objects
+ *   - image_style - the image style used for displaying the video image
+ */
+function theme_smgRelated_videos($vars) {
+
+  $nodes = $vars['nodes'];
+  $image_style = $vars['image_style'];
+
+  $output = '';
+
+  if(!empty($nodes)) {
+
+    $num_items = count($nodes);
+    $viewed_event = '';
+    foreach($nodes as $i => $node) {
+      if($node->smgRelated_type == 'any') {
+        $onclick_event = "ga('send', 'event', 'More Videos Block - Any Videos', 'Position $node->count', 'Clicked');";
+        $viewed_event .= "<script type=\"text/javascript\">ga('send', 'event', 'More Videos Block - Any Videos', 'Position $node->count', 'Viewed', 0, {'nonInteraction': 1});</script>";
+      }
+      else if($node->smgRelated_type == 'related_overwrite') {
+        $onclick_event = "ga('send', 'event', 'More Videos Block - Manual Related', 'Position $node->count', 'Clicked');";
+        $viewed_event .= "<script type=\"text/javascript\">ga('send', 'event', 'Manual Related', 'Any Videos', 'Position $node->count', 'Viewed', 0, {'nonInteraction': 1});</script>";
+      }
+      //dsm($node->smgRelated_type);
+      else {
+         $onclick_event = "ga('send', 'event', 'More Videos Block - Related', 'Position $node->count', 'Clicked');";
+         $viewed_event .= "<script type=\"text/javascript\">ga('send', 'event', 'More Videos Block - Related', 'Position $node->count', 'Viewed', 0, {'nonInteraction': 1});</script>";
+      }
+
+      $attributes = array();
+
+      // Setting classes
+      if($i == 0) {
+        $attributes['class'][] = 'first';
+      }
+      if($i == $num_items - 1 ) {
+        $attributes['class'][] = 'last';
+      }
+      $attributes['class'][] = 'video-item-row';
+
+      // Get thumbnail Image
+      $file = file_load($node->field_viddler_id['und'][0]['thumbnail_fid']);
+      // To prevent errors only allow if it has an image uri
+      if(isset($file->uri)) {
+        $image = array(
+          'path' => $file->uri,
+        );
+        $image['style_name'] = $image_style;
+        // image html
+        $img = '<div class="video-img-link"><a href="' . url( 'node/' . $node->nid ) .'" onclick="' . $onclick_event . '">' . theme('image_style', $image) .'</a></div>';
+        // title html
+        $title = '<div class="title-link"><a href="' . url( 'node/' . $node->nid ) .'" onclick="' . $onclick_event . '"><h5>' . $node->title  .'</h5></a></div>';
+        // combine image with title
+        $data = $viewed_event . $img . $title;
+        //
+        $output .= '<div' .  drupal_attributes($attributes) . '>' . $data  . "</div>\n";
+      }
+
+    }
+
+  }
+
+  return $output;
+
+}
+/**
+ * Function for getting rendered video array
+ */
+function smgRelated_get_related_rendered_default($related_nodes, $prefix_title = '') {
+
+  $rendered = '';
+  $modules = module_invoke_all('smgRelated_get_related_rendered_default', $related_nodes, $prefix_title, $rendered);
+  foreach($modules as $function) {
+    $rendered = $function;
+  }
+  if(!$rendered) {
+    foreach($related_nodes as $nodes) {
+
+      if(isset($nodes['tid'])) {
+        $title = taxonomy_term_load($nodes['tid'])->name;
+      }
+      else if(isset($nodes['title'])) {
+        $title = $nodes['title'];
+      }
+      else {
+        $title = $prefix_title;
+      }
+
+      $node_links = array();
+      // Get links paths
+      $viewed_event = '';
+      foreach($nodes['nodes'] as $node) {
+        if($node->smgRelated_type == 'sponsored') {
+          $onclick_event = "ga('send', 'event', 'Related Articles - Sponsored', 'Position $node->count', 'Clicked');";
+          $viewed_event .= "<script type=\"text/javascript\">ga('send', 'event', 'Related Articles - Sponsored', 'Position $node->count', 'Viewed', 0, {'nonInteraction': 1});</script>";
+        }
+        else if($node->smgRelated_type == 'related_overwrite') {
+          $onclick_event = "ga('send', 'event', 'Related Articles - Manual Related', 'Position $node->count', 'Clicked');";
+          $viewed_event .= "<script type=\"text/javascript\">ga('send', 'event', 'Related Articles - Manual Related', 'Position $node->count', 'Viewed', 0, {'nonInteraction': 1});</script>";
+        }
+        else {
+           $onclick_event = "ga('send', 'event', 'Related Articles - Related', 'Position $node->count', 'Clicked');";
+           $viewed_event .= "<script type=\"text/javascript\">ga('send', 'event', 'Related Articles - Related', 'Position $node->count', 'Viewed', 0, {'nonInteraction': 1});</script>";
+        }
+
+        $node_text = '<div class="li-raquo">&raquo;</div><div class="li-title">' . $node->title . '</div>';
+        $node_links[] = l($node_text, drupal_lookup_path('alias', 'node/' . $node->nid), array(
+          'html' => TRUE,
+          'attributes' => array(
+            'onclick' => $onclick_event,
+          )));
+      }
+      // Set into renderable array
+      $render_array = array(
+        'related_terms' => array(
+          '#prefix' => '<div class="smgRelated-topic"><div class="title">' . $title . '</div><hr>' . $viewed_event,
+          '#items' => $node_links,
+          '#theme' => 'item_list',
+          '#suffix' => '</div>',
+        ),
+      );
+
+      $rendered .= render($render_array);
+    }
+  }
+
+  return $rendered;
+}
+
+/**
+ * Function for getting the nid based on the path
+ *
+ * @return nid or False
+ */
+function _smgRelated_get_nid() {
+
+  $args = arg();
+
+  if($args[0] == 'node' && isset($args[1])) {
+    return $args[1];
+  }
+  else {
+    return FALSE;
+  }
+
+}
+
+/**
+ * Function for finding out what levels the taxonomy are.  1 being the left and 3 being the most right
+ *
+ * @param @all_terms
+ *
+ * @return $related_terms
+ */
+function smgRelated_get_taxonomy_structure($all_terms) {
+
+  $new_terms = array();
+
+  // Get the total of rows of taxonomy
+  $number_of_rows = smgRelated_get_taxonomy_row($all_terms);
+
+  // Scroll trough all taxonomies and set priority
+  foreach($all_terms as $term) {
+    // Exclude the set vocabularies set in admin
+    $exclude_vocabularies = variable_get('smgRelate_exclude_vocab', '');
+    if($exclude_vocabularies) {
+      if(in_array($term['vid'],$exclude_vocabularies)) {
+        continue;
+      }
+    }
+
+    $parent = taxonomy_get_parents($term['tid']);
+    $children = taxonomy_get_children($term['tid']);
+    $parent_of_parent = FALSE;
+
+    if(isset($parent)) {
+      foreach($parent as $p) {
+        $parent_of_parent = taxonomy_get_parents($p->tid);
+      }
+    }
+
+    // If no parent than it always will be a first level
+    if(!$parent) {
+      $level = 1;
+    }
+    // If it has a parent and children than it always will be a first level
+    else if($parent && $children) {
+      $level = 2;
+    }
+    // If parent of parent doesn't exist than it is level 2
+    else if (!$parent_of_parent) {
+      $level = 2;
+    }
+    // Otherwise it is 3
+    else {
+      $level = 3;
+    }
+
+    $new_terms[$term['group']][] = array(
+      'tid' => $term['tid'],
+      'vid' => $term['vid'],
+      'group' => $term['group'],
+      'parent' =>  $parent,
+      'children' => $children,
+      'level' => $level,
+      'title' => taxonomy_term_load($term['tid'])->name,
+    );
+
+  }
+
+  return $new_terms;
+
+}
+
+/**
+ * Get the total number of rows of taxaonomy terms
+ *
+ * @param $all_terms - terms object from node
+ *
+ * @return number of rows
+ */
+function smgRelated_get_taxonomy_row($all_terms) {
+
+  $rows = 0;
+
+  foreach($all_terms as $term) {
+    if($term['group'] > $rows) {
+      $rows = $term['group'];
+    }
+  }
+
+  return $rows;
+
+}
+
+/**
+ *  Function for finding the cycling through all the terms row by row and finding the most related terms
+ *
+ * @param - $delta - block delta
+ * @param - $taxonomy - array of groups(rows) - each row contains every taxonomy object
+ * @param - $used_nodes_already - list all the nodes so they are not repeated
+ * @param - $sponsored - boolean
+ *
+ * @return - $related - array (array of related nodes, and tid)
+ */
+function smgRelated_get_related($delta, $taxonomy, $used_nodes_already, $sponsored = FALSE) {
+
+  $terms_to_display = variable_get('smgRelated_term_count', 3);
+  $nodes_to_display = variable_get('smgRelated_node_count', 3);
+  $related_nodes = FALSE;
+  $node_count = 1;
+
+  $used_terms_already = array();
+  $related_nodes = array();
+
+  // Go through all groups(rows)
+  foreach($taxonomy as $group) {
+    // Reset Here
+    $nodes = FALSE;
+
+    //Just in case there are 3 levels lets iterate 3 times (For example if it doesn't find anything on L3 than it will try L2 than L1)
+    for($i = 1; $i <= 3; $i++) {
+
+      // Only if there wasn't any nodes before
+      if($nodes == FALSE) {
+
+        // Get the highest level
+        $tid = smgRelated_get_highest_level($group, $used_terms_already);
+
+        //Only if not a blank term
+        if($tid) {
+          $used_terms_already[] = $tid;
+
+          // Get nodes with term
+          $nodes = smgRelated_get_nodes($delta, $tid, $used_nodes_already, $sponsored);
+
+          if($nodes) {
+            $ii = 0;
+            if(!$sponsored) {
+              // Only reset if not sponsored
+              $nodes_per_term = array();
+            }
+
+            foreach($nodes as $node) {
+
+              //There technically will be one more node in the
+              // used_nodes_already because I am also including the current node
+              if($ii < $nodes_to_display  && !in_array($node['nid'], $used_nodes_already)) {
+                $used_nodes_already[] = $node['nid'];
+                // Adding node count so I can tell what position it is when I add
+                // onclick events
+                $node_data = node_load($node['nid']);
+                $node_data->count = $node_count;
+                if(!$sponsored) {
+                  $node_data->smgRelated_type = 'related';
+                }
+                else {
+                  $node_data->smgRelated_type = 'sponsored';
+                }
+                $nodes_per_term[] = $node_data;
+
+                $ii++;
+                $node_count++;
+              }
+            }
+            if(!$sponsored) {
+              if(isset($nodes_per_term)) {
+                $nodes_and_terms = array(
+                  'nodes' => $nodes_per_term,
+                  'tid' => $tid,
+                );
+              }
+            }
+            else {
+              $sponsored_node = $nodes_per_term;
+            }
+          }
+
+        }
+
+      }
+    }
+
+    if(isset($nodes_and_terms)) {
+      $related[] = $nodes_and_terms;
+    }
+
+    // Clear out array so data is not repeated for next term
+    $nodes_and_terms = array();
+  }
+
+  if(isset($related)) {
+    $count = 0;
+    //Only show the specified amount of terms
+    foreach($related as $value) {
+      if($count < $terms_to_display && isset($value['nodes'])) {
+        $related_nodes[] = $value;
+        $count++;
+      }
+    }
+  }
+
+  if(isset($sponsored_node)) {
+    $related_nodes['nodes'] = $sponsored_node;
+    $related_nodes['title'] = 'Sponsored Articles';
+  }
+
+  return $related_nodes;
+
+}
+
+
+/**
+ * function for getting the highest (most right term) that has not been used already
+ *
+ * @param $group - an array of terms from the same group
+ * @param $used_already - already used terms (perhaps it didn't have anything so going to the next level)
+ *
+ * @return $highest_term
+ */
+function smgRelated_get_highest_level($group, $used_already) {
+
+  $highest_level = 0;
+  $highest_term = FALSE;
+
+  // Get the highest level that has not been used yet
+  foreach($group as $term) {
+    if($term['level'] > $highest_level && !in_array($term['tid'], $used_already)) {
+      $highest_level = $term['level'];
+      $highest_term = $term['tid'];
+    }
+  }
+
+  return $highest_term;
+
+}
+
+/**
+ * Function that handles the query for searching nodes.  See hook for modules modifying query
+ *
+ * @param - $delta - block delta
+ * @param - $tid - term id
+ * @param - $used_nodes_already - list all the nodes so they are not repeated
+ * @param - $sponsored - boolean
+ *
+ * @return $records - array of nodes
+ */
+function smgRelated_get_nodes($delta, $tid, $used_nodes_already, $sponsored = FALSE) {
+
+  //giving other modules the ability to modify the query
+  $custom = module_invoke_all('smgRelated_get_nodes', $delta, $tid, $used_nodes_already, $sponsored);
+
+  if($custom) {
+    return $custom;
+  }
+  else {
+	  // Get all nodes that have the taxonomy
+    $query = db_select('node', 'node');
+  	$query->fields('node', array('nid', 'created'));
+  	$query->condition('node.status', 1, '=');
+  	if(!empty($used_nodes_already)) {
+  	  $query->condition('node.nid', $used_nodes_already, 'NOT IN');
+	  }
+	  // Only on video block
+	  if($delta == 'smgRelated_video') {
+	    $query->condition('node.type','video');
+	  }
+
+  	$query->condition('node.status','1', '=');
+  	// Only if there are terms
+  	if($tid) {
+  	  $query->join('taxonomy_index', 'taxonomy_index', 'node.nid = taxonomy_index.nid');
+  	  $query->condition('taxonomy_index.tid', $tid, '=');
+	  }
+
+	  // Handle Sponsored content (not handling this on video block)
+    if(variable_get('smgRelate_sponsored_terms')) {
+      $query->join('field_data_field_term_source_type ', 'source', 'source.entity_id = node.nid');
+      if(!$sponsored) {
+  	    $query->condition('source.field_term_source_type_tid', array_keys(variable_get('smgRelate_sponsored_terms')), 'NOT IN');
+	    }
+	    else {
+	      $query->condition('source.field_term_source_type_tid', array_keys(variable_get('smgRelate_sponsored_terms')), 'IN');
+	      // Only show the ones that are not expired
+  	    $query->join('field_data_field_sponsor_expiration', 'expiration', 'expiration.entity_id = node.nid');
+  	    $query->where("DATE_FORMAT(STR_TO_DATE(expiration.field_sponsor_expiration_value, '%Y-%m-%dT%T'), '%Y-%m-%d') > :date", array(':date' => date("Y-m-d")));
+	    }
+    }
+
+  	$query->orderBy('node.created', 'desc');
+  	$query->distinct();
+  	// if no terms than limit so we don't get tons of nodes
+  	if(!$tid) {
+  	  $query->range(0, variable_get('smgRelated_video_default', 6));
+  	}
+
+  	$result = $query->execute();
+
+  	while($record = $result->fetchAssoc()) {
+  	  $records[] = $record;
+  	}
+
+  	if(isset($records)) {
+  	  return $records;
+  	}
+
+  }
+
+}
+
+/**
+ * Get taxonomy list to be used in a form
+ *
+ * @param $vocab
+ *  the vocabulary id
+ *
+ * @return $taxonomy_list
+ *  the list of the taxonomies for the current vocabulary to be
+ *  used in a form
+ */
+function smgRelated_get_for_taxonomy($vocab) {
+  $taxonomy_list = array();
+  if($vocab) {
+    $taxonomies = taxonomy_get_tree($vocab);
+    foreach($taxonomies as $term) {
+      $taxonomy_list[$term->tid] = $term->name;
+    }
+  }
+  return $taxonomy_list;
+}

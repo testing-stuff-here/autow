@@ -1,0 +1,15 @@
+<?php
+$img = $this->data['files'][0]['large']['path'];
+$rows = $this->rows;
+$columns = $this->columns;
+?>
+<div class="magic360__container">
+    <div class="magic360__description">
+        <p class="magic360__description-text">Click, hold and drag across image to rotate | Click once to zoom</p>
+    </div>
+    <div class="magic360__wrapper">
+      <a class="Magic360 magic360__item" data-options="magnify:true; columns: <?php print($columns); ?>; rows: <?php print($rows); ?>; autospin:infinite;" id="spin" href="<?php print($img); ?>">
+        <img src="<?php print($img); ?>"/>
+      </a>
+    </div>
+</div>

@@ -1,0 +1,5 @@
+name = PMG Services
+description = PMMI Media Group Services hooks
+package = SMG
+core = 7.x
+dependencies[] = services

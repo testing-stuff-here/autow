@@ -1,0 +1,191 @@
+<?php
+/**
+ * @file
+ * Main file
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function aw_common_menu() {
+  $items = array();
+
+  $items['admin/config/administration/webinar-filter-settings'] = array(
+    'title' => 'Webinar exposed filter settings',
+    'description' => 'Custom settings for webinar exposed filter view',
+    'access arguments' => array('administer webinar filter settings'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('aw_common_webinar_filter_settings_form'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function aw_common_permission() {
+  return array(
+    'administer webinar filter settings' => array(
+      'title' => t('Administer webinar exposed filter view'),
+      'description' => t('Allow users to configure webinar exposed filter view'),
+    ),
+  );
+}
+
+/**
+ * Add JS to each content that uses taxonomy that shows up as Terms.
+ *
+ * Implements hook_node_view().
+ */
+function aw_common_node_view($node, $view_mode, $langcode) {
+  if ($view_mode === 'full') {
+    // Get all terms under field_allterms field.
+    if (!empty($node->field_allterms[LANGUAGE_NONE])) {
+      $all_terms = $node->field_allterms[LANGUAGE_NONE];
+      $keyword = array();
+      foreach ($all_terms as $key => $value) {
+        $voc_name = taxonomy_vocabulary_load($value['vid']);
+        $term = taxonomy_term_load($value['tid']);
+        $keyword[$voc_name->name][] = $term->name;
+      }
+
+      if (!empty($keyword)) {
+        $keyword_row = '';
+        foreach ($keyword as $voc_name => $terms) {
+          $keyword_items = '';
+          $length_items = count($terms);
+          $current_item = 0;
+          foreach ($terms as $key => $value) {
+            // Check if current item is last
+            if ($current_item != $length_items - 1) {
+              $keyword_items .= "\"{$value}\",";
+            }
+            else {
+              $keyword_items .= "\"{$value}\"";
+            }
+            $current_item++;
+          }
+          // Generate rows of js objects.
+          $keyword_row .= "\n\"{$voc_name}\": [{$keyword_items}],";
+        }
+        // Create and add script in header before //cdn.blueconic.net/pmmi.js
+        $script = "window.keywords = { {$keyword_row} \n};";
+        drupal_add_js($script, array(
+          'type' => 'inline',
+          'scope' => 'header',
+          'weight' => -9999,
+        ));
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ *
+ * @param $form
+ * @param $form_state
+ * @param $form_id
+ */
+function aw_common_form_alter(&$form, &$form_state, $form_id) {
+  switch ($form_id) {
+    case 'views_exposed_form':
+      if ($form['#id'] === 'views-exposed-form-webinars-on-demand-webinars') {
+        $form['tid']['#options'] = array_replace($form['tid']['#options'], $form['tid_1']['#options']);
+        unset($form['tid_1']);
+        
+        $technologies = variable_get('webinar_exposed_filter_settings', '');
+        $topics = variable_get('webinar_exposed_filter_settings_topics', '');
+
+        $customized_options = array_merge(unserialize($technologies), unserialize($topics));
+        if (!empty($customized_options)) {
+          foreach ($form['tid']['#options'] as $key => $value) {
+            if ($key !== 'All') {
+              if (!in_array($key, $customized_options)) {
+                unset($form['tid']['#options'][$key]);
+              }
+            }
+          }
+        }
+      }
+
+      break;
+  }
+}
+
+/**
+ * Form constructor for setting up webinar exposed filter options.
+ *
+ * Implements hook_form().
+ *
+ * @param $form
+ * @param $form_state
+ *
+ * @return array
+ *
+ * @see aw_common_webinar_filter_settings_form_submit().
+ */
+function aw_common_webinar_filter_settings_form($form, $form_state) {
+  $form = array();
+
+  $technologies_terms = aw_sync_get_vocabulary_content('Technologies', NULL, FALSE);
+  $default_technologies_terms = unserialize(variable_get('webinar_exposed_filter_settings', ''));
+
+  $topics = aw_sync_get_vocabulary_content('Topics', NULL, FALSE);
+  $default_topics_terms = unserialize(variable_get('webinar_exposed_filter_settings_topics', ''));
+
+  $form['technologies'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Technologies vocabulary'),
+    '#options' => $technologies_terms,
+    '#default_value' => !empty($default_technologies_terms) ? $default_technologies_terms : '',
+  );
+
+  $form['topics'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Topics vocabulary'),
+    '#options' => $topics,
+    '#default_value' => !empty($default_topics_terms) ? $default_topics_terms : '',
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+
+  return $form;
+}
+
+/**
+ * Form submission handler for @see aw_common_webinar_filter_settings_form().
+ *  Save customized filter options.
+ *
+ * Implements hook_form_submit().
+ *
+ * @param $form
+ * @param $form_state
+ */
+function aw_common_webinar_filter_settings_form_submit($form, &$form_state) {
+  $values = $form_state['values'];
+  $technologies_terms = $values['technologies'];
+
+  foreach ($technologies_terms as $key => $value) {
+    if ($value == 0) {
+      unset($technologies_terms[$key]);
+    }
+  }
+
+  variable_set('webinar_exposed_filter_settings', serialize($technologies_terms));
+
+  $topics_terms = $values['topics'];
+
+  foreach ($topics_terms as $key => $value) {
+    if ($value == 0) {
+      unset($topics_terms[$key]);
+    }
+  }
+
+  variable_set('webinar_exposed_filter_settings_topics', serialize($topics_terms));
+}

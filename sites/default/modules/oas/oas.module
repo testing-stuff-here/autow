@@ -1,0 +1,591 @@
+<?php
+define('OAS_DEFAULT_LISTPOS', 'Top,Right,Right1,Right2,x06');
+define('OAS_DEFAULT_TARGET', '_top');
+
+function oas_menu() {
+  $items['admin/config/content/oas'] = array(
+    'title' => 'OAS Setup',
+    'description' => 'OAS Setup Page',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('oas_admin_settings_form'),
+    'access arguments' => array('administer oas settings'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'oas.admin.inc',
+  );
+  $items['interstitial'] = array(
+    'page callback' => '_oas_interstital',
+    'access arguments' => array('access content'),
+    'page arguments' => array(),
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function oas_permission() {
+  return array(
+    'administer oas settings' => array(
+      'title' => t('Administer OAS settings'),
+    ),
+  );
+}
+
+function oas_page_alter(&$page) {
+
+  $args = arg();
+
+  if (isset($page['content']['system_main']['nodes'])) {
+    foreach ($page['content']['system_main']['nodes'] as $nid => $node) {
+      if (!is_integer($nid)) {
+        continue;
+      }
+
+      _oas_generate_code('node', node_load($nid));
+
+      break;
+    }
+  }
+  else {
+    if ($args[0] == 'search') {
+      if (!isset($args[2])) { //if in the main search page,there is no search args[2] lets set this to search
+        $args[2] = $args[0];
+      }
+      _oas_generate_code('search', $args[2]);
+    }
+    else {
+      _oas_generate_code();
+    }
+  }
+
+  global $user;
+  $sponsored = FALSE;
+  $current_company = variable_get('oas_current_company');
+  $show_interstitial = TRUE;
+
+  if ($args[0] == 'ftaf') {
+    $show_interstitial = FALSE;
+  }
+
+  if (isset($args[1])) {
+    $path = $args[0] . '/' . $args[1];
+
+    //Checking if custom or sponsored
+    if ($args[0] == 'node') {
+      $node = node_load($args[1]);
+      if (!$node) {
+        return '';
+      }
+      if (property_exists($node, 'field_term_source_type')) {
+        if ($node->field_term_source_type['und'][0]['tid']) {
+          // Lead Gen || Custom
+          if ($node->field_term_source_type['und'][0]['tid'] == 141 || $node->field_term_source_type['und'][0]['tid'] == 139) {
+            $sponsored = TRUE;
+          }
+        }
+      }
+
+      // If article has the company than make sure to set sponsored to FALSE so it appears there too
+      if (isset($node->field_companies['und'][0])) {
+        foreach ($node->field_companies['und'] as $company) {
+          if ($current_company['nid'] == $company['nid']) {
+            $sponsored = FALSE;
+          }
+        }
+      }
+
+    }
+  }
+  else {
+    $path = $args[0];
+  }
+
+// do not display Interstitial for /high-performance-hmi-scada-improves-your-efficiency
+  if (strstr($path, 'node/19098')) {
+    $show_interstitial = FALSE;
+  }
+
+  // do not display Interstitial for /using-qualified-engineering-development-tools-ibm-development-safety-critical-products
+  if (strstr($path, 'node/18981')) {
+    $show_interstitial = FALSE;
+  }
+
+  if (strstr($path, 'app-registration')) {
+    $show_interstitial = FALSE;
+  }
+
+  if (strstr($path, 'csia/thank-you')) {
+    $show_interstitial = FALSE;
+  }
+
+  // Making sure the cookie is set if demo page so it ads the correct query
+  if ($path == 'demo/interstitial') {
+    setcookie('oas_path', 'demo/interstitial', time() + 50, '/');
+  }
+
+  // get the value of the survey_interstitial_enabled variable
+  $survey_enabled = variable_get('survey_interstitial_enabled', FALSE);
+  $url_alias = drupal_get_path_alias();
+
+  //Display the add only if it Interstitial enabled and page is front
+  $enable_ad = variable_get('oas_interstitial_enabled', '');
+  // Display only if enabled, not sponsored, withindate, and anonymous user or on demo page
+  if (($enable_ad && !$sponsored && $user->uid == 0 && variable_get('oas_show_interstitial', FALSE) && $current_company['nid']) && $show_interstitial || $path == 'demo/interstitial') {
+
+    drupal_add_js(drupal_get_path('module', 'oas') . '/js/interstitial.js');
+    drupal_add_css(drupal_get_path('module', 'oas') . '/css/interstitial.css');
+
+  }
+  elseif (($user->uid == 0 || $url_alias == 'demo/survey') && $survey_enabled) {
+    drupal_add_js(drupal_get_path('module', 'smg_survey') . '/js/interstitial.js');
+    drupal_add_js(drupal_get_path('module', 'smg_survey') . '/js/survey.js');
+    drupal_add_css(drupal_get_path('module', 'smg_survey') . '/css/interstitial.css');
+  }
+}
+
+function _oas_generate_code($arg_type = '') {
+  static $oas_code;
+
+  if ($oas_code) {
+    return;
+  }
+
+  $args = func_get_args();
+  $keywords = '';
+  $node = NULL;
+
+  $oas_code = TRUE;
+
+  // OAS List Positions
+  $oas_list_positions = oas_get_list_postions($arg_type);
+
+  $oas_url = "OAS_url = '" . variable_get('oas_url', '') . "';";
+  $oas_sitepage = "OAS_sitepage = '" . variable_get('oas_sitepage', '') . "';";
+  $oas_listpos = "OAS_listpos = '" . $oas_list_positions . "';";
+  $oas_query = "OAS_query = '" . variable_get('oas_query', '') . "';";
+  $oas_target = "OAS_target = '" . variable_get('oas_target', OAS_DEFAULT_TARGET) . "';";
+
+  if ($arg_type == 'node') {
+    $node = $args[1];
+
+    // override query
+    $allterms = array();
+    if (isset($node->field_allterms['und'])) {
+      foreach ($node->field_allterms['und'] as $term) {
+        $allterms[] = $term['tid'];
+        break;
+      }
+    }
+
+    $query = array();
+    if ($node->type == 'company' && $node->field_term_company_type['und'][0]['tid'] == 1340) {
+      $query[] = 'searchword=' . preg_replace('/ |\//', '+', check_plain(_oas_filter($node->title)));
+    }
+    if (in_array($node->type, array(
+        'article',
+        'blog',
+        'video',
+        'slideshow'
+      )) && isset($allterms[0])
+    ) {
+      $terms = array();
+      $terms_with_duplicates = array();
+      foreach ($node->field_allterms['und'] as $termdata) {
+        //Only if L1 Term
+        if (!taxonomy_get_parents($termdata['tid'])) {
+          $term = taxonomy_term_load($termdata['tid']);
+          $term_name = $term->name;
+          //Handling Duplicates
+          if (!in_array($term_name, $terms_with_duplicates)) {
+            $query[] = 'searchword=' . preg_replace('/ |\//', '+', _oas_filter($term_name));
+            $terms_with_duplicates[] = $term_name;
+          }
+        }
+      }
+    }
+    //Per Ticket #1376 adding coverage type to query
+    if (isset($node->field_term_coverage_type['und'][0]['tid'])) {
+      foreach ($node->field_term_coverage_type['und'] as $value) {
+        $tid = $value['tid'];
+        //#1547 if any of the tac2012 terms adding the tac2012 coverage type
+        if ($tid == 1528 || $tid == 1578 || $tid == 1580 || $tid == 1580 || $tid == 1579) {
+          $term_name = 'tac2012';
+        }
+        else {
+          $term = taxonomy_term_load($tid);
+          $term_name = $term->name;
+        }
+        $query[] = 'searchword=' . preg_replace('/ |\//', '+', _oas_filter($term_name));
+
+      }
+    }
+
+    if ($node->type == 'week_in_review'
+      && !empty($node->field_wir_sponsor[LANGUAGE_NONE][0]['target_id'])) {
+
+      $company_nid = $node->field_wir_sponsor[LANGUAGE_NONE][0]['target_id'];
+      $company = node_load($company_nid);
+
+      $query[] = 'searchword=Week+in+Review+' . strtolower(preg_replace('/ |\//', '+', _oas_filter($company->title)));
+    }
+
+    if (isset($node->field_term_source_type['und']) &&
+      in_array($node->field_term_source_type['und'][0]['tid'], array(139, 141))
+    ) { //Custom Content or Lead Gen Campaign
+      $query[] = 'searchword=Sponsored';
+    }
+
+    if (isset($node->field_companies['und'])) {
+      foreach ($node->field_companies['und'] as $company) {
+        $node_company = node_load($company['nid']);
+        $query[] = 'searchword=' . preg_replace('/ |\//', '+', _oas_filter($node_company->title));
+      }
+    }
+
+    // #2268 - @TODO remove when this is done
+    if ($node->nid == 5438) {
+      $query[] = 'searchword=test';
+    }
+
+    if ($query) {
+      $oas_query = "OAS_query = '" . implode('&', $query) . "';";
+    }
+  }
+  else {
+    if ($arg_type == 'search') {
+      $oas_sitepage = "OAS_sitepage = 'automationworld/search'"; //#1507
+      $keywords = trim($args[1]);
+      if ($keywords) {
+        $query[] = 'searchword=' . preg_replace('/ |\//', '+', _oas_filter($keywords));
+        $oas_query = "OAS_query = '" . implode('&', $query) . "';";
+      }
+    }
+
+    else {
+      $mfg_intel = 'manufacturing-intelligence'; //Ticket #1377
+      $opc = 'opconnect'; //Ticket #1383
+      $tac2012 = 'tac2012'; //Ticket #1547
+      $embed_control = 'nipac'; // Ticket #1943
+      $fdt = 'device-integration-strategies'; // #2001
+      $machine_safety_sick = 'machine-safety-from-sick'; // #2327
+      $csia = 'csia';
+      $path = drupal_get_path_alias($_GET["q"]);
+      switch ($path) {
+        case $mfg_intel:
+          $oas_query = "OAS_query = 'searchword=mfg_intelligence';";
+          break;
+        case $opc:
+          $oas_query = "OAS_query = 'searchword=opc';";
+          break;
+        case $embed_control:
+          $oas_query = "OAS_query = 'searchword=DominantEmbeddedControl';";
+          break;
+        case $fdt:
+          $oas_query = "OAS_query = 'searchword=FDT+Group';";
+          break;
+        case $machine_safety_sick:
+          $oas_query = "OAS_query = 'searchword=Machine+Safety+from+SICK&searchword=SICK+Inc.';";
+          break;
+        case $csia:
+          $oas_query = "OAS_query = 'searchword=CSIA';";
+      }
+
+      //doesn't matter if it has arg(1) term
+      switch (arg(0)) {
+        case $tac2012:
+          $oas_query = "OAS_query = 'searchword=tac2012';";
+          break;
+      }
+
+      if (drupal_is_front_page()) {
+        // #138 set home page site page config.
+        $oas_sitepage = "OAS_sitepage = 'automationworld/home';";
+      }
+    }
+  }
+
+  $code = <<<HTML
+// Define config
+var pageConfig = {
+  mobile: {
+    positions: ['$oas_list_positions'],
+    breakpoint: 480
+  },
+  tablet: {
+    positions: ['$oas_list_positions'],
+    breakpoint: 800
+  },
+  desktop: {
+    positions: ['$oas_list_positions'],
+    breakpoint: false
+  }
+};
+
+// Function to determine screen context
+function setContext(screenWidth) {
+  var mobile = pageConfig.mobile.breakpoint,
+    tablet = pageConfig.tablet.breakpoint,
+    type;
+
+  if (screenWidth <= mobile) {
+    type = 'mobile';
+  } else if (screenWidth > mobile && screenWidth <= tablet) {
+    type = 'tablet';
+  } else {
+    type = 'desktop';
+  }
+
+  return type;
+}
+
+// Get screen width
+var screenWidth = document.documentElement.clientWidth;
+
+// Set screen context
+var screenContext = setContext(screenWidth);
+
+var adPositions = pageConfig[screenContext]['positions'].join(',');
+
+//configuration
+$oas_url
+$oas_sitepage
+OAS_listpos = adPositions;
+$oas_query
+$oas_target
+//end of configuration
+
+OAS_version = 10;
+OAS_rn = new String (Math.random()); OAS_rns = OAS_rn.substring (2, 11);
+function OAS_NORMAL(pos) {
+document.write('<A HREF="' + OAS_url + 'click_nx.ads/' + OAS_sitepage + '/1' + OAS_rns + '@' + OAS_listpos + '!' + pos + '?' + OAS_query + '" TARGET=' + OAS_target + '>'); document.write('<IMG SRC="' + OAS_url + 'adstream_nx.ads/' + OAS_sitepage + '/1' + OAS_rns + '@' + OAS_listpos + '!' + pos + '?' + OAS_query + '" BORDER=0></A>');
+}
+HTML;
+  drupal_add_js($code, array('type' => 'inline', 'scope' => 'header'));
+
+  $code = <<<HTML
+OAS_version = 11;
+if ((navigator.userAgent.indexOf('Mozilla/3') != -1) ||	(navigator.userAgent.indexOf('Mozilla/4.0 webTV') != -1))
+  OAS_version = 10;
+
+if (OAS_version >= 11)
+  document.write('<SCR' + 'IPT LANGUAGE=JavaScript1.1 SRC="' + OAS_url + 'adstream_mjx.ads/' + OAS_sitepage + '/1' + OAS_rns + '@' + OAS_listpos + '?' + OAS_query + '"><\/SCRIPT>');
+HTML;
+  drupal_add_js($code, array('type' => 'inline', 'scope' => 'header'));
+
+  $code = <<<HTML
+document.write('');
+
+function OAS_AD(pos) {
+if (OAS_version >= 11)
+OAS_RICH(pos);
+else
+OAS_NORMAL(pos);
+}
+HTML;
+  drupal_add_js($code, array('type' => 'inline', 'scope' => 'header'));
+}
+
+/**
+ * Function for displaying the Interstital Iframe
+ *
+ * @return html file
+ */
+function _oas_interstital() {
+
+  //set query to blank on default
+  $searchword = '';
+
+  //set the OAS query to demo so the demo ad shows up
+  if (isset($_COOKIE['oas_path'])) {
+    $drupal_path = $_COOKIE['oas_path'];
+    if ($drupal_path == 'demo/interstitial') {
+      $searchword = 'searchword=interstitial_demo';
+    }
+  }
+
+  $file = file_get_contents(drupal_get_path('module', 'oas') . '/interstitial.html');
+
+  $file = str_replace('%OAS_QUERY%', $searchword, $file);
+
+  print $file;
+
+}
+
+/**
+ * Implements hook_cron().
+ */
+function oas_cron() {
+  oas_interstitial_cron_job();
+}
+
+/**
+ * Cron job for setting up interstitial items. Moved to function instead of
+ * so that other functions can use this instead of only relying on cron
+ */
+function oas_interstitial_cron_job() {
+  if (variable_get('oas_interstitial_enabled', FALSE)) {
+    $display_if_company = oas_interstitial_set_current_company();
+
+    if ($display_if_company == TRUE) {
+      variable_set('oas_show_interstitial', TRUE);
+    }
+    else {
+      variable_set('oas_show_interstitial', FALSE);
+    }
+
+    cache_clear_all();
+  }
+}
+
+/**
+ * Sets the current company based on date.  Configure the dates on the admin
+ * screen.
+ *
+ * @return $show_interstitial
+ *  boolean to display the interstitial if in current date
+ */
+function oas_interstitial_set_current_company() {
+
+  $time = time();
+  $company_number = FALSE;
+  $show_interstitial = FALSE;
+  $current_company = variable_get('oas_current_company');
+
+  $companies = variable_get('oas_interstitial_companies', array('nid' => ''));
+
+  for ($i = 1; $i <= 4; $i++) {
+    // Based on time find out what company (if any) is set for the interstitial
+    if (isset($companies['oas_interstial_date_start_' . $i]) && isset($companies['oas_interstial_date_end_' . $i])) {
+      if ($time >= $companies['oas_interstial_date_start_' . $i] && $time <= $companies['oas_interstial_date_end_' . $i]) {
+        $company_number = $i;
+      }
+    }
+  }
+
+  // If there is a company for the specified date
+  if ($company_number !== FALSE) {
+    $nid = _oas_get_autocomplete_nid($companies['oas_interstial_company_' . $company_number]);
+    // if it matches that means that this has been set already so all you need to do
+    // is set the show_interstitial variable to TRUE
+    if (isset($current_company['nid']) && $current_company['nid'] == $nid) {
+      $show_interstitial = TRUE;
+    }
+    else {
+      // Set current company
+      $current_company['nid'] = $nid;
+      $current_company['name'] = $companies['oas_interstial_company_name_' . $company_number];
+      $current_company['path'] = $companies['oas_interstial_company_path_' . $company_number];
+      variable_set('oas_current_company', $current_company);
+      $show_interstitial = TRUE;
+    }
+  }
+  // If there isn't a company for any of the specified date
+  else {
+    // if it matches that means that this has been set already so all you need to do
+    // is set the show_interstitial variable to FALSE
+    if (isset($current_company['nid']) && $current_company['nid'] == '') {
+      $show_interstitial = FALSE;
+    }
+    else {
+
+      $current_company['nid'] = '';
+      $current_company['name'] = '';
+      $current_company['path'] = '';
+      variable_set('oas_current_company', $current_company);
+      $show_interstitial = FALSE;
+    }
+  }
+
+  return $show_interstitial;
+
+}
+
+/**
+ *  Function for changing the list positions based on what path you are in
+ *
+ * @return $final_positions
+ *  the modified positions based on path
+ */
+function oas_get_list_postions($arg_type) {
+  // convert the available positions to an array
+  $positions = explode(",", variable_get('oas_listpos', OAS_DEFAULT_LISTPOS));
+  $positions = array_combine($positions, $positions);
+
+  $node = menu_get_object();
+  $path = current_path();
+
+  //--- Coverage types ---
+  //FDT tid = 2218
+
+  //--- Source types ---
+  //Original tid = 138
+  //Custom tid = 139
+
+  //Set position only on articles of original content. Unset ad positions if FDT
+  //coverage type or path == 'device-integration-strategies'.
+  if ($node->field_term_source_type['und']['0']['tid'] != 138 || $node->field_term_coverage_type['und']['0']['tid'] == 2218 || $path == 'device-integration-strategies') {
+    unset($positions['x10']);
+  }
+  // Remove ad positions if home page or category pages
+  if ($arg_type == '') {
+    unset($positions['x04']);
+  }
+  if ($path == 'search/site' || $path == 'home') {
+    unset($positions['Right']);
+  }
+
+  //#1237 Middle position only on articles and not custom content
+  if ($node->field_term_source_type['und']['0']['tid'] == 139 || $node->type != 'article') {
+    unset($positions['Middle']);
+  }
+  //#1237 Right position to only appear on FDT
+  if (
+    property_exists($node, 'field_term_coverage_type') &&
+    isset($node->field_term_coverage_type['und']) &&
+    $node->field_term_coverage_type['und']['0']['tid'] != 2218
+  ) {
+    unset($positions['Right']);
+    if ($path == 'device-integration-strategies') {
+      $positions['Right'] = 'Right';
+    }
+  }
+
+  $final_positions = implode(",", $positions);
+
+  return $final_positions;
+}
+
+/**
+ * Function for getting the nid from the autocomplete text string
+ *
+ * @param $string
+ *  the autocomplete text string
+ *
+ * @return
+ *  will return the nid or blank if it can't find one
+ */
+function _oas_get_autocomplete_nid($string) {
+  preg_match('/.*?\[nid:(\d+)?]/', $string, $matches);
+
+  if (isset($matches[1])) {
+    return $matches[1];
+  }
+  else {
+    return '';
+  }
+}
+
+/**
+ * Function for cleaning out the oas item
+ *
+ * @param $string - the item that will be filtered
+ * @return $filtered_string
+ */
+function _oas_filter($string) {
+
+  $filtered_string = str_replace("'", "", $string);
+
+  return $filtered_string;
+
+}

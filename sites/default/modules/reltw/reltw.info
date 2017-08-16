@@ -1,0 +1,6 @@
+name = Related Nodes by Term
+description = Relatedness by vocabulary and term weight
+package = Other
+core = 7.x
+files[] = reltw.field.inc
+files[] = reltw.admin.inc

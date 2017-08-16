@@ -1,0 +1,12 @@
+<?php
+
+/**
+ * Implements hook_uninstall().
+ */
+function smgRelated_uninstall() {
+  variable_del('smgRelated_node_count');
+  variable_del('smgRelated_term_count');
+  variable_del('smgRelated_video_default');
+  variable_del('smgRelated_source_type');
+  variable_del('smgRelate_sponsored_terms');
+}

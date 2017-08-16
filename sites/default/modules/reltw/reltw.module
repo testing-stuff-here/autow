@@ -1,0 +1,744 @@
+<?php
+/*
+docs
+Tutorial - http://drupal.org/node/707832
+  http://www.figover.com/node/15
+  http://www.figover.com/node/16
+  
+Taxonomy api - http://api.drupal.org/api/drupal/modules--taxonomy--taxonomy.module/7  
+
+taxonomy_check_vocabulary_hierarchy()
+field_info_field()
+
+
+TODO:
+x- hide vocabularies listed in the instance settings OR make it work with taxonomy table
+x- update the vocabulary and term table when updating/inserting items in reltw
+o- migrate existing terms to this field
+x- create the relatedness block (after the migration so i have enough data)
+- create views filter for this field
+
+TODO but only nice to have OR low priority:
+- Bug in field settings - need to consider default values and how to display them in the settings page (low priority)
+- UI fr "ajax is updating" type of functionality so the user knows if something is updating or not (nice to have)
+- use form_set_value() for leaner code. see options_field_widget_validate() (nice to have)
+
+*/
+
+module_load_include('inc', 'reltw', '/reltw.field');
+
+function reltw_menu() {
+  $items['reltw_field_ajax'] = array(
+    'page callback'     => 'reltw_field_ajax',
+    'delivery callback' => 'ajax_deliver',
+    'access arguments'  => array('access content'),
+    'theme callback'    => 'ajax_base_page_theme',
+    'type'              => MENU_CALLBACK,
+  );
+  
+  $items['admin/config/content/reltw'] = array(
+    'title' => 'Related Nodes by Term',
+    'description' => 'Basic Settings for related nodes most settings are in the blocks config.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('reltw_admin_settings'),
+    'file' => 'reltw.admin.inc',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+    
+  return $items;
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function reltw_admin_paths() {
+  $paths = array(
+    'taxonomy/term/*/reltw' => TRUE,
+  );
+  return $paths;
+}
+
+function reltw_field_ajax() {
+  $form_parents = func_get_args();
+  
+  list($form, $form_state) = ajax_get_form();
+  
+  //$form_state['cache'] = TRUE;
+  $form_state['rebuild'] = TRUE;
+  $form_state['submitted'] = FALSE;
+  $form_state['input'] = $_POST;
+  
+  
+  drupal_process_form($form['#form_id'], $form, $form_state);
+  //return array('#type' => 'ajax', '#commands' => array());
+  
+  foreach($form_parents as $parent) {
+    $form = $form[$parent];
+  }
+  
+  unset($form['#theme_wrappers']);
+  
+  $render = drupal_render($form);
+  $output = theme('status_messages') . $render;
+  
+  $commands = array();
+  $commands[] = array(
+      'command' => 'reltwFieldUpdate', 
+      'output'  => $output, 
+  );
+  
+  return array('#type' => 'ajax', '#commands' => $commands);
+}
+
+
+/**
+ * Implements hook_block_info().
+ */
+function reltw_block_info() {
+  // This example comes from node.module.
+  
+  $blocks['reltw_default'] = array(
+    'info' => t('Related Nodes using Reltw'), 
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
+  
+  $max= (int)variable_get('reltw_block_instance', 0);
+  if ($max > 0) {
+    for ($i = 1; $i<= $max; $i++) {
+      $blocks['reltw_default_'.$i] = array(
+        'info' => t('Related Nodes using Reltw #' . $i), 
+        'cache' => DRUPAL_CACHE_PER_PAGE,
+      );
+    }
+  }
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function reltw_block_view($delta = '') {
+  // This example is adapted from node.module.
+  $block = array();
+
+  $block = array(
+    'subject' => t('Related Articles'),
+    'content' => theme('reltw_block', array(
+      'display_options' => variable_get('reltw_display_options_' . $delta, 'title_only'),
+      'nodes' => reltw_related_nodes($delta),
+    )),
+  );
+  
+  return $block;
+}
+
+function reltw_related_nodes($delta) {
+  $nid = 0;
+  if (arg(0) == 'node' && is_numeric(arg(1)) && !$nid) {
+    $nid = arg(1);
+  }
+  
+  if (!$nid) return '';
+  
+  $fieldname = variable_get('reltw_fieldname_' . $delta, '');
+  if (!$fieldname) return '';
+  
+  $cache_lifetime = variable_get('reltw_cache_options', 3600);
+  $node_display_limit = variable_get('reltw_count_' . $delta, 5);
+  
+  $debug = false;
+  if (module_exists('devel')) {
+    $debug = variable_get('reltw_debug', false);
+  }
+  
+  $cid = "$delta:$nid";
+  if ($cache_lifetime) {
+    if ($cached = cache_get($cid, 'cache_reltw_block')) {
+      return $cached->data;
+    }
+  }
+  
+  $node_obj = node_load($nid);
+  if (!isset($node_obj->{$fieldname}['und'])) return '';
+
+  //Do not display Sponsored Block if custom content
+  if(isset($node_obj->field_term_source_type['und'][0]['tid'])) {
+    if($delta == 'reltw_default' && $node_obj->field_term_source_type['und'][0]['tid'] == '139') {
+	    return '';
+    }
+  }
+
+  //Do not display Related Articles or Sponsored Articles if OPC
+  if(isset($node_obj->field_term_coverage_type['und'][0]['tid'])) {
+	  //tid 142 = opc
+    if($node_obj->field_term_coverage_type['und'][0]['tid'] == '142') {
+	    return '';
+    }
+  }
+  
+  // Group by group number. Only get the first 3 groups
+  $groups = array();
+  $group_cnt = 0; 
+  $last_group = null;
+  foreach($node_obj->{$fieldname}['und'] as $item) {
+    $groups[$item['group']][] = $item;
+    if ($item['group'] != $last_group) {
+      $group_cnt++;
+    }
+    
+    $last_group = $item['group'];
+    if ($group_cnt > 2) break;
+  }
+  
+  $related_nodes = array(); 
+  
+  // Process first group which requires that 
+  /*
+  SELECT q4.entity_id 
+  FROM (
+    SELECT q2.entity_id 
+    FROM (
+      select entity_id from field_data_field_allterms where field_allterms_tid=4 and field_allterms_group=1
+    ) as q1 
+    LEFT JOIN field_data_field_allterms as q2 on q1.entity_id=q2.entity_id
+    WHERE q2.field_allterms_tid=26 and q2.field_allterms_group=1
+  ) as q3
+  LEFT JOIN field_data_field_allterms as q4 on q3.entity_id=q4.entity_id
+  where q4.field_allterms_tid=28 and q4.field_allterms_group=1
+  */
+  
+  if ($debug) {
+    dsm($groups, 'Block ['.$delta . '] groups');
+  }
+  //
+  $table_name = 'field_data_'.$fieldname;
+  $field_tid_name = $fieldname.'_tid';
+  $field_group_name = $fieldname.'_group';
+  
+  $table_cnt = 1; $cnt = 0; $params = array(); $first_group = true; $prev_results = array();
+  $next_group = false;
+  foreach($groups as $group_id => $group) {
+    foreach($group as $item) {
+      if ($item['group'] != 1) $first_group = false;
+      
+      if ($cnt == 0) {
+        /*
+        $query_string = "SELECT entity_id 
+          FROM {{$table_name}} first_table
+          LEFT JOIN {node} as node ON node.nid=first_table.entity_id
+          WHERE $field_tid_name=:tid AND entity_id != :nid AND node.status=1
+            AND $field_group_name=1
+          ORDER BY node.created DESC";
+        */
+        $obj_query = db_select($table_name, 'first_table')
+    					 	->fields('first_table', array('entity_id'))
+    					 	->condition('node.status', '1')
+    						->condition('nid', $nid, '!=')
+    						->condition($field_tid_name, $item['tid']);
+    		$obj_query->leftJoin('node', 'node', 'node.nid = first_table.entity_id 
+    			AND node.vid = first_table.revision_id');
+    		
+        module_invoke_all('reltw_related_node_search', $delta, $obj_query);
+          
+        if ($first_group) {
+          $obj_query->condition($field_group_name, 1);
+        }
+        
+        $obj_query->orderBy('node.created', 'DESC');
+        
+        $query[] = $obj_query->__toString();
+        $params = $obj_query->getArguments();
+        
+        $result = db_query($query[0], $params);
+        $num_rows = $result->rowCount();
+
+        if ($num_rows == 0) {
+          // if it's the first term that is missing, then skip totally
+          break 2;
+        }
+        else if ($num_rows <= $node_display_limit) {
+          foreach ($result as $record) {
+            if (!in_array($record->entity_id, $related_nodes))
+              $related_nodes[] = $record->entity_id;
+          }
+          if ($debug) {
+            dsm($query, "[rows: $num_rows] -- [cnt: $cnt] -- [tid: {$item['tid']}]");
+            dsm($params);
+          }
+          break 2;
+        }
+
+        if ($debug) {
+          dsm($query, "[rows: $num_rows] -- [cnt: $cnt] -- [tid: {$item['tid']}]");
+          dsm($params);
+        }
+        
+        $table_cnt++;
+      }
+      else {
+        $table1 = 'q'.($table_cnt++);
+        $table2 = 'q'.($table_cnt++);
+
+        $key = $cnt-1;
+        $query_string = "SELECT $table2.entity_id
+          FROM ({$query[$key]}) as $table1 
+          LEFT JOIN {{$table_name}} as $table2 ON $table1.entity_id=$table2.entity_id
+          WHERE $table2.$field_tid_name=:{$table2}_tid";
+        if ($first_group) {
+          $query_string .= " AND $table2.$field_group_name=1";
+        }
+        
+        $params_tmp = $params;  
+        $params_tmp[':'.$table2.'_tid'] = $item['tid'];  
+        
+        $result = db_query($query_string, $params_tmp);
+        $num_rows = $result->rowCount();
+        
+        if ($num_rows == 0) { // skip this query and group
+          if ($debug) {
+            dsm('empty. bypassed', "[rows: $num_rows] -- [cnt: $cnt] -- [tid: {$item['tid']}]");
+          }
+          break;
+        }
+        else if ($num_rows <= $node_display_limit) {
+          foreach ($result as $record) {
+            if (!in_array($record->entity_id, $related_nodes))
+              $related_nodes[] = $record->entity_id;
+          }
+          if ($debug) {
+            dsm($query, "[rows: $num_rows] -- [cnt: $cnt] -- [tid: {$item['tid']}]");
+            dsm($params_tmp);
+          }
+          break 2;
+        }
+        
+        $query[] = $query_string;
+        $params[':'.$table2.'_tid'] = $item['tid'];
+        if ($debug) {
+          dsm($query, "[rows: $num_rows] -- [cnt: $cnt] -- [tid: {$item['tid']}]");
+          dsm($params_tmp);
+        }
+      }
+      
+      if ($num_rows > 0) {
+        $tmp_limit_cnt = 1;
+        $tmp_limit = $node_display_limit * 2; // to make sure we have enough. it is possible the first result will be the same as the results from the actual
+        $prev_results = array();
+        foreach ($result as $record) {
+          if (in_array($record->entity_id, $prev_results)) continue;
+          $prev_results[] = $record->entity_id;
+          $tmp_limit_cnt++;
+          if ($tmp_limit_cnt == $tmp_limit) break;
+        }
+      }
+
+      $cnt++;
+    }
+  }
+  
+  // no results because there are more than what we need, use the previous results
+  if (!$related_nodes && $prev_results) {
+    $related_nodes = array_slice($prev_results, 0, $node_display_limit);
+  }
+  
+  $cnt = count($related_nodes);
+  if ($cnt < $node_display_limit) {
+    // get data from previous results
+    foreach($prev_results as $entity_id) {
+      if (in_array($entity_id, $related_nodes)) continue;
+      $related_nodes[] = $entity_id;
+      $cnt++;
+      if ($cnt == $node_display_limit) break;
+    }
+  }
+  
+  foreach($related_nodes as $key => $nodes) {
+    $related_nodes[$key] = node_load($nodes);
+  }
+  
+  if ($cache_lifetime) {
+    cache_set($cid, $related_nodes, 'cache_reltw_block', REQUEST_TIME + $cache_lifetime);
+  }
+  
+  return $related_nodes;
+  
+}
+
+
+/**
+ * Implements hook_block_configure().
+ */
+function reltw_block_configure($delta = '') {
+  $fields = array();
+  $allfields = field_info_fields();
+  foreach($allfields as $key => $f) {
+    if ($f['module'] != 'reltw') continue;
+    if (isset($f['bundles']['node'])) $fields[$key] = $key;
+  }
+  $form['fieldname'] = array(
+    '#type' => 'select',
+    '#title' => t('Field name to collect the terms'),
+    '#default_value' => variable_get('reltw_fieldname_' . $delta, 5),
+    '#options' => $fields,
+    '#required' => true,
+  );
+  
+  $form['count'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Item count'),
+    '#default_value' => variable_get('reltw_count_' . $delta, 5),
+    '#size' => 3,
+    '#description' => t('The maximum number of related nodes to display'),
+  );
+  
+  $display_options = array(
+    'title_only' => t('Display titles only'),
+    'teaser' => t('Display titles and teaser'),
+    );
+  $form['display_options'] = array(
+    '#type' => 'radios',
+    '#title' => t('Display Options'),
+    '#default_value' => variable_get('reltw_display_options_' . $delta, 'title_only'),
+    '#options' => $display_options,
+    '#required' => FALSE,
+    '#prefix' => '<div>',
+    '#suffix' => '</div>',
+  );
+  
+  // limit to same page type
+  $types = array('0' => t('<none>'), '1' => t('same as current'));
+  $arr_types_obj = node_type_get_types();
+  foreach ($arr_types_obj as $type => $obj) {
+    $types[$type] = $obj->name;
+  }
+  
+  $form['sametype'] = array(
+    '#type' => 'select',
+    '#title' => t('Content type limit'),
+    '#default_value' => variable_get('reltw_sametype_' . $delta, FALSE),
+    '#options' => $types,
+    '#description' => t('Limit to pages of this or these content type(s)'),
+    '#multiple' => TRUE
+  );
+  
+  return $form;
+}
+
+/**
+ * Perform the "save" op for hook_block().
+ *
+ * @param $delta
+ *   String specifying which block to proocess.
+ * @param $edit
+ *   Array containg the form input.
+ *
+ * @return
+ *   None. Values are saved as system variables.
+ */
+function reltw_block_save($delta = '', $edit = array()) {
+  variable_set('reltw_count_' . $delta, $edit['count']);
+  variable_set('reltw_fieldname_' . $delta, $edit['fieldname']);
+  variable_set('reltw_sametype_' . $delta, $edit['sametype']);
+  variable_set('reltw_display_options_' . $delta, $edit['display_options']);
+}
+
+/**
+ * Implements hook_theme().
+ */
+function reltw_theme() {
+  return array(
+    'reltw_block' => array(
+      'template'  => 'reltw_block',
+      'variables' => array('display_options' => NULL, 'nodes' => NULL),
+    ),
+  );
+}
+
+/**
+ * Preprocess for reltw_block.tpl.php.
+ *
+ * @todo: Needs to be converted to renderable array output.
+ */
+function template_preprocess_reltw_block(&$variables) {
+  $links = array();
+  $nodes = $variables['nodes'];
+  if ($nodes) {
+    foreach ($nodes as $node) {
+      if ($variables['display_options'] == 'teaser') {
+        $teaser = ' - ' . $node->teaser;
+      }
+      else {
+        $teaser = '';
+      }
+      $links[] = l($node->title, 'node/' . $node->nid) . $teaser;
+    }
+    $variables['items'] = theme('item_list', array('items' => $links));
+  }
+  else {
+    $variables['items'] = "";
+  }
+}
+
+/**
+ * 
+ * Implements hook_token_info()
+ *
+ */
+function reltw_token_info() {
+  
+  $info['tokens']['node']['first-term'] = array(
+    'name' => t("First Term"),
+    'description' => t("The first unique ID of the taxonomy term chosen."),
+    'type' => 'reltw',
+  );
+  $info['tokens']['node']['first-vocabulary'] = array(
+    'name' => t("First Vocabulary"),
+    'description' => t("The first unique ID of the vocabulary name chosen."),
+    'type' => 'reltw',
+  );
+  $info['tokens']['node']['article_terms_based_path'] = array(
+    'name' => t('Article terms based path'),
+    'description' => t('Path generated based on selected terms'),
+    'type' => 'reltw'
+  );
+  $info['tokens']['node']['all_node_terms'] = array(
+    'name' => t('All node terms'),
+    'description' => t('All of the terms in node, comma separated string'),
+    'type' => 'reltw'
+  );
+  $info['tokens']['node']['all_node_vocabulary'] = array(
+    'name' => t('All node vocabulary'),
+    'description' => t('All of the vocabularies in node, comma separated string'),
+    'type' => 'reltw'
+  );
+  
+  return $info;
+}
+
+/**
+ * Implements hook_tokens().
+ */
+function reltw_tokens($type, $tokens, array $data = array(), array $options = array()) {
+  $replacements = array();
+  $sanitize = !empty($options['sanitize']);
+  
+  if ($type == 'node' && !empty($data['node'])) {
+    $node = $data['node'];
+
+    $fieldname = '';
+    $allfields = field_info_fields();
+    foreach($allfields as $key => $f) {
+      if ($f['module'] != 'reltw') continue;
+      $fieldname = $key;
+    }
+  
+    if (!$fieldname) return;
+    if (!isset($node->{$fieldname}[$node->language][0])) return;
+    
+    foreach ($tokens as $name => $original) {
+      switch ($name) {
+
+        case 'all_node_vocabulary':
+          $vids = array();
+          foreach ($node->field_allterms['und'] as $term) {
+            if (!in_array($term['vid'], $vids)) {
+              $vocabs[] = taxonomy_vocabulary_load($term['vid'])->name;
+              $vids[] = $term['vid'];
+            }
+          }
+          $replacements[$original] = implode(",", $vocabs);
+
+          break;
+
+        case 'all_node_terms':
+
+          foreach ($node->field_allterms['und'] as $term) {
+            $terms[] = taxonomy_term_load($term['tid'])->name;
+          }
+          $replacements[$original] = implode(",", $terms);
+
+          break;
+
+        case 'first-term':
+          
+          $tid = $node->{$fieldname}[$node->language][0]['tid'];
+          $term = taxonomy_term_load($tid);
+          if ($term) {
+            $replacements[$original] = check_plain($term->name);
+          }
+          
+          break;
+        case 'first-vocabulary':
+
+          $vid = $node->{$fieldname}[$node->language][0]['vid'];
+          $v = taxonomy_vocabulary_load($vid);
+          if ($v) {
+            $replacements[$original] = check_plain($v->name);
+          }
+          
+          break;
+
+        case 'article_terms_based_path':
+
+          // Define operating vars
+          $grouped_terms = array();
+          $path = array();
+          // TRUE if Food & Beverage term found or using term from 1st grouping.
+          $generating_path = FALSE;
+          // Which group the term is in. F&B can be in any grouping.
+          $generating_path_group = 0;
+          $generating_path_include_vocab_name = FALSE;
+          $i = 0;
+
+          // generate structured terms array
+          foreach ($node->field_allterms[LANGUAGE_NONE] as $term) {
+            $grouped_terms[$term['group']][] = $term['tid'];
+          }
+
+          foreach ($grouped_terms as $group => $terms) {
+            foreach ($terms as $term) {
+              if ($group != '1' && !$generating_path && $term == 909) {
+                // Start searching group of terms to generate alias
+                $generating_path = TRUE;
+                $generating_path_group = $group;
+              }
+            }
+          }
+
+          if (!$generating_path) { // if nothing found - generate alias by first group with vocabulary name
+            $generating_path_group = 1;
+            $generating_path = TRUE;
+            $generating_path_include_vocab_name = TRUE;
+          }
+
+          if ($generating_path) { // generate alias part
+            foreach ($grouped_terms[$generating_path_group] as $term_id) { // process all terms in group
+              $term_data = taxonomy_term_load($term_id);
+              $path[] = pathauto_cleanstring($term_data->name);
+              if ($generating_path_include_vocab_name && $i == 0) { // if need - include vocab name in the beginning of path
+                $vocab_data = taxonomy_vocabulary_load($term_data->vid);
+                array_unshift($path, pathauto_cleanstring($vocab_data->name));
+              }
+              $i++;
+            }
+          }
+
+          if (!empty($path)) {
+            $replacements[$original] = implode('/', $path);
+          }
+          else {
+            $replacements[$original] = '';
+          }
+
+          break;
+      }
+    }
+  }
+  
+  return $replacements;
+}
+
+/**
+ * Respond to the deletion of taxonomy terms.
+ */
+function reltw_taxonomy_term_delete($term) {  
+  reltw_setup_detele_terms_batch($term);
+}
+
+function _reltw_taxonomy_get_children_all($tid, $vid = 0, $key = 'tid'){
+  $result = array();
+	$c = taxonomy_get_children($tid, $vid, $key);
+	foreach ($c as $t => $d){
+		$result[$t] = $d;
+		$below = _reltw_taxonomy_get_children_all($t, $vid, $key);
+		if (!empty($below)) {
+			foreach ($below as $nt => $nd){
+				$result[$nt] = $nd;
+			}
+		}
+	}
+	return $result;
+}
+
+/**
+ * Sets up the batch operation of going through all the nodes and deleting the terms
+ */
+function reltw_setup_detele_terms_batch($term) {
+  // Wow, we have to go through all our fields to delete them and arrange them again
+  $result = db_query('SELECT * FROM {field_config} WHERE type=\'reltw_field\' AND active=1 AND deleted=0');
+  
+  $nids = array();
+  foreach ($result as $record) {
+    $table = 'field_data_' . $record->field_name;
+    $sql = 'SELECT entity_id FROM {'.$table.'} WHERE deleted=0 AND ' . $record->field_name . '_tid=' . $term->tid;
+    $result2 = db_query($sql);
+    foreach ($result2 as $record2) {
+      $nids[$record2->entity_id] = array($record2->entity_id, $record->field_name);
+    }
+  }
+
+  $children = _reltw_taxonomy_get_children_all($term->tid, $term->vid);
+  $tids = array();
+  $tids[$term->tid] = $term->tid;
+  foreach($children as $child) {
+    $tids[$child->tid] = $child->tid;
+  }
+
+  //Break up all of our data so each process does not time out.
+  $chunks = array_chunk($nids, 20, TRUE);
+  $operations = array();
+  $count_chunks = count($chunks);
+  
+  //for every chunk, assign some method to run on that chunk of data
+  foreach ($chunks as $chunk) {
+    $operations[] = array("reltw_batch_nodes",array($chunk, $tids));
+  }
+  
+  //put all that information into our batch array
+  $batch = array(
+    'operations' => $operations,
+    'title' => t('Taxonomy Delete Batch Operation to delete Reltw terms'),
+    'init_message' => t('Initializing'),
+    'error_message' => t('An error occurred'),
+    'progress_message' => t('Processed @current out of @total.'),
+    'finished' => 'reltw_batch_finished'
+  );
+  
+  //Get the batch process all ready!
+  batch_set($batch);
+}
+
+/**
+ * Go through all the nodes
+ */
+function reltw_batch_nodes($chunk, $tids) { 
+
+  foreach($chunk as $nid => $info) {
+    $node = node_load($nid);
+    $field_name = $info[1];
+
+    if (!isset($node->$field_name)) {
+      continue;
+    }
+
+    foreach($node->{$field_name}['und'] as $id => $field) {
+      if (isset($tids[$field['tid']])) {
+        unset($node->{$field_name}['und'][$id]);
+      }
+    }
+    
+    ksort($node->{$field_name}['und']);
+    $node->{$field_name}['und'] = array_merge(array(),$node->{$field_name}['und']);
+    
+    node_save($node);
+  }
+
+  $context['message'] = t('Finished first batch of nodes'); 
+}
+
+function reltw_batch_finished($success, $results, $operations) {
+  //Let the user know we have finished!
+ $context['message'] = t('Finished importing!');
+}

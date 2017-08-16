@@ -1,0 +1,119 @@
+/* Header */
+#header-top-wrapper { background: url(images/bar_top_bg.png) center top repeat-x; height: 30px; display:block !important;}
+#header-top-wrapper .block { height: 30px; }
+#header-top-wrapper .block .content {}
+#header-top-wrapper .block .content ul.menu { display: block; padding: 10px 0 0; margin: 0; }
+#header-top-wrapper .block .content ul.menu li { display: block; padding: 0; margin: 0; float: left; list-style: none; list-style-image: none; }
+#header-top-wrapper .block .content ul.menu li a { color: #fff; font-size: 12px; display: block; padding: 0 5px; margin: 0; float: left; border-right: 1px solid #fff; }
+#header-top-wrapper .block .content ul.menu li.last a { border-right: none; } 
+
+/*
+see https://projects.prometsupport.com/issues/18193
+Header menu changes
+*/
+#block-superfish-1 ul li{display: block; padding: 0 10px; margin: 0; float: left; background: url("images/navbg.png") no-repeat scroll right center transparent;}
+#block-superfish-1 ul li.menuparent{padding-right:5px}
+#block-superfish-1 ul li.menuparent li{border:0;padding: 0;float: none;height:auto; background:none;}
+#block-superfish-1 ul li.menuparent a.sf-depth-1  { padding-right:12px; background: url("images/menu-arrow.png") no-repeat scroll right center transparent;}
+#block-superfish-1 ul li a { color: #fff; font-size: 13px; padding: 12px 0;}
+#block-superfish-1 ul li.last{ border-right: none; } 
+#block-superfish-1 { float: left; margin: 0;}
+#block-superfish-1 ul li.menuparent ul li a { color: #fff; font-size: 12px; display: block; padding: 5px; margin: 0; float: none; border:0; }
+#block-superfish-1 ul li.menuparent ul li{border-bottom:1px solid #D27169;}
+#block-superfish-1 ul li.menuparent ul{background:#DC143C; padding:10px 10px 20px 10px; margin-top:-5px;}
+/* header ads*/
+#block-block-43 { float: right; height: 35px !important; width:224px; margin: 0; background: url("images/search-addbg.png")no-repeat scroll 0 0 transparent; padding-right:20px;}
+#block-block-43 .content{ float: right; height: 19px; margin: 4px; width: 122px;}
+/*header search*/
+#block-search-form { margin-top: 4px; }
+#block-superfish-1 ul li.menuparent ul{background:#b52f28; padding:10px 10px 20px 10px; margin-top: 7px; width: 7.4em !important; }
+/*search page ads*/
+#block-block-44,
+#block-block-44--2{ text-align:center; }
+/* header*/
+#header-top-wrapper {background: url("images/bar_top_bg2.png") repeat-x scroll center top transparent;  height: 37px;}
+#header-top-wrapper .block { height: 36px;}
+
+
+#header-top-wrapper,
+#header,
+#footer-wrapper ,
+#footer-wrapper-bottom,
+#container{width:1042px; margin:0 auto;}
+#logo {display:block !important;}
+#header {display:block !important;}
+#header-block-wrapper-inner {display: block !important;}
+#nav #block-system-main-menu--2 .block-inner > .content > ul.menu {display: block !important;}
+
+/* Header */
+#block-menu-menu-top-bar-left { float: left; margin-left: 25px; }
+
+
+#block-menu-menu-top-bar-right { float: right; margin-right: 10px; }
+
+#block-search-form { float: right; margin-right: 35px; width: 120px; }
+#block-search-form .content { padding: 0; height: 28px; }
+#block-search-form .content form { height: 26px; }
+#block-search-form .content form .container-inline { display: block; height: 28px; width: 156px; background: url(images/search_bg2_smaller.png) 0 0 no-repeat; }
+#block-search-form .content form .container-inline .form-item { display: block; float: left; margin: 0; }
+#block-search-form .content form .container-inline input.form-text { border: none; padding: 6px 8px 2px; height: 15px; color: #000; font-size: 11px; width: 100%; background: none; display: block; float: left; }
+#block-search-form .content form .container-inline .form-actions { float: right; }
+#block-search-form .content form .container-inline input.form-submit { border: none; height: 26px; width: 27px; padding: 26px 0 0; overflow: hidden; float: right; background: none; margin: 0; }
+
+#header { background: url(images/header_bg.png) center top repeat-x; height: 110px; }
+#header .wrapper-inner { height: 110px; }
+#header-block { position:absolute; top:-135px; right:0px; }
+#logo { height: 110px; }
+
+/* Main Menu */
+#nav { background:url('images/main-menu.png') 0 0 no-repeat; width:1042px; margin:0 auto; height:37px; position:relative; left:-8px; }
+#nav .block-system-main-menu { height:29px; }
+#nav .block-system-main-menu .content > ul.menu { width:1100px; height:29px; }
+#nav .block-system-main-menu ul.menu > li.home { width:50px; }
+#nav .block-system-main-menu ul.menu > li { height:29px; }
+#nav .block-system-main-menu ul.menu > li.top-level { background-color:transparent; }
+#nav .block-system-main-menu ul.menu > li.div-small { background:url(images/main-menu-div.png) right top no-repeat; padding-right:5px; }
+#nav .block-system-main-menu ul.menu > li.div-large { background:url(images/main-menu-div-red.png) right top no-repeat; padding-right:9px; }
+#nav .block-system-main-menu ul.menu > li a {
+  background:none !important;
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:15px;
+  font-weight:bold;
+  line-height:29px;
+  letter-spacing:0.5px;
+  text-shadow:1px 1px 1px #000;
+  height:29px;
+  padding:0 13px;
+  color:#FFFFFF;
+  text-transform:uppercase; }
+#nav .block-system-main-menu ul.menu ul.menu { width:160px; position:absolute; left:0px; top:29px; }
+#nav .block-system-main-menu ul.menu ul.menu li { width:160px; background-color:#444444; border-top:1px solid #8F9093; }
+#nav .block-system-main-menu ul.menu ul.menu li:hover { background-color:#5C3B35; }
+#nav .block-system-main-menu ul.menu ul.menu li.current-page { background-color:#E13227; }
+#nav .block-system-main-menu ul.menu ul.menu li a { font-size:13px; font-weight:normal; width:auto; }
+
+
+.node-type-registration-form #header { display:none !important; }
+.node-type-registration-form #nav { background:url('/sites/default/themes/hcp/css/images/simple-form-header-bg.png') repeat-x; height:31px; }
+.node-type-registration-form #header-top { display:none !important; }
+
+
+
+/* Webinar Registration */
+  /* Region tweaks */
+  .node-type-webinar-registration #header-top-wrapper { display:none !important; }
+  .node-type-webinar-registration #header { display:none !important; }
+  .node-type-webinar-registration #nav { display:none !important; }
+  
+  
+/*theme update*/
+body{background: url('images/page-bg.png') center top repeat-y #f5f8f9;}
+
+
+/* Image Rotator */
+#block-views-rotator-responsive-block-1 {display:none;}
+
+/* Device Integration Strategies - "Contributors" block */
+#block-block-52 table td {border:1px solid gray;}
+
+

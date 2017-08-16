@@ -1,0 +1,184 @@
+/* App Home Page */
+.page-node-9484 .apppage-container {width:1024px; margin:20px 0px 20px 0px;}
+.page-node-9484 .appvideo-container {}
+.page-node-9484 .app-video {float:left; display:inline; width:100%;}
+.page-node-9484 .app-video video {width:100%;}
+.page-node-9484 .btn img {border:none;}
+.page-node-9484 .comingsoon { padding:2px 0px 0px 128px; }
+.page-node-9484 .appfeatures-container {display:inline-block; margin:20px 0px 20px 45px; }
+.page-node-9484 .appfeatures-container ul {padding:6px 0px 0px 10px; list-style-type: none; }
+.page-node-9484 .appfeatures-container li { color:#000; font-size:14px; background: url('http://www.healthcarepackaging.com/sites/default/files/assets/appvideo_check.png') no-repeat left top; padding:2px 0 12px 31px; margin-top:10px; border-bottom:1px dotted #BEBEBE;}
+.page-node-9484 .appimg-container {float:left; width:33%; margin-right:30px;}
+.page-node-9484 .app-sponsor {text-align:center; padding-top:2px;}
+.page-node-9484 .apptablet-container {float:left; display:inline-block; width:28%; margin-right:25px;}
+.page-node-9484 .appmobile-container {float:left; display:inline-block; width:28%;}
+.page-node-9484 .appfeature-head {color:#FFF;background:#000; background: linear-gradient(to bottom, rgba(132,132,132,1) 0%,rgba(19,19,19,1) 100%); border: 1px solid #030303; border-top-left-radius: 4px; border-top-right-radius: 4px;}
+.page-node-9484 .appfeature-head h2 {font-size:16px!important; font-weight:bold; text-align:center; margin-top:8px;}
+.page-node-9484 #content .node .content .appfeature-head h2 {color:#FFFFFF;}
+.page-node-16131 .form-type-password input {border:1px solid #D3D3D3;}
+.app-page #page-wrapper #container {background:#FFFFFF;}
+.app-page #app-page-header {display:inline-block; width:100%;}
+.app-page #main {width:100%;}
+.page-app-registration-web-thank-you #main {margin-bottom:15px;}
+.app-page #app-available-message {font-size:170%; padding-left:2%; color:#FFF; font-weight:bold; letter-spacing:1px; text-shadow: 2px 3px 3px #6C6753;}
+/*.app-page #app-tailored-device-msg {font-size:210%; padding-left:2%; color:#FFF; font-weight:bold; letter-spacing:1px; text-shadow: 2px 3px 3px #6C6753;}*/
+
+/* App Pages */
+.app-green-btn {
+	-moz-box-shadow:inset 0px 1px 0px 0px #d9fbbe;
+	-webkit-box-shadow:inset 0px 1px 0px 0px #d9fbbe;
+	box-shadow:inset 0px 1px 0px 0px #d9fbbe;
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #c7e287), color-stop(1, #54920e));
+	background:-moz-linear-gradient(top, #c7e287 5%, #54920e 100%);
+	background:-webkit-linear-gradient(top, #c7e287 5%, #54920e 100%);
+	background:-o-linear-gradient(top, #c7e287 5%, #54920e 100%);
+	background:-ms-linear-gradient(top, #c7e287 5%, #54920e 100%);
+	background:linear-gradient(to bottom, #c7e287 5%, #54920e 100%);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#c7e287', endColorstr='#54920e',GradientType=0);
+	background-color:#c7e287;
+	-moz-border-radius:7px;
+	-webkit-border-radius:7px;
+	border-radius:7px;
+	border:2px solid #6fa316;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	font-size:27px;
+	padding:6px 24px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #86ae47;
+}
+.app-green-btn a, .app-green-btn a:visited, .app-green-btn a:hover {
+  color:#ffffff !important;
+  text-decoration:none;
+}
+.app-green-btn:hover {
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #54920e), color-stop(1, #c7e287));
+	background:-moz-linear-gradient(top, #54920e 5%, #c7e287 100%);
+	background:-webkit-linear-gradient(top, #54920e 5%, #c7e287 100%);
+	background:-o-linear-gradient(top, #54920e 5%, #c7e287 100%);
+	background:-ms-linear-gradient(top, #54920e 5%, #c7e287 100%);
+	background:linear-gradient(to bottom, #54920e 5%, #c7e287 100%);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#54920e', endColorstr='#c7e287',GradientType=0);
+	background-color:#54920e;
+}
+.app-green-btn:active {
+	position:relative;
+	top:1px;
+}
+.app-green-btn a {color:#FFFFFF; text-decoration:none;}
+.app-page.page-node-9484 #app-video img {max-width:100%;}
+.app-page .iphone-green-btn { margin:20px;}
+.app-page .ipad-green-btn { margin:20px 20px 40px 20px;}
+.app-page #store-buttons .appstore { padding-right:3%;}
+.page-node-16131.page-node .node {border-top:none;}
+.app-page #app-page-header #app-header-home {
+  background: #E82025;
+  background-image: -ms-linear-gradient(top, #A9282C 0%, #E82025 100%);
+  background-image: -moz-linear-gradient(top, #A9282C 0%, #E82025 100%);
+  background-image: -o-linear-gradient(top, #A9282C 0%, #E82025 100%);
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #A9282C), color-stop(1, #E82025));
+  background-image: -webkit-linear-gradient(top, #A9282C 0%, #E82025 100%);
+  background-image: linear-gradient(to bottom, #A9282C 0%, #E82025 100%);
+  border-radius: 0 0 8px 8px;
+}
+.app-page #container-inner {width:100%; padding:0;}
+
+@media (min-width:481px){
+  #app-page-header {overflow:hidden;}
+  .app-page #store-buttons .appstore {height:40px; width:111px;}
+  .app-page #store-buttons .googleplay {height:40px; width:111px;}
+  .app-page #store-buttons .appstore {height:40px; width:111px;}
+  .app-page #store-buttons .googleplay {height:40px; width:111px;}
+  /*.app-page.page-node-9484 video {min-height:430px;}*/
+}
+
+@media (min-width:650px) {
+  #app-header-logo {float:left; margin:18px 0 0 30px;}
+  #app-header-home {float:right; margin-right:80px;}
+  .app-page #app-page-header #app-header-home {padding:15px;}
+  .app-page #video {min-height:434px;}
+}
+
+@media (max-width:1041px) {
+  .app-page #page-wrapper {width:100%;}
+  .app-page #container, .app-page #footer-wrapper, .app-page #footer-wrapper-bottom {width:100%;}
+  .app-page #footer-wrapper .wrapper-inner {width:100%; padding: 5px 0;}
+  .app-page #footer-wrapper-bottom .wrapper-inner {width:100%;}
+  /*.app-page #block-block-2,*/
+  .app-page #block-block-4,
+  .app-page #block-menu-menu-footer-link-4 {display:none;}
+}
+
+@media (min-width:1042px) {
+  .app-page #page-wrapper {width:1042px;}
+}
+
+@media (min-width:911px) {
+  .app-page .lgtxt img {height:153px; width:464px;}
+  .app-page .smtxt img {height:34px; width:458px;}
+  .page-node-9484.page-node .node {margin-top:0; padding-top:0;}
+  .page-node-9484:not(.logged-in) div.tabs {display:none;}
+  .page-node-9484 .overlay-container {float:left; margin-left:30px; margin-top:-500px; display:inline; position:relative;}
+  .page-node-9484 .appstore { padding-top:140px; padding-right:2%;}
+  .page-node-9484 .googleplay { padding-top:140px; }
+  .page-node-9484 #content .node .content .appfeature-head h2 {line-height:29px; font-size:135% !important; padding:0 4px;}
+}
+
+@media (max-width:910px) {
+  .app-page #main-inner {padding:0;}
+  .app-page #container {padding-top:5px;}
+  .app-page div.tabs {display:none;}
+  .app-page.page-node .node {margin-top:0; }
+  .page-node-9484.page-node .node {padding-top:0;}
+  .page-node-9484 .overlay-container {position:absolute; top:10%; left:20px; height:90%;}
+  .page-node-9484 .appvideo-container {float:left; width:100%; position:relative;}
+  .page-node-9484 .comingsoon {position:absolute; bottom:5px;}
+  .page-node-9484 #store-buttons {position:absolute; bottom:25px;}
+  .app-page.page-node-16131.smg-webform-two-column .webform-client-form #left-col .webform-component {width:100% !important;}
+  .page-node-16131.smg-webform-two-column .webform-client-form .form-actions {width:100%; float:left; clear:both;}
+  .page-node-16131 .webform-client-form fieldset {width:90%;}
+  .page-node-16131 .webform-client-form .fieldset-wrapper {width:100%;}
+  .page-node-16131 .webform-client-form .fieldset-wrapper input {width:100%;}
+  .page-node-9484 #content .node .content .appfeature-head h2 {font-size:150% !important;}
+  .app-page #footer {display:none;}
+}
+
+@media (max-width:650px) {
+  .page-node-9484 .lgtxt img {max-width:50%;}
+  .page-node-9484 .smtxt img {max-width:50%;}
+  .page-node-9484 .app-green-btn {font-size:150%;}
+  .app-page #app-header-logo {float:left;max-width:70%;}
+  .app-page #app-header-logo img {width:100%;}
+  .app-page #app-header-home {float:right;}
+  .app-page #app-header-home img {height:45px;}
+  .app-page .appfeatures-container {margin:0 10px;}
+  .app-page .appfeatures-container .appimg-container #app-video {display:none;}
+  .app-page .appfeatures-container .appimg-container, .app-page .appfeatures-container .apptablet-container {width:100%;}
+  .page-node-16131.smg-webform-two-column .webform-client-form .form-actions {width:100%;}
+  .app-page.smg-webform-two-column .webform-client-form .newsletter-form {width:90%; margin:0 auto; float:none;}
+  .page-node-16131 .field-name-body {width:90%; margin:0 auto;}
+  .page-node-16131 .field-name-body > .field-items .field-item > div {font-size:130% !important;}
+  .app-page #app-page-header #app-header-home {padding:5px;}
+  .app-page #app-available-message {font-size: 1.1em; text-shadow:1px 2px 1px #6C6753; letter-spacing:0.03em;}
+}
+
+@media (max-width:480px) {
+  .page-node-9484 .overlay-container {position:absolute; top:9%; left:2%; width:50%;}
+  .page-node-9484 .lgtxt img {position:absolute; bottom:93px;}
+  .page-node-9484 .smtxt {position:absolute; bottom:55px;}
+  .page-node-9484 .smtxt img {float:left;}
+  .page-node-9484 .app-green-btn {font-size:95%; padding-left:5px; padding-right:5px; float:left; clear:both; margin-top:0;}
+  .app-page #store-buttons {width:100%;}
+  .app-page #content #store-buttons img.appstore {max-width:30% !important; padding-right:5px;}
+  .app-page #content #store-buttons img.googleplay {max-width:30% !important;}
+  .app-page #above-btn-space {display:none;}
+  .app-page #page-wrapper #container {margin-top:10px;}
+  .page-node-9484 .comingsoon {padding-left:30%; bottom:5px;}
+  .page-node-9484 #content .comingsoon img {width:70px !important; max-width:70px !important; height:10px;}
+  .page-node-9484 #content .lgtxt img {max-width:80% !important;}
+  .page-node-9484 #content .smtxt img {max-width:80% !important;}
+  .page-node-9484 #store-buttons {position:absolute; bottom:20px;}
+  .page-node-9484 .app-video #video {box-shadow: 0 0 5px 3px gray;}
+  .app-page #app-available-message {font-size:0.8em; float:left; margin-bottom:-2px; text-shadow:1px 1px 1px #6C6753; line-height:16px;}
+}

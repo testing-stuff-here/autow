@@ -1,0 +1,1652 @@
+<?php
+// $Id$
+/**
+* Some page alters
+*
+*/
+define('MAGAZINE_CONTENT_TYPE', 'magazine_covers');
+
+/**
+ * Called by aw_page_alteration_page_alter
+ * Inserts "More on <blog beat>" and "More from <author>" block to sidebar_second
+ */
+// function _sidebar_second_related_blocks(&$page) {
+//   $tid_to_block = array(
+//     '1876' => 'blog_beat-block_1', //factory automation
+//     '1879' => 'blog_beat-block_4', //batch processing
+//     '2195' => 'blog_beat-block_8', //process automation
+//     '2209' => 'blog_beat-block_2', //packaging automation
+//   );
+//   $byline_to_block = array(
+//     'David Greenfield' => 'blog_beat-block_5',
+//     'Renee Robbins Bassett' => 'blog_beat-block_6',
+//     'Aaron Hand' => 'blog_beat-block_9',
+//     'Pat Reynolds' => 'blog_beat-block_7',
+//   );
+//   $uid_to_block = array(
+//     '16' => 'blog_beat-block_5', //David Greenfield
+//     '36' => 'blog_beat-block_6', //Renee Robbins Bassett
+//     '2272' => 'blog_beat-block_9', //Aaron Hand
+//     '2126' => 'blog_beat-block_7', //Pat Reynolds
+//   );
+//
+//   if(isset($page['content']['system_main']['nodes']) && is_array($page['content']['system_main']['nodes'])) {
+//     $page_nodes = element_children($page['content']['system_main']['nodes']);
+//     if(isset($page_nodes[0])) {
+//       $nid = $page_nodes[0];
+//       $node_content = $page['content']['system_main']['nodes'][$nid];
+//     }
+//   }
+//
+//   // Per Dave - only Display Blog Beat Block on blog content type
+//   if(isset($node_content['#node']->type) && $node_content['#node']->type == 'blog') {
+//     $taxonomy = $node_content['field_allterms']['#items'];
+//     $byline = $node_content['#node']->field_byline['und'][0]['safe_value'];
+//     $uid = $node_content['#node']->uid;
+//
+//     if (array_key_exists($byline, $byline_to_block)) {
+//       $block = block_load('views', $byline_to_block[$byline]);
+//       $block_content = _block_render_blocks(array($block));
+//       $build = _block_get_renderable_array($block_content);
+//       array_splice($page['sidebar_second'], 1, 0, array(
+//         'related_posts_author-block' => $build
+//       ));
+//     } elseif (array_key_exists($uid, $uid_to_block)) {
+//       $block = block_load('views', $uid_to_block[$uid]);
+//       $block_content = _block_render_blocks(array($block));
+//       $build = _block_get_renderable_array($block_content);
+//       array_splice($page['sidebar_second'], 1, 0, array(
+//         'related_posts_author-block' => $build
+//       ));
+//     }
+//
+//     foreach ($taxonomy as $t) {
+//       if (array_key_exists($t['tid'], $tid_to_block)) {
+//         $block = block_load('views', $tid_to_block[$t['tid']]);
+//         $block_content = _block_render_blocks(array($block));
+//         $build = _block_get_renderable_array($block_content);
+//         array_splice($page['sidebar_second'], 1, 0, array(
+//           'related_posts_topic-block' => $build
+//         ));
+//         break;
+//       }
+//     }
+//   }
+//
+// }
+
+/**
+ * This function replaces the entire second sidebar with custom blocks for FDT microsite
+ */
+function _fdt_site_sidebar_second_replace(&$page) {
+  $fdt_blocks = array(
+    block_load('block', '52'), // FDT Sponsors
+    block_load('views', 'video-block_1'), // View: video: FDT Block
+    block_load('block', '53'), // FDT Newsletter Sign-up
+    block_load('dfp','fdt_imu_1'), // DFP FDT IMU
+    block_load('block', '57'), // FDT Resource Links
+    block_load('dfp','fdt_skyscraper'), // DFP FDT Skyscraper
+  );
+  $sidebar_second = array();
+  foreach ($fdt_blocks as $block) {
+    $block_content = _block_render_blocks(array($block));
+    $build = _block_get_renderable_array($block_content);
+    $sidebar_second[] = $build;
+  }
+  $page['sidebar_second'] = $sidebar_second;
+
+  $head = block_load('dfp', 'fdt_leaderboard');
+  $b_content = _block_render_blocks(array($head));
+  $page['header'] = _block_get_renderable_array($b_content);
+}
+/**
+ * This function replaces the entire second sidebar with custom blocks for WIR coverage types
+ */
+function _wir_site_block_replace(&$page) {
+  $wir_blocks = array(
+
+    block_load('dfp', 'btfw_imu_1'),
+    block_load('block','73'),
+    block_load('block','78'),
+    //block_load('views', 'wir_related_links-block_1'),
+    //block_load('views', 'wir_related_links-block'),
+    //block_load('webform', 'client-block-19517'),
+  );
+  $node = menu_get_object();
+
+  $sidebar_second = array();
+  foreach ($wir_blocks as $block) {
+    $block_content = _block_render_blocks(array($block));
+    $build = _block_get_renderable_array($block_content);
+    $sidebar_second[] = $build;
+  }
+  $page['sidebar_second'] = $sidebar_second;
+
+  $head = block_load('dfp', 'btfw_leaderboard');
+  $b_content = _block_render_blocks(array($head));
+  $page['header'] = _block_get_renderable_array($b_content);
+  $page['content']['block_15'] = NULL;
+  $author = $node->field_byline['und']['0']['value'];
+
+
+  if (isset($node->field_byline['und']['0']['safe_value'])){
+    if ($author == 'Stephanie Neil') { $b_id = 71; }
+    if ($author == 'Keren Sookne') { $b_id = 72; }
+    if ($author == 'Beth Stackpole') { $b_id = 76; }
+
+    $author_block = block_load('block',$b_id);
+    $author_block_loaded = _block_render_blocks(array($author_block));
+    $page['content'] += _block_get_renderable_array($author_block_loaded);
+  }
+}
+/**
+ * This function replaces the entire second sidebar with custom blocks for Around the World coverage types
+ */
+function _atw_site_block_replace(&$page) {
+
+  $atw_side_blocks = array(
+    block_load('block','74'),
+    block_load('aw_wir_blocks', 'btfw_imu_1'),
+  );
+
+  $node = menu_get_object();
+
+  $sidebar_second = array();
+  foreach ($atw_side_blocks as $block) {
+    $block_content = _block_render_blocks(array($block));
+    $build = _block_get_renderable_array($block_content);
+    $sidebar_second[] = $build;
+  }
+
+  $page['sidebar_second'] = $sidebar_second;
+
+  $atw_webform_block = block_load('webform', 'client-block-19737');
+  $page['primary'][] = _block_get_renderable_array(_block_render_blocks(array($atw_webform_block)));
+  $page['content']['block_15'] = NULL;
+  $author = $node->field_byline['und']['0']['value'];
+
+
+  if (isset($node->field_byline['und']['0']['safe_value'])){
+    if ($author == 'David Greenfield'){ $b_id = 75;}
+
+    $author_block = block_load('block',$b_id);
+    $author_block_loaded = _block_render_blocks(array($author_block));
+    $page['primary'] += _block_get_renderable_array($author_block_loaded);
+  }
+}
+
+/**
+ * Implements hook_block_info()
+ */
+function aw_page_alteration_block_info() {
+  $blocks = array();
+  $blocks['machine_safety_sick_video'] = array(
+    'info' => t('#2327 Machine Safety From Block Video'),
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function aw_page_alteration_block_view($delta = ''){
+  $block = array();
+  switch($delta){
+    case 'machine_safety_sick_video':
+      $block['title'] = t('Latest Video');
+      $block['content'] = _aw_machine_safety_video_block();
+      break;
+  }
+
+  return $block;
+}
+
+function _aw_machine_safety_video_block() {
+  $output = array(
+    'machine_safety_sick' => array(
+      '#markup' => '<iframe allowfullscreen="" frameborder="0" width="100%" src="//www.youtube.com/embed/NZT-UPOAu88" width=""></iframe><br><a href="http://www.automationworld.com/safety/motion-control-monitor" id="link-motion-control">Motion Control Monitor</a>',
+    ),
+  );
+
+  return $output;
+}
+
+function aw_page_alteration_page_alter(&$page){
+
+  $node = menu_get_object();
+
+  if($node && $node->status == TRUE) {
+    // add Share This Scripts
+  //  $share_this_script = '<script type="text/javascript">var switchTo5x=true;</script><script type="text/javascript" src="http://w.sharethis.com/button/buttons.js"></script><script type="text/javascript">stLight.options({publisher:\'8e3ea5bc-dfce-4ddf-8d7b-f1ddfb9b57ab\',onhover:false,doNotCopy:true});</script>';
+    // $element = array(
+    //   '#type' => 'markup',
+    //  '#markup' => $share_this_script,
+    // );
+
+    // if(!isset($page['content']['system_main']['#node_edit_form']) && arg(0) != 'admin') {
+    //   drupal_add_html_head($element, 'share-this');
+    // }
+
+    // #2327
+    if(isset($node->field_term_coverage_type['und'])){
+      foreach($node->field_term_coverage_type['und'] as $c_type){
+        if($c_type['tid'] == '2652'){
+          unset($page['sidebar_second']['views_webinars-block']);
+          /*$sick_video = block_load('aw_page_alteration', 'machine_safety_sick_video');
+          $sick_video = _block_get_renderable_array(_block_render_blocks(array($sick_video)));
+          $page['sidebar_second']['machine_safety_sick_video'] = $sick_video;*/
+        }
+      }
+    }
+  }
+
+  // #2360 - CSIA integrator form
+  if($node && $node->nid == 16394) {
+    aw_page_alteration_csia_integrator_alter_page();
+  }
+
+  $args = arg();
+  $blocks = array();
+  $region = 'content';
+
+
+  if($args[0]=='node'){
+
+    //Automation Conference
+    //Removing blocks from sidebar and adding the ones needed
+    if(isset($node->field_term_coverage_type['und']['0']['tid'])) {
+      foreach($node->field_term_coverage_type['und'] as $coverage_type) {
+        $tac2012 = FALSE;
+        $tac2013 = FALSE;
+        switch($coverage_type['tid']) {
+          case 1528: // Tac2012
+          case 1578: // Tac2012/Manufacturing
+          case 1580: // Tac2012/Packaging
+          case 1579: // Tac2012/Processing
+          case 1695: // Tac2012/Keynotes
+            $tac2012 = TRUE;
+            break;
+          case 2184: // Tac2013
+          case 2185: // Tac2013/Manufacturing
+          case 2186: // Tac2013/Packaging
+          case 2188: // Tac2013/Processing
+          case 2187: // Tac2013/Keynotes
+            $tac2013 = TRUE;
+            break;
+        }
+      }
+      if($tac2012 || $tac2013) {
+        // Remove all blocks from side bar
+        if(isset($page['sidebar_second'])) {
+          foreach($page['sidebar_second'] as $key => $value) {
+            unset($page['sidebar_second'][$key]);
+          }
+        }
+
+        //Add Automation Conference Blocks
+        if($tac2012) {
+          $page['sidebar_second']['tac_block1'] = array( '#markup' => aw_page_alteration_render_block('block',45));
+        }
+        else {
+          $page['sidebar_second']['tac_block1'] = array( '#markup' => aw_page_alteration_render_block('block',12));
+        }
+        $page['sidebar_second']['tac_block2'] = array( '#markup' => aw_page_alteration_render_block('block',47));
+        $page['sidebar_second']['tac_block3'] = array( '#markup' => aw_page_alteration_render_block('block',46));
+      }
+    }
+
+    // #1656 Supress Moxa Block on articles with company of Belden
+    if(isset($node->field_companies['und'][0]['nid'])) {
+      $companies = $node->field_companies['und'];
+      foreach($companies as $company) {
+        if($company['nid'] == 9601) {
+          unset($page['header_top']['block_43']);
+        }
+      }
+    }
+  }
+
+
+  if($args[0]=='search'){
+    $page['content']['search_ads2'] = array( '#markup' => aw_page_alteration_render_block('block',44) );
+  }
+
+  /*
+   * Selectively remove playbook enticements
+   */
+  $nid = isset($args[1]) ? $args[1] : false;
+  $terms = isset($page['content']['system_main']['nodes'][$nid]['field_allterms']['#items']) ? $page['content']['system_main']['nodes'][$nid]['field_allterms']['#items'] : array();
+  $batch = false;
+  $discrete = false;
+  $continuous = false;
+  foreach ($terms as $term) {
+    if ($term['tid'] == '105') { // batch automation
+      $batch = true;
+    } else if ($term['tid'] == '106') { // discrete automation
+      $discrete = true;
+    } else if ($term['tid'] == '107') { // continuous automation
+      $continuous = true;
+    }
+  }
+  // 50 % of the time we will display Factory Playbook enticement, the other 50% of the time
+  // we will display either Batch or Continuous Process Playbook enticement based on how the
+  // page is tagged @see http://dev.summitpublish.com/ticket/2070
+  if(rand(0,1) == 0){
+    unset($page['header']['block_50']);
+    unset($page['header']['block_49']);
+  }else{
+    if ($continuous && !$batch){
+      unset($page['header']['block_50']);
+      unset($page['header']['block_58']);
+    } else if ($batch && !$continuous){
+      unset($page['header']['block_49']);
+      unset($page['header']['block_58']);
+    } else if (($batch && $continuous) || (!$batch && !$continuous && !$discrete)) {
+      if (rand(0,1) == 0){
+        unset($page['header']['block_50']);
+        unset($page['header']['block_58']);
+      } else {
+        unset($page['header']['block_49']);
+      }  unset($page['header']['block_58']);
+    } else if (!$batch && !$continuous && $discrete) {
+      unset($page['header']['block_50']);
+      unset($page['header']['block_49']);
+    }
+  }
+
+  /*if($args[0] == 'playbooks-mod' && isset($args[1])) {
+    // Ticket #2093, adding custom event that fires after user submits the FAM Playbook Form
+    // will wrap this in a switch clause so that we can group similar code together in the future
+    switch($args[1]){
+      case 14229:
+        //drupal_add_js("jQuery(document).ready(setTimeout(function(){ ewt.trackLink({name:'AW FMA Playbook - Thank You Page', type:'playbook-aw_fma_thank-you'}); }, 5000));", array('type'=>'inline', 'every_page' => 'false', 'preprocess' => FALSE, 'group' => JS_LIBRARY, 'weight' => 1));
+        $page['footer_links']['block_3']['#markup'] .= '<div id="silverpop-events-link-wrapper" style="display:none;"> <a id="silverpop-events-link" href="#" style="display:none;" onclick="javascript:return ewt.trackLink({name:\'AW FMA Playbook - Thank You Page\', type:\'playbook-aw_fma_thank-you\'});"></a></div>';
+        //drupal_add_js("jQuery(window).load(function(){ ewt.trackLink({name:'AW FMA Playbook - Thank You Page', type:'playbook-aw_fma_thank-you'}); });", array('type'=>'inline', 'every_page' => 'false', 'preprocess' => FALSE, 'scope' => 'footer'));
+        drupal_add_js("jQuery(window).load(function($){ jQuery('#silverpop-events-link').click(); });", array('type' => 'inline', 'every_page' => 'false'));
+        //drupal_add_js("jQuery(window).load(setTimeout(function(){ ewt.trackLink({name:'AW FMA Playbook - Thank You Page', type:'playbook-aw_fma_thank-you'}); }, 5000));", array('type'=>'inline', 'every_page' => 'false', 'scope' => 'footer'));
+        break;
+    }
+  }*/
+
+  // if(isset($page['sidebar_second']['quicktabs_most_popular'])) {
+  //   //#1566 - Tab Click Tracking
+  //   //  adding onclick events to all the tabs
+  //   drupal_add_js('jQuery(function($){
+  //     $("#quicktabs-tab-most_popular-0").attr("onclick", "' . _aw960_google_event_onlick_event('Most Popular Block', 'News', 'Tab') . '");
+  //     $("#quicktabs-tab-most_popular-1").attr("onclick", "' . _aw960_google_event_onlick_event('Most Popular Block', 'Products', 'Tab') . '");
+  //     $("#quicktabs-tab-most_popular-2").attr("onclick", "' . _aw960_google_event_onlick_event('Most Popular Block', 'Case Applications', 'Tab') . '");
+  //   });',array('type' => 'inline'));
+  // }
+
+  /* add the "More on <beat name>" and "More from <author>" blocks */
+  // _sidebar_second_related_blocks($page);
+
+
+  $coverage_types = (isset($page['content']['system_main']['nodes'][$nid]['#node']->field_term_coverage_type['und'])) ? $page['content']['system_main']['nodes'][$nid]['#node']->field_term_coverage_type['und'] : array();
+
+  foreach($coverage_types as $c_type => $tid){
+    if ($tid['tid'] == '2218') {
+      _fdt_site_sidebar_second_replace($page);
+      aw_page_alteration_remove_playbook_enticements_from_page($page);
+    }
+    elseif ($tid['tid'] == '3157'){
+      _wir_site_block_replace($page);
+      aw_page_alteration_remove_playbook_enticements_from_page($page);
+    }
+    elseif ($tid['tid'] == '3177'){
+      _atw_site_block_replace($page);
+      aw_page_alteration_remove_playbook_enticements_from_page($page);
+    }
+  }
+
+  // On nodes tagged with coverage type 'FDT', replace the second sidebar with custom blocks
+  foreach ($terms as $term) {
+    if ($term['tid'] == '904' || (isset($fdt) && $fdt)){ // FDT
+      _fdt_site_sidebar_second_replace($page);
+      aw_page_alteration_remove_playbook_enticements_from_page($page);
+    }
+  }
+  if (current_path() == 'device-integration-strategies') {
+    _fdt_site_sidebar_second_replace($page);
+    aw_page_alteration_remove_playbook_enticements_from_page($page);
+  }
+
+  // #1152
+  if ($node && !empty($node->field_term_source_type)) {
+    $lead_gen_tid = 141;
+    $custom_content_tid = 139;
+    $custom_lead_gen = array($lead_gen_tid, $custom_content_tid);
+    foreach ($node->field_term_source_type['und'] as $term) {
+      if (in_array($term['tid'], $custom_lead_gen)) {
+        unset($page['header']['block_rotator_rotating_block']);
+      }
+    }
+  }
+
+
+  // remove CSIA and IMS blocks if node doesn't belong to either CSIA or IMS
+  if($args[0] == 'node') {
+    $current_node = node_load($args[1]);
+
+    if($current_node) {
+      if($current_node->uid != '3197') {
+        unset($page['content']['block_59']);
+      }
+      else {
+        unset($page['content']['block_50']);
+        unset($page['content']['block_49']);
+        unset($page['content']['block_58']);
+      }
+
+      if($current_node->uid != '3198') {
+        unset($page['content']['block_60']);
+      }
+      else {
+        unset($page['content']['block_50']);
+        unset($page['content']['block_49']);
+        unset($page['content']['block_58']);
+      }
+
+      // #2327
+      $sick_machine_safety = FALSE;
+      if(property_exists($current_node, 'field_term_coverage_type') && isset($current_node->field_term_coverage_type['und'])) {
+        $coverage_types = $current_node->field_term_coverage_type['und'];
+        foreach($coverage_types as $key => $value){
+          if(in_array("2652", $value)){
+            $sick_machine_safety = TRUE;
+          }
+        }
+      }
+      if(property_exists($current_node, 'field_companies') && isset($current_node->field_companies['und'])) {
+        $companies = $current_node->field_companies['und'];
+        foreach($companies as $key => $value){
+          if($value['nid'] == '10759'){
+            $sick_machine_safety = TRUE;
+          }
+        }
+      }
+      if($sick_machine_safety) {
+        unset($page['sidebar_second']['block_51']);
+        unset($page['sidebar_second']['views_video-block']);
+        unset($page['sidebar_second']['block_62']);
+        $remove_block_33 = "jQuery(document).ready(function(){ jQuery('.content-term-machine-safety-from-sick #ads-300x250-container').hide(); });";
+        drupal_add_js($remove_block_33, 'inline');
+      }
+    }
+  }
+
+  #2360 - Replace IMU Ad with CSIA Enticement
+  if (isset($page['sidebar_second']['block_5']) && isset($page['sidebar_second']['webform_client-block-16396'])) {
+
+    // if someone searches csia alway display csia widget
+    if (arg(0) == 'search' &&  (strpos(strtolower(arg(2)), 'csia') !== FALSE)) {
+      $block_to_remove[0] = 'block_5';
+    }
+    else {
+      // The CSIA block should only appear 1/3 of the time (It should unset the
+      // CSIA block 2/3rd of the time).
+      $block_to_remove = array('webform_client-block-16396', 'block_5', 'block_5');
+      shuffle($block_to_remove);
+      unset($page['sidebar_second'][$block_to_remove[0]]);
+    }
+
+    // Only adding if the csia block is not being removed
+    if($block_to_remove[0] != 'webform_client-block-16396') {
+
+      // Add js for Google Events on clicked
+      drupal_add_js('jQuery(document).ready(function($) {
+        $("#webform-client-form-16396").submit(function() {
+          var selected = $("#webform-client-form-16396 input[type=\'radio\'][name=\'submitted[which_best_describes_your_company]\']:checked");
+          if(selected.val()) {
+            ga("send", "event", "CSIA Enticement", "Clicked", selected.val());
+          }
+        });
+      });', 'inline');
+
+      // Ad js for making form tweeks
+      drupal_add_js("jQuery(document).ready(function($) {
+        var ep = 'Enter your email address';
+        $('#block-webform-client-block-16396 .email').val(ep);
+        $('#block-webform-client-block-16396 .email').focus(function() {
+          if ($(this).val() == ep) $(this).val('');
+        });
+        $('#block-webform-client-block-16396 #webform-component-country button span:eq(1)').text('- Select your country -');
+          ga('send', 'event', 'CSIA Enticement', 'Viewed', '', 0, {'nonInteraction': 1});
+      });", array('type' => 'inline', 'scope' => 'footer', 'weight' => 10));
+    }
+  }
+
+  // #589 Make sure LIA block always second from top
+  // if (isset($page['sidebar_second']['leadership_leadership_data_card_block'])) {
+  //   $first_occurence_weight_1 = false;
+  //   $page['sidebar_second']['leadership_leadership_data_card_block']['#weight'] = 1;
+  //   // Move the LIA block so that it's second item in the render array
+  //   $lia_array = $page['sidebar_second']['leadership_leadership_data_card_block'];
+  //   unset($page['sidebar_second']['leadership_leadership_data_card_block']);
+  //   $page['sidebar_second'] = array_slice($page['sidebar_second'], 0, 1, true) + array('leadership_leadership_data_card_block' => $lia_array) + array_slice($page['sidebar_second'], 1, NULL, true);
+  //   // Moving the LIA block above should be enough to reorder, but just in case it isn't, we make
+  //   // sure that the weights reflect the correct order.
+  //   foreach ($page['sidebar_second'] as $sidebar_key => &$sidebar_block) {
+  //     if ($sidebar_key === 'leadership_leadership_data_card_block') {
+  //       continue;
+  //     }
+  //     if (array_key_exists('#weight', $sidebar_block)) {
+  //       if ($sidebar_block['#weight'] === 1) {
+  //         if (!$first_occurence_weight_1) {
+  //           $first_occurence_weight_1 = 1;
+  //         }
+  //         else {
+  //           $sidebar_block['#weight']++;
+  //         }
+  //       }
+  //       else {
+  //         $sidebar_block['#weight']++;
+  //       }
+  //     }
+  //     else {
+  //       foreach ($sidebar_block as $sub_key => $sub_array) {
+  //         $hash_pos = strpos($sidebar_block[$sub_key], '#');
+  //         if ($hash_pos !== false && $hash_pos == 0) {
+  //           if (array_key_exists('#weight', $sidebar_block[$sub_key])) {
+  //             if ($sidebar_block[$sub_key]['#weight'] > 1) {
+  //               $sidebar_block[$sub_key]['#weight']++;
+  //             }
+  //             if ($sidebar_block[$sub_key]['#weight'] === 1) {
+  //               if (!$first_occurence_weight_1) {
+  //                 $first_occurence_weight_1 = 1;
+  //               }
+  //               else {
+  //                 $sidebar_block[$sub_key]['#weight']++;
+  //               }
+  //             }
+  //             else {
+  //               $sidebar_block[$sub_key]['#weight']++;
+  //             }
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
+
+}
+function aw_page_alteration_field_display_alter(&$display, $context) {
+  if (
+    $context['entity_type'] == 'node' &&
+    property_exists($context['entity'], 'field_term_coverage_type') &&
+    isset($context['entity']->field_term_coverage_type['und']) &&
+    $context['entity']->field_term_coverage_type['und']['0']['tid'] == '3157'
+
+  ) {
+    $article_title = (property_exists($context["entity"], "title")) ? str_replace("'", "", $context['entity']->title) : "";
+    $context['entity']->field_link['und']['0']['attributes']['target'] = '_blank';
+    $context['entity']->field_link['und']['0']['attributes']['onclick'] = 'ga(\'send\', \'event\', \'Week in review\', \'Click\', \'' . $article_title . '\');';
+  }
+}
+
+function aw_page_alteration_jcarousel_options_alter(&$options, $class_name) {
+  $options['itemFallbackDimension'] = 20;
+}
+
+function aw_page_alteration_render_block($module_block, $block_id){
+  $block = block_load($module_block, $block_id);
+  $block_content = _block_render_blocks(array($block));
+  $build = _block_get_renderable_array($block_content);
+  return drupal_render($build);
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function aw_page_alteration_form_alter(&$form, &$form_state, $form_id) {
+
+  global $user;
+  // is the user viewing the page a "Guest Blogger"?
+  // Ticket #2082 http://dev.summitpublish.com/ticket/2082
+  if(in_array('Guest Blogger', $user->roles)) {
+    // change the node add form for this user to set the default state to unpublished
+    // first determine if this is an add or edit form.  If the nid is null, then this is an add form
+    if($form['nid']['#value'] == NULL) {
+      $form['options']['status']['#default_value'] = 0;
+      $form['field_term_column_type']['#access'] = FALSE;
+      $form['field_legacy']['#access'] = FALSE;
+      $form['field_related']['#access'] = FALSE;
+      $form['field_companies']['#access'] = FALSE;
+      // if the user is CSIA, automatically set the Coverage Type to Blog Post -> CSIA
+      if($user->uid == '3197') {
+        //array_push($form['field_term_coverage_type']['und']['#default_value'], '2341');
+        $form['field_term_coverage_type']['und']['#default_value'] = array('2341');
+      }
+
+      // if the user is IMS, automatically set the Coverage Type to Blog Post -> IMS
+      if($user->uid == '3198') {
+        //array_push($form['field_term_coverage_type']['und']['#default_value'], '2343');
+        $form['field_term_coverage_type']['und']['#default_value'] = array('2343');
+      }
+    }
+  }
+
+  //dpm($form);
+  if(strstr($form['#action'], '/newsletter-stage-one')){
+    foreach($form['submitted'] as $key => $value){
+      if(is_array($value) && array_key_exists('#options', $value)){
+        foreach($value['#options'] as $index => $label){
+          $form['submitted'][$key]['#options'][$index] = "";
+        }
+      }
+    }
+    $placeholder_js = <<<EOJ
+
+    jQuery(document).ready(function(){
+
+      if (jQuery('#newsletter-submit .webform-component-webform_email input').val() == '') {
+        jQuery('#newsletter-submit .webform-component-webform_email input').val("Enter your email address here");
+      }
+
+      var blurTimeout;
+
+      jQuery('#newsletter-submit .webform-component-webform_email input').focus(function(){
+        var input = jQuery(this);
+        if (input.val() == "Enter your email address here") {
+          input.val('');
+          input.removeClass('placeholder');
+        }
+      }).blur(function() {
+        var input = jQuery(this);
+        blurTimeout = setTimeout(function(){
+          if (input.val() == '' || input.val() == "Enter you email address here") {
+            input.addClass('placeholder');
+            if ( !input.hasClass('firstBlur') ) {
+              input.val("Enter your email address here");
+              input.addClass('firstBlur');
+            }
+          }
+        }, 500);
+      }).blur();
+
+      jQuery("#block-webform-client-block-16364 .webform-client-form").on('submit', function(event) {
+        clearTimeout(blurTimeout);
+        jQuery(this).find('input.form-email').each(function(i, e) {
+          var input2 = jQuery(e);
+          if (input2.val() == "Enter your email address here" || input2.val() == '') {
+            input2.val("").addClass("error");
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+          }
+        });
+      });
+
+    });
+EOJ;
+
+    drupal_add_js($placeholder_js, array("type"=>"inline"));
+  }
+
+  // #908 Fix stage one forms not submitting after flushing cache.
+  if (
+    isset($form["#node"]) &&
+    is_object($form["#node"]) &&
+    property_exists($form["#node"], 'type') &&
+    $form["#node"]->type == "stage_one_form" &&
+    !path_is_admin(current_path())
+  ) {
+    $alias = "/" . drupal_get_path_alias("node/{$form['#node']->nid}");
+    $form['#action'] = $alias;
+  }
+}
+
+/**
+ * Implement hook_node_insert().
+ */
+function aw_page_alteration_node_insert($node){
+
+  // If the node being created is by a "Guest Blogger", then generate an email
+  $user = user_load($node->uid);
+  $guest_blogger = false;
+  if(array_key_exists('11', $user->roles)){
+    $guest_blogger = true;
+  }
+  if($guest_blogger){
+    $params['nid'] = $node->nid;
+    $params['author'] = $user->name;
+    $to = 'euug0701@gmail.com, yananin@summitmediagroup.com, ahand@automationworld.com, rbasset@automationworld.com, dgreenfield@automationworld.com';
+    drupal_mail('aw_page_alteration', 'guest_blog_created', $to, $language, $params);
+  }
+}
+
+/**
+ * Implement hook_node_update().
+ */
+function aw_page_alteration_node_update($node){
+
+  // Get the uid of the user who is performing the save operation
+  global $user;
+
+  // If the node being saved is by a "Guest Blogger", and the person saving it is an Editor or Production then generate an email
+  $author = user_load($node->uid);
+  $guest_blogger = false;
+  if(array_key_exists('11', $author->roles)){
+    $guest_blogger = true;
+  }
+  $editor_privileges = false;
+  if(array_key_exists('3', $user->roles) || array_key_exists('4', $user->roles) || array_key_exists('5', $user->roles) || array_key_exists('6', $user->roles)){
+    $editor_privileges = true;
+  }
+  if($guest_blogger && $editor_privileges){
+    // the following determines if the node is being published
+    if($node->original->status == 0 && $node->status == 1){
+      $params['nid'] = $node->nid;
+      $params['author'] = $user->name;
+      $params['title'] = $node->title;
+      $to = 'lkrieger@summitmediagroup.com, euug0701@gmail.com, yananin@summitmediagroup.com';
+      drupal_mail('aw_page_alteration', 'guest_blog_published', $to, $language, $params);
+    }
+  }
+}
+
+/**
+ * Implements hook_mail().
+ */
+function aw_page_alteration_mail($key, &$message, $params) {
+
+  switch($key){
+    case 'guest_blog_created':
+      $langcode = $message['language']->language;
+      $message['subject'] = $params['author'] . ' has just added new content to automationworld.com';
+      $message['body'][] = $params['author'] . ' has just added new content to automationworld.com.  Please log onto the site to review and publish the content.  The article\'s URL is http://www.automationworld.com/node/' . $params['nid'];
+      break;
+    case 'guest_blog_published':
+      $langcode = $message['language']->language;
+      $message['subject'] = 'Guest Blogger Content was Published';
+      $message['body'][] = 'Guest Blogger content was published on automationworld.com  The article is ' . $params['title'] . ' and its URL is http://www.automationworld.com/node/' . $params['nid'];
+      break;
+  }
+}
+
+/**
+ * Implements hook_menu()
+ */
+function aw_page_alteration_menu() {
+  $items['mag/latest-cover/%'] = array(
+    'title' => 'Magazine Cover Image',
+    'page callback' => '_aw_page_alteration_magazine_cover',
+    'page arguments' => array(2),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['mag/latest-link'] = array(
+    'title' => 'Magazine Link',
+    'page callback' => '_aw_page_alteration_magazine_link',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['block-insert-list'] = array(
+    'access callback'   => true,
+    'page callback'     => 'aw_page_alteration_block_insert_list',
+    'delivery callback' => 'drupal_json_output'
+  );
+
+  $items['aw-taxonomy-mapping'] = array(
+    'title' => 'Map Terms to New Vocabularies (Technologies / Topics)',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('aw_taxonomy_mapping_form'),
+    //'access arguments' => array('administer node'),
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'includes/aw_page_alteration.admin.inc',
+  );
+
+  $items['aw-taxonomy-mapping/automation-strategies'] = array(
+    'title' => 'Automation Strategies',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+
+  $items['aw-author/%'] = array(
+    'title' => '',
+    'page callback' => '_aw_author_industry_type',
+    'page arguments' => array(1),
+    'access callback' => 'user_is_logged_in',
+  );
+
+  /*
+  $items['aw-taxonomy-mapping/networking'] = array(
+    'title' => 'Networking',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('aw_taxonomy_mapping_form_networking'),
+    'type' => MENU_LOCAL_TASK,
+    'access callback' => 'user_is_logged_in',
+  );*/
+
+  $items['aw-taxonomy-mapping/perform-update'] = array(
+    'title' => 'Perform Taxonomy Mapping Update',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('aw_taxonomy_perform_update'),
+    'access arguments' => array('administer nodes'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'includes/aw_page_alteration.admin.inc',
+  );
+
+  $items['custom-redirect/%'] = array(
+    'title' => 'Custom redirect based on nid.',
+    'page callback' => 'aw_page_alteration_custom_redirect',
+    'page arguments' => array(1),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['csia/thank-you/%'] = array(
+    'title' => 'Thank you',
+    'page callback' => 'aw_page_alteration_csia_thankyou',
+    'page arguments' => array(2),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_admin_paths()
+ */
+function aw_page_alteration_admin_paths(){
+  $paths = array(
+    'aw-taxonomy-mapping' => TRUE,
+    'aw-taxonomy-mapping/automation-strategies' => TRUE,
+    'aw-taxonomy-mapping/perform-update' => TRUE,
+  );
+  return $paths;
+}
+
+/**
+ * Implements hook_theme
+ */
+function aw_page_alteration_theme($existing, $type, $theme, $path){
+  return array(
+    'aw_page_alteration_taxonomy_map_table' => array(
+      'render element' => 'element',
+      'file' => 'includes/aw_page_alteration.admin.inc',
+    ),
+  );
+}
+
+/**
+ * Returns lates magazine cover
+ *
+ * @param $image_style
+ *  the style that you want the image to be styled
+ *
+ * @return
+ *  An appropriately-sized image of the Magzine Cover.
+ */
+function _aw_page_alteration_magazine_cover($image_style = 'lightbox') {
+
+  // Cache
+  $image = &drupal_static(__FUNCTION__);
+
+  if(!isset($image)) {
+    if ($cache = cache_get('aw_page_alteration_magazine_cover')) {
+      $image = $cache->data;
+    }
+    else {
+
+      // Get Most Recent node with media property
+      $query = db_select('node', 'n')
+             ->fields('n', array('nid'))
+             ->condition('n.status', '1')
+             ->condition('n.type', MAGAZINE_CONTENT_TYPE);
+      $query->orderBy('n.created', 'desc');
+      $query->range(0, 1);
+      $result = $query->execute();
+
+      while($record = $result->fetchAssoc()) {
+        $records[] = $record;
+      }
+
+      if(isset($records[0]['nid'])) {
+        $nid = $records[0]['nid'];
+
+        $node = node_load($nid);
+
+        // Get the image style
+        $image = image_style_url($image_style, $node->field_image['und'][0]['uri']);
+        cache_set('aw_page_alteration_magazine_cover', $image, 'cache');
+      }
+    }
+  }
+
+  // Go to the image
+  drupal_goto($image);
+}
+
+/**
+ * Returns the latest magazine link
+ */
+function _aw_page_alteration_magazine_link() {
+  // Cache
+  $link = &drupal_static(__FUNCTION__);
+
+  if(!isset($link)) {
+    if ($cache = cache_get('aw_page_alteration_magazine_link')) {
+      $link = $cache->data;
+    }
+    else {
+      // Get Most Recent node with media property
+      $query = db_select('node', 'n')
+             ->fields('n', array('nid'))
+             ->condition('n.status', '1')
+             ->condition('n.type', MAGAZINE_CONTENT_TYPE);
+      $query->orderBy('n.created', 'desc');
+      $query->range(0, 1);
+      $result = $query->execute();
+
+      while($record = $result->fetchAssoc()) {
+        $records[] = $record;
+      }
+
+      if(isset($records[0]['nid'])) {
+        $nid = $records[0]['nid'];
+
+        $node = node_load($nid);
+        if(isset($node->field_link['und'][0]['url'])) {
+          $link = $node->field_link['und'][0]['url'];
+          cache_set('aw_page_alteration_magazine_link', $link, 'cache');
+        }
+      }
+    }
+  }
+
+  if(!isset($link)) {
+  $link = "/";
+  }
+  // Go to the image
+  drupal_goto($link);
+}
+
+/**
+ * Implements hook_smg_pop_up_source_tids
+ */
+function aw_page_alteration_smg_pop_up_source_tids(){
+  return array(
+    'custom' => '139',
+    'lead' => '141',
+  );
+}
+
+function aw_page_alteration_smg_pop_up_add(&$node){
+
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'pop_up_registration');
+  $result = $query->execute();
+  if(isset($result['node'])){
+    $nids = array_keys($result['node']);
+    $nodes = entity_load('node', $nids);
+  }
+
+  foreach($nodes as $pop_up_node){
+    if($pop_up_node->title == 'Reading Bar Codes or Characters on Parts or Labels'){
+      $bar_codes = $pop_up_node;
+    }
+  }
+
+  $altered_info = false;
+  /*
+  if(property_exists($node, 'field_companies')){
+    if(isset($node->field_companies['und'])){
+      foreach($node->field_companies['und'] as $key => $company){
+        if($company['nid'] == '9604'){
+          $altered_info = array(
+            'pop_up_nid' => $bar_codes->nid,
+            'header_new_user' => 'Fill out this quick form to start watching right now:',
+            'header_exist_user' => 'Just a quick question before you rotate and zoom:',
+            'leadworks_id' => '4231',
+          );
+        }
+      }
+    }
+  }
+  */
+
+  return $altered_info;
+}
+
+/**
+ * Implements hook_aquafadas_data
+ */
+function aw_page_alteration_aquafadas_data(){
+  $data = array();
+  $data['brand'] = 'aw';
+  $data['ios_link'] = 'https://itunes.apple.com/us/app/automation-world/id887460513?mt=8';
+  return $data;
+}
+
+
+/**
+ * Implements hook_aquafadas_node_data()
+ */
+function aw_page_alteration_aquafadas_node_data($node){
+
+  $data = array();
+  if(isset($node->field_byline['und'][0]['value'])) {
+    $author_name_title = $node->field_byline['und'][0]['value'];
+    if(isset($node->field_author_title['und'][0]['value'])){
+      $author_name_title .= ', ' . $node->field_author_title['und'][0]['value'];
+    }
+    $data['author_name_title'] = $author_name_title;
+  }
+
+  return $data;
+}
+
+/**
+ * Implements silverpop_tracking_add
+ * Used in smg_global module, see smg_global_node_view
+ */
+function aw_page_alteration_silverpop_tracking_add($node, &$silverpop_tracking){
+
+  // Add "Automation Strategies" vocabulary term (right-most) & Download Subtype
+  if(isset($node->field_allterms['und'])){
+    // Create an array that we will populate with tids keyed by their vocab and group.  The
+    // last array element in each group's array of tids is the "right most" tid.
+    $tids_by_voc = array();
+    foreach($node->field_allterms['und'] as $key => $term){
+      if (in_array($term['vid'], array('13','14'))) {
+        $tids_by_voc[$term['vid']][$term['group']][] = $term['tid'];
+      }
+    }
+    if (count($tids_by_voc) > 0) {
+      $voc_array = array(
+                         '13' => 'Technologies',
+                         '14' => 'Topics'
+                         );
+      foreach ($tids_by_voc as $vid => $voc) {
+        foreach ($voc as $group) {
+          $silverpop_tracking[$voc_array[$vid]][] = end($group);
+        }
+      }
+    }
+  }
+  if($node->type == 'download' && isset($node->field_download_subtype['und'])){
+    $silverpop_tracking['Download Subtype'] = $node->field_download_subtype['und'][0]['tid'];
+  }
+}
+
+/**
+ * Implmenets hook_playbook_fields_update_fields_before_post()
+ */
+function aw_page_alteration_playbook_fields_update_fields_before_post($node, $fields){
+
+  // #2290 Add boolean field to track whether or not to auto signup user to newsletters
+  $auto_signup = false;
+  // Go through the fields array, look for particular fields and set some
+  // intial variables
+  foreach($fields as $field){
+    if($field['silverpop_field'] == 'Country'){
+      $country = $field['values'][0];
+    }
+    if($field['type'] == 'smg_newsletter' && isset($field['values'][0]) && $field['values'][0] == 'Yes'){
+      $auto_signup = true;
+    }
+  }
+
+  // Add auto-signup newsletters
+  // Perform additional logic to determine whether or not to auto signup the user for newsletters
+  if(!isset($country) || isset($country) && $country == 'CANADA')
+    $auto_signup = false;
+  // Now add newsletters
+  if($auto_signup){
+    // First we call hook_playbook_fields_get_newsletters to get the list of newsletters for
+    // the current brand/site
+    $newsletters = array();
+    foreach(module_implements('playbook_fields_get_newsletters') as $module){
+      $function = $module . '_playbook_fields_get_newsletters';
+      $function($newsletters);
+    }
+
+    // Add extra newsletters
+    if($node->nid == '13025' && $country != 'UNITED STATES') {
+      $newsletters[] = "NL AW Global Edition";
+    }
+
+    // Add each newsletter to the $fields array
+    foreach($newsletters as $newsletter){
+      // Modify $newsletter string for use as the key of $fields array
+      $newsletter_key = strtolower($newsletter); // Convert to lowercase
+      $newsletter_key = preg_replace('/\s+/','_', $newsletter_key); // Replace space with underscore
+      // Add to $fields array
+      $fields[$newsletter_key] = array(
+        'name' => $newsletter,
+        'type' => 'smg_hidden',
+        'accela_id' => '',
+        'leadworks_id' => '',
+        'silverpop_field' => $newsletter,
+        'salesforce_field' => '',
+        'gotowebinar_field' => '',
+        'values' => array('Yes'),
+        'multiple' => FALSE,
+        'prepend' => FALSE,
+        'dependency' => FALSE,
+      );
+    }
+  }
+
+  return $fields;
+}
+
+/**
+ * Implements hook_playbook_fields_get_newsletters()
+ */
+function aw_page_alteration_playbook_fields_get_newsletters(&$newsletters = array()){
+  $aw_newsletters = array(
+    "NL AW News Insights",
+    "NL AW Product Insights",
+    "NL AW Best Of Blogs",
+    "NL AW Automation Focus",
+    "NL AW Automation Skills",
+    "NL AW Industrial Internet of Things",
+  );
+  // Go through the $newsletters array and add the above newsletters, if
+  // they're not already inside of the array
+  foreach($aw_newsletters as $newsletter){
+    if(!in_array($newsletter, $newsletters))
+      $newsletters[] = $newsletter;
+  }
+}
+/**
+ * Implements hook_node_view().
+ */
+function aw_page_alteration_node_view($node, $view_mode, $langcode){
+  // *** Insert Blocks Logic. Some of the blocks are inserted in tpl files
+  //     but the ones that have special logic that need to be inserted
+  //     inside the body will be handled here.
+  $node_types_to_insert_blocks = array('article');
+
+  // Only apply if we are looking at the full view mode
+  if($view_mode == 'full' && in_array($node->type, $node_types_to_insert_blocks)) {
+    // Only apply if original content and not FDT Coverage type.
+    if ($node->field_term_source_type['und'][0]['tid'] == 138 && $node->field_term_coverage_type['und']['0']['tid'] != 2218){
+      include_once(drupal_get_path('module', 'smg_global').'/includes/smgInsertBlock.php');
+      $smgInsertBlock = new SmgInsertBlock($node, 'body');
+      $inlineLinksWordCount = 90;
+      $smgInsertBlock->insertAfterWordCount($inlineLinksWordCount, smg_global_block_render('block', 70));
+      $node->content['body']['#items'][0]['value'] = $smgInsertBlock->getBody();
+    }
+  }
+}
+
+/**
+ * Implements hook_node_view().
+ */
+// function aw_page_alteration_node_view($node, $view_mode, $langcode){
+//
+//   // *** Insert Blocks Logic. Some of the blocks are inserted in tpl files
+//   //     but the ones that have special logic that need to be inserted
+//   //     inside the body will be handled here.
+//   $node_types_to_insert_blocks = array('article');
+//
+//   // Only apply if we are looking at the full view mode
+//   if($view_mode == 'full' && in_array($node->type, $node_types_to_insert_blocks)) {
+//     // Exclusion logic
+//     if(isset($node->field_term_source_type['und'][0]['tid']) && $node->field_term_source_type['und'][0]['tid']) {
+//       if($node->field_term_source_type['und'][0]['tid'] == 139) {
+//         // Don't show related block or inline ad if article is custom
+//         return '';
+//       }
+//     }
+//
+//     include_once(drupal_get_path('module', 'smg_global').'/includes/smgInsertBlock.php');
+//     $smgInsertBlock = new SmgInsertBlock($node, 'body');
+//
+//     $relatedContentBlock = '';
+//
+//     $reltw_default_block = smg_global_block_render('reltw', 'reltw_default');
+//     $smgRelated_default_block = smg_global_block_render('smgRelated', 'smgRelated_default');
+//
+//     // Related Block
+//     $relatedContentBlock = '<div class="within-content minwidth">';
+//       $relatedContentBlock .= '<div id="related-articles-container">';
+//         $relatedContentBlock .= '<div id="label">Related Articles</div>';
+//         $relatedContentBlock .= $reltw_default_block;
+//         $relatedContentBlock .= $smgRelated_default_block;
+//       $relatedContentBlock .= '</div>';
+//     $relatedContentBlock .= '</div>';
+//
+//     // Ad Block
+//     $ad_block = '<div id="ads-300x250-container">';
+//       $ad_block .= smg_global_block_render('block', 33);
+//     $ad_block .= '</div>';
+//
+//     // Search body and look for tokens
+//     $insertedBlock = FALSE;
+//     $already_used_blocks = array();
+//     preg_match_all('/%%(.*)%%/', $node->content['body']['0']['#markup'], $matches);
+//     if(isset($matches[1]) && $matches[1]) {
+//       foreach($matches[1] as $block_token) {
+//
+//         // Look for the Inserted Block that was added via WYSIWYG
+//         if(strpos($block_token,'smgInsertedBlock:') !== false) {
+//           $blocksToInsert = explode(':', $block_token);
+//
+//           if(isset($blocksToInsert[1]) && !in_array($blocksToInsert[1], $already_used_blocks)) {
+//
+//             $blockInfo = explode(',',$blocksToInsert[1]);
+//             if(isset($blockInfo[1])) {
+//               // Set the module name and delta
+//               $moduleName = trim($blockInfo[0]);
+//               $delta = trim($blockInfo[1]);
+//
+//               if($moduleName == 'smgRelated') {
+//                 $insertedBlock = $relatedContentBlock;
+//               }
+//               else {
+//                 // Currently I am assuming that every other block will be an ad so adding
+//                 // ad wrapper divs.
+//                 $insertedBlock = '<div class="within-content-2"><div id="ads-300x250-container">' . smg_global_block_render($moduleName, $delta) . '</div></div>';
+//               }
+//
+//               $node->content['body']['0']['#markup'] = preg_replace('/<!--%%' . $block_token . '%%-->/', $insertedBlock, $node->content['body']['0']['#markup'], 1);
+//               $already_used_blocks[] = $blocksToInsert[1];
+//             }
+//           }
+//         }
+//       }
+//     }
+//
+//     if($node->type == 'article' && !$insertedBlock) {
+//       if($smgInsertBlock->getWordCount() >= 400) {
+//         // default insert points for article
+//         $relatedContentBlockWordCount = 100;
+//         $adBlockWordCount = 500;
+//
+//         // wrapper class for styling
+//         $ad_block = '<div class="within-content-2" >' . $ad_block . '</div>';
+//
+//         if($smgRelated_default_block) {
+//           $smgInsertBlock->insertAfterWordCount($relatedContentBlockWordCount, $relatedContentBlock);
+//           $smgInsertBlock->insertAfterWordCount($adBlockWordCount, $ad_block);
+//         }
+//         else {
+//           $adBlockWordCount = 100;
+//           $smgInsertBlock->insertAfterWordCount($adBlockWordCount, $ad_block);
+//         }
+//         $node->content['body']['0']['#markup'] = $smgInsertBlock->getBody();
+//       }
+//       elseif($smgInsertBlock->getWordCount() >= 200) {
+//         // wrapper class for styling
+//         $ad_block = '<div class="within-content-2" >' . $ad_block . '</div>';
+//         $adBlockWordCount = 100;
+//         $smgInsertBlock->insertAfterWordCount($adBlockWordCount, $ad_block);
+//         $node->content['body']['0']['#markup'] = $smgInsertBlock->getBody();
+//       }
+//       elseif($smgInsertBlock->getWordCount() < 200) {
+//         $node->content['body']['0']['#markup'] = $smgInsertBlock->getBody() . $ad_block;
+//         // Move the block after the companies page
+//         /*drupal_add_js('jQuery(document).ready(function() {
+//           jQuery("#block-block-33").appendTo("#block-system-main #nodetags");
+//         });', 'inline');*/
+//       }
+//     }
+//   }
+// }
+
+/**
+ * Implements hook_ckeditor_plugin().
+ */
+// function aw_page_alteration_ckeditor_plugin() {
+//   return array(
+//     'awinsertblocks' => array(
+//       'name' => 'awinsertblocks',
+//       'desc' => t('Plugin for giving control to insert blocks into body manualy!. If more blocks are needed, they need to be added to aw_page_alteration/awinsertblocks/plugin.js'),
+//       'path' => drupal_get_path('module', 'aw_page_alteration') . '/plugins/awinsertblocks/',
+//       'buttons' => array(
+//         'AwInsertBlock' => array('label' => 'Insert Blocks', 'icon' => 'images/awinsertblocks.png'),
+//       ),
+//     ),
+//   );
+// }
+
+/**
+ * List of Blocks to have availale to insert
+ *
+ * 'name' = the name to display
+ * 'value' = 'module name, delta'
+ */
+// function aw_page_alteration_block_insert_list() {
+//   $block_list = array(
+//     array(
+//       'name' => '',
+//       'value' => '',
+//     ),
+//     array(
+//       'name' => 'Related Content Block',
+//       'value' => 'smgRelated,smgRelated_default',
+//     ),
+//     array(
+//       'name' => 'Ad Block',
+//       'value' => 'block, 33',
+//     ),
+//   );
+//
+//   return $block_list;
+// }
+
+/**
+ * Provide any custom redirects based on nid
+ */
+function aw_page_alteration_custom_redirect($nid) {
+  switch($nid) {
+    case 16396: {
+      switch ($_SESSION['form_submission']['which_best_describes_your_company']['values'][0]) {
+        case 'System Integrator':
+          drupal_goto('node/16394');
+          break;
+        case 'Industry Supplier':
+          drupal_goto('node/20609');
+          break;
+        case 'End User':
+          drupal_goto('node/16395');
+          break;
+      }
+    }
+  }
+  return '';
+}
+
+/**
+ * Redirects to a thank you page so they get the download
+ * and it will redirect to the thank you page.
+ *
+ * @param int $nid
+ *  node id
+ */
+function aw_page_alteration_csia_thankyou($nid) {
+  // Get the redirect link based on the nid
+  $redirect_link = aw_page_alteration_csia_get_redirect($nid);
+
+  // Get node fields
+  $query = db_select('field_data_field_content_pdf', 'f');
+  $query->join('field_data_field_image', 'cover', 'f.entity_id = cover.entity_id');
+  $query->fields('f', array('field_content_pdf_fid'));
+  $query->fields('cover', array('field_image_fid'));
+  $query->condition('f.entity_id', $nid);
+  $result = $query->execute()->fetchAssoc();
+
+  // Get node items
+  $cover_url = image_style_url('playbook_cover_image', file_load($result['field_image_fid'])->uri);
+  $pdf_file = $result['field_content_pdf_fid'];
+  $pdf_url = file_create_url( file_load($pdf_file)->uri);
+
+  // Link to the pdf
+  $pdf_link = theme('link', array(
+    'text' => t('here'),
+    'path' => $pdf_url,
+    'options' => array(
+      'attributes' => array('class' => 'playbook-thank-you playbook-file'),
+      'html' => FALSE,
+    ),
+  ));
+  // Link to adobe if user doesn't have adobe
+  $adobe_link = theme('link', array(
+    'text' => t('Download the free reader'),
+    'path' => 'http://get.adobe.com/reader/',
+    'options' => array(
+      'attributes' => array('class' => 'playbook-thank-you'),
+      'html' => FALSE,
+    ),
+  ));
+  // Generate the help email link here so the error branch can use it
+  $help_link = theme('link', array(
+    'text' => 'bugs@summitmediagroup.com',
+    'path' => 'mailto:bugs@summitmediagroup.com',
+    'options' => array(
+      'attributes' => array('class' => 'playbook-thank-you'),
+      'html' => FALSE,
+    ),
+  ));
+
+  // Javascript for auto downloading the pdf and also redirecting to the
+  // CSIA exchnage.
+  $js = <<<EOS
+    jQuery(window).load(
+      function(){
+        setTimeout(function(){
+          window.location = '/playbooks-mod/' + $pdf_file + '/auto-download';
+        },200);
+      }
+    );
+
+    var delay = 10000; //Your delay in milliseconds
+    setTimeout(function(){ window.location = '$redirect_link'; }, delay);
+EOS;
+
+  drupal_add_js($js, 'inline');
+
+  /// Success message
+  return array(
+    'cover' => array(
+      '#markup' => theme('image', array(
+        'path' => $cover_url,
+        'alt' => 'Control System Integrators Report',
+        'title' => 'Control System Integrators Report',
+      )),
+    ),
+    'link' => array(
+      '#markup' => theme('html_tag', array(
+        'element' => array(
+          '#tag' => 'p',
+          '#value' => t('Click !here if the Control System Integrators Report didn’t download. You will be redirected to the CSIA Exchange in 10 seconds, click !csia_link to go immediately.', array('!here' => $pdf_link, '!csia_link' => l('here', $redirect_link, array('attributes' => array('class' => 'playbook-thank-you'))))),
+          '#attributes' => array('class' => 'playbook-thank-you'),
+        ),
+      )),
+    ),
+    'adobe' => array(
+      '#markup' => theme('html_tag', array(
+        'element' => array(
+          '#tag' => 'p',
+          '#value' => t('You will need Adobe Reader to view the Download.') . " $adobe_link",
+          '#attributes' => array('class' => 'playbook-thank-you'),
+        ),
+      )),
+    ),
+    'help' => array(
+      '#markup' => theme('html_tag', array(
+        'element' => array(
+          '#tag' => 'p',
+          '#value' => t('Problems downloading? Send an email to ') . "$help_link " . t('so we can fix it and send you your Download.'),
+          '#attributes' => array('class' => 'playbook-thank-you'),
+        ),
+      )),
+    ),
+  );
+}
+
+/**
+ * Get the redirect path of the CSIA. End user redirects to a
+ * category page based on their industry and system
+ * integrator redirects to a form on the CSIA exchange.
+ *
+ * @param int $nid
+ *  node id
+ */
+function aw_page_alteration_csia_get_redirect($nid) {
+  // #2360 - CSIA System Integrator Redirects. Sending the data to CSIA Exchanve via url
+  if($nid == 16394 || $nid == 16395 || $nid == 20609) {
+    foreach($_SESSION['form_submission'] as $key => $submission) {
+      $field_name = str_replace('_', '', $key);
+
+      if($submission['type'] == 'smg_textfield' || $submission['type'] == 'smg_email' || ($submission['type'] == 'smg_select' && $submission['multiple'] == FALSE)) {
+        if($submission['values'][0] != 'Not applicable') {
+          $query[$field_name] = $submission['values'][0];
+        }
+      }
+      elseif($submission['type'] == 'smg_select' && $submission['multiple'] == TRUE) {
+        $query[$field_name] = implode(';',$submission['values']);
+      }
+    }
+
+    $path = url('http://www.csiaexchange.com/register.aspx', array('query' => $query));
+  }
+
+  return $path;
+}
+
+/**
+ * Makes modification to the Integrator form node/16394
+ */
+function aw_page_alteration_csia_integrator_alter_page() {
+  // If blank add default of integrators as defautl industry and
+  // job duty.
+  drupal_add_js("jQuery(document).ready(function($){
+      var industryDiv = '#edit-submitted-industry';
+      var industry = $(industryDiv).find(':selected').text();
+      var jobDutiesDiv = '#edit-submitted-job-duties';
+      var jobDuties = $(jobDutiesDiv).find(':selected').text();
+      var refresh = false;
+
+      if(!industry || industry == '- Select -') {
+        $(industryDiv + ' option[value]').attr('selected', false);
+        $(industryDiv + \" option[value='Consulting or systems integration']\").attr('selected', 'selected');
+        refresh = true;
+      }
+      if(!jobDuties) {
+        $(jobDutiesDiv + ' option[value]').attr('selected', false);
+        $(jobDutiesDiv + \" option[value='Integration or consulting']\").attr('selected', 'selected');
+        refresh = true;
+      }
+
+      if(refresh) {
+        $('.webform-client-form select').multiselect('refresh');
+      }
+
+    });", array('type'=>'inline', 'every_page' => 'false', 'preprocess' => FALSE)
+  );
+}
+
+function aw_page_alteration_clone_node_alter(&$node, $context) {
+  $fields_info = field_info_instances('node', $context['original_node']->type);
+  foreach($fields_info as $field_name => $value){
+    $field_info = field_info_field($field_name);
+    if($field_info['type'] == 'field_viddler_id'){
+      //unset($node->field_viddler_id['und']);
+    }
+    if($field_info['type'] == 'field_collection'){
+      clone_fc_items('node', $node, $field_name);
+    }
+  }
+}
+
+/**
+ * Helper function for cloning field collection items
+ */
+function clone_fc_items($entity_type, &$entity, $fc_field, $language = LANGUAGE_NONE){
+  $entity_wrapper = entity_metadata_wrapper($entity_type, $entity);
+  $old_fc_items = $entity_wrapper->{$fc_field}->value();
+  if (!is_array($old_fc_items)) {
+    $old_fc_items = array($old_fc_items);
+  }
+
+  $field_info_instances = field_info_instances();
+  $field_names = element_children($field_info_instances['field_collection_item'][$fc_field]);
+
+  unset($entity->{$fc_field}[$language]);
+
+  foreach ($old_fc_items as $old_fc_item) {
+    $old_fc_item_wrapper = entity_metadata_wrapper('field_collection_item', $old_fc_item);
+    $new_fc_item = entity_create('field_collection_item', array('field_name' => $fc_field));
+    $new_fc_item->setHostEntity($entity_type, $entity);
+    $new_fc_item_wrapper = entity_metadata_wrapper('field_collection_item', $new_fc_item);
+
+    foreach ($field_names as $field_name) {
+        //if (is_array($old_fc_item->{$field_name})){
+            if (!empty($old_fc_item->{$field_name})){
+                $new_fc_item->{$field_name} = $old_fc_item->{$field_name};
+            }
+        //}
+    }
+    //$new_fc_item_wrapper->save(true);
+    $new_fc_item->save(TRUE);
+
+    //Now check if any of the fields in the newly cloned fc item is a field collection and recursively call this function to properly clone it.
+    foreach ($field_names as $field_name) {
+        if (!empty($new_fc_item->{$field_name})){
+            $field_info = field_info_field($field_name);
+            if ($field_info['type'] == 'field_collection'){
+                clone_fc_items('field_collection_item',$new_fc_item, $field_name,$language);
+            }
+        }
+    }
+
+  }
+}
+
+function _aw_author_industry_type($author) {
+  $byline = ($author !== 'other') ? ucwords(str_replace("-"," ", $author)) : array('David Greenfield', 'Stephanie Neil', 'Aaron Hand');
+
+  $query = new EntityFieldQuery();
+  $query->entityCondition("entity_type", "node")
+    ->fieldCondition("field_allterms", "vid", "3", "=");
+  if ($author !== 'other') {
+    $query->fieldCondition("field_byline", "value", $byline);
+  }
+  else {
+    $query->fieldCondition("field_byline", "value", $byline, "NOT IN");
+  }
+  $result1 = $query->execute();
+
+  if (isset($result1['node'])) {
+    $nids = array_keys($result1['node']);
+
+    $query2 = db_select("node", "n")->extend('PagerDefault');
+    $query2->join("url_alias", "a", "a.source = CONCAT('node/', n.nid)");
+    $query2->join("field_data_field_byline", "b", "b.entity_id = n.nid");
+    $query2->join("field_data_field_term_subtype", "s", "s.entity_id = n.nid");
+    $query2->fields('n', array('title', 'nid'));
+    $query2->fields('a', array('alias'));
+    if ($author !== 'other') {
+      $query2->condition("b.field_byline_value", $byline);
+    }
+    else {
+      $query2->condition("b.field_byline_value", $byline, "NOT IN");
+    }
+    $query2->condition("n.nid", $nids, "NOT IN");
+    $query2->condition("s.field_term_subtype_tid", array("163", "162", "164", "170"), "IN");
+    $query2->limit(30);
+    $query2->orderBy('created', 'DESC');
+    $result2 = $query2->execute()->fetchAll();
+
+    $result_markup = array();
+    foreach ($result2 as $item) {
+      $result_markup[] = array(
+        'data' => l($item->title, $item->alias),
+      );
+    }
+
+    return array(
+      array(
+        '#markup' => theme('item_list', array('items' => $result_markup)),
+      ),
+      array(
+        '#markup' => theme('pager' , array('tags' => array(), 'quantity' => 6, 'parameters' => array())),
+      ),
+    );
+
+  }
+
+
+}
+
+/**
+ * Disable the playbook enticements from page.
+ *
+ * @param array $page
+ *   The page variable.
+ */
+function aw_page_alteration_remove_playbook_enticements_from_page(&$page) {
+  unset($page['header']['block_50']);
+  unset($page['header']['block_49']);
+  unset($page['header']['block_58']);
+}

@@ -1,0 +1,125 @@
+<?php
+
+/**
+ * Implements hook_smgRelated_smgRelated_get_related_rendered_default(().
+ */
+function aw_smgRelated_smgRelated_get_related_rendered_default($related_nodes, $prefix_title, $rendered) {
+  $output = '';
+  // Using the count for ad positions onclick events
+  $count = 1;
+
+  foreach($related_nodes as $nodes) {
+    if(isset($nodes['tid'])) {
+      $term = taxonomy_term_load($nodes['tid']);
+      $parents = taxonomy_get_parents($term->tid);
+      if($parents) {
+        foreach($parents as $parent) {
+          $title = $parent->name . " > " . $term->name;
+        }
+      }
+      else {
+        $vocab = taxonomy_vocabulary_load($term->vid);
+        $title = $vocab->name . ' > ' . $term->name;
+      }
+    }
+    else {
+      $title = 'With This Article';
+    }
+
+    $node_links = array();
+    // Get links paths
+    $render_array = array(
+      'related_terms' => array(
+        '#prefix' => '<div class="row awbs-related-content-box"><div class="col-xs-12 awbs-related-content-title">RELATED ARTICLES</div>',
+        '#nodes' => $nodes['nodes'],
+        '#image_style' => 'video_thumbnail_small',
+        '#theme' => 'aw_smgRelated_sponsored_links',
+        '#count' => $count,
+        '#suffix' => '</div>',
+      ),
+    );
+
+    $rendered .= render($render_array);
+
+  }
+
+  return $rendered;
+}
+
+/**
+ * Implements hook_theme()
+ */
+function aw_smgRelated_theme() {
+  return array(
+    'aw_smgRelated_sponsored_links' => array(
+      'variables' => array(
+        'nodes' => NULL,
+        'image_style' => NULL,
+        'count' => NULL,
+      ),
+    ),
+  );
+}
+
+/**
+ * Theme function that creates the sponsored links block on pw
+ *
+ * @param array $variables
+ *
+ * @return string
+ */
+function theme_aw_smgRelated_sponsored_links($variables) {
+  $links = array();
+  $nodes = $variables['nodes'];
+  if ($nodes) {
+    foreach ($nodes as $node) {
+      $content = '';
+      foreach (array('field_image', 'field_360_fc_large') as $image_field) {
+        if (isset($node->{$image_field}[$node->language])) {
+          $item = $node->{$image_field}[$node->language][0];
+
+          if(empty($item['alt']) || !isset($item['alt'])){
+            $item['alt'] = $node->title;
+          }
+          if(empty($item['title']) || !isset($item['title'])){
+            $item['title'] = $node->title;
+          }
+
+          $image = array(
+            'path' => $item['uri'],
+            'alt' => $item['alt'],
+            'title' => $item['title'],
+          );
+
+
+          //$image['style_name'] = 'thumbnail';
+          $image['style_name'] = 'large';
+          if (isset($item['uri'])) {
+            $image['path'] = image_style_url($image['style_name'], $image['path']);
+          } else {
+            $image['path'] = image_style_url($image['style_name'], '/sites/default/themes/awbs/images/aw-placeholder.png');
+          }
+          $content = '<div class="retlw-block-image col-xs-12" style="background-image:url(' . $image['path'] . ')"></div>';
+        }
+      }
+      if($node->smgRelated_type == 'related_overwrite') {
+        $event_label = 'Recommended reading - Manual Related';
+      }
+      else {
+        $event_label = 'Recommended reading - Related';
+      }
+      // #1929 Google Tracking Events
+      $onclick_event = "ga('send', 'event', '$event_label', 'Position $node->count', 'Clicked');";
+      $viewed_event = " ga('send', 'event', '$event_label', 'Position $node->count', 'Viewed', 0, {'nonInteraction': 1});";
+      $content .= "<script type=\"text/javascript\">$viewed_event</script>";
+      $content .= '<div class="retlw-block-link col-xs-12 col-sm-12 col-md-12">' . l($node->title, 'node/' . $node->nid,array('attributes' => array('onclick' => $onclick_event))) . '</div>';
+      $links[] =  '<div class="retlw-block col-xs-12 col-sm-4 col-md-4"><div class="col-xs-12 col-sm-12 col-md-12 awbs-retlw-inner-block">' . $content . '</div></div>';
+    }
+    $variables['items'] = implode('', $links);
+  }
+  else {
+    $variables['items'] = "";
+  }
+
+  return $variables['items'];
+}

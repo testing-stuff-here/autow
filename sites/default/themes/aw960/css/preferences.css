@@ -1,0 +1,192 @@
+/* line 1, ../sass/preferences.scss */
+#personality-tabs-wrapper-5, #nav, #header-top-wrapper, #header-block {
+  display: none !important;
+}
+
+/* line 5, ../sass/preferences.scss */
+#node-17506, h1 {
+  font-family: 'PT Sans', sans-serif !important;
+}
+
+/* line 8, ../sass/preferences.scss */
+h1 {
+  font-weight: 700 !important;
+  font-size: 35px !important;
+}
+
+/* line 12, ../sass/preferences.scss */
+.preference-wrapper {
+  margin-right: auto;
+  margin-left: auto;
+  width: 800px;
+  background-repeat: repeat-x;
+  padding: 0px 0px 40px 30px;
+  margin-top: 0px;
+}
+/* line 13, ../sass/preferences.scss */
+.preference-wrapper .preference-headings {
+  border: none !important;
+}
+/* line 16, ../sass/preferences.scss */
+.preference-wrapper .question {
+  color: #1A1A1A;
+  font-size: 20px;
+  font-weight: 700;
+  padding-top: 30px;
+  padding-bottom: 15px !important;
+}
+/* line 29, ../sass/preferences.scss */
+.preference-wrapper .preference-header {
+  border-bottom: 1px dotted #1A1A1A;
+  color: #00446a;
+  font-size: 18px;
+  font-weight: 700;
+  padding-top: 10px;
+}
+/* line 35, ../sass/preferences.scss */
+.preference-wrapper .preference-header .playbook-describe {
+  font-size: 15px;
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.3em;
+}
+/* line 42, ../sass/preferences.scss */
+.preference-wrapper .section {
+  display: inline-block;
+  width: 100%;
+}
+/* line 46, ../sass/preferences.scss */
+.preference-wrapper .preference-line {
+  border-bottom: 1px dotted #AAAAAA;
+  width: 95%;
+  display: block;
+}
+/* line 50, ../sass/preferences.scss */
+.preference-wrapper .preference-line .title {
+  width: 25%;
+  color: #1A1A1A;
+  font-size: 17px;
+  font-weight: 700;
+  padding: 0px 0px;
+  margin: 0px 0px;
+  vertical-align: middle;
+  display: inline-block;
+}
+/* line 60, ../sass/preferences.scss */
+.preference-wrapper .preference-line .frequency {
+  width: 15%;
+  color: #1A1A1A;
+  font-size: 15px;
+  font-weight: 400;
+  padding: 0px 0px;
+  margin: 0px 0px;
+  vertical-align: middle;
+  display: inline-block;
+}
+/* line 70, ../sass/preferences.scss */
+.preference-wrapper .preference-line .blurb {
+  width: 40%;
+  color: #1A1A1A;
+  font-weight: 400;
+  font-size: 15px;
+  font-style: italic;
+  padding: 5px 0px;
+  margin: 0px 0px;
+  vertical-align: middle;
+  display: inline-block;
+}
+/* line 81, ../sass/preferences.scss */
+.preference-wrapper .preference-line .heading {
+  text-decoration: underline;
+  font-style: normal !important;
+  font-weight: bold;
+  font-size: 19px;
+}
+/* line 87, ../sass/preferences.scss */
+.preference-wrapper .preference-line .yes-no {
+  padding: 0px 0px;
+  margin: 0px 0px;
+  vertical-align: middle;
+  display: inline-block;
+}
+/* line 92, ../sass/preferences.scss */
+.preference-wrapper .preference-line .yes-no .form-item {
+  margin: 0 !important;
+  float: left;
+}
+/* line 98, ../sass/preferences.scss */
+.preference-wrapper .preference-header {
+  clear: both;
+  width: 100%;
+  display: inline-block;
+  float: left;
+  margin: 1em 0 0 0 !important;
+}
+/* line 105, ../sass/preferences.scss */
+.preference-wrapper .preference-small-print {
+  padding-bottom: 20px;
+  font-weight: 400;
+  padding-left: 110px;
+  padding-right: 110px;
+  color: #999999;
+}
+/* line 112, ../sass/preferences.scss */
+.preference-wrapper #webform-component-discontinuing-one-or-more-newsletters {
+  font-size: 17px;
+  font-weight: 700;
+}
+/* line 116, ../sass/preferences.scss */
+.preference-wrapper #webform-component-automation-world-may-continue {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+/* line 122, ../sass/preferences.scss */
+#edit-submit {
+  margin-top: 20px;
+  margin-bottom: 5px;
+  background: url("http://www.packworld.com/sites/default/files/forms/manageprefs_button_submit.png") no-repeat scroll 0 0 transparent;
+  width: 85px;
+  height: 27px;
+  display: block;
+  color: #FFF;
+  border: 0px;
+}
+
+/* line 133, ../sass/preferences.scss */
+input.email {
+  background-color: white;
+}
+
+/* line 137, ../sass/preferences.scss */
+h1.preferences {
+  color: #00446a;
+  font-size: 20px;
+  font-weight: 700;
+  margin-left: 80px;
+  font-size: 35px;
+  font-weight: 700;
+  padding-top: 30px;
+}
+
+/* line 147, ../sass/preferences.scss */
+#content .node .content {
+  margin: 0 !important;
+  line-height: initial !important;
+}
+
+/* line 152, ../sass/preferences.scss */
+address {
+  text-align: center;
+}
+
+/* line 156, ../sass/preferences.scss */
+.email {
+  width: 400px !important;
+  font-weight: 400 !important;
+}
+
+/* line 161, ../sass/preferences.scss */
+label.option, input.form-text {
+  font-size: 15px !important;
+}

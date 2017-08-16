@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Remote Source PURF feature.
+ */
+
+include_once('remote_source_purf.features.inc');

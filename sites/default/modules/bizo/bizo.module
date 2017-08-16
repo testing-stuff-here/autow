@@ -1,0 +1,53 @@
+<?php
+/**
+ * @author Albert Jankowski <ajankowski@summitmediagroup.com>
+ */
+
+/**
+ * Implements of hook_menu().
+ */
+function bizo_menu() {
+  $items['admin/config/system/bizo'] = array(
+    'title' => 'Bizo',
+    'description' => 'Change the setting configuration when using Bizo.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('bizo_admin_settings'),
+    'access arguments' => array('administer bizo settings'),
+    'file' => 'bizo.admin.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function bizo_permission() {
+  return array(
+    'administer bizo settings' => array(
+      'title' => t('Administer Bizo settings'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_page_alter().
+ */
+function bizo_page_alter(&$page) {
+  $bid = variable_get('bizo_id', '');
+  if (!empty($bid)) {
+    $output = <<<EOT
+
+		<!-- Bizo -->
+		<script type="text/javascript">
+
+		_bizo_data_partner_id = $bid
+
+		</script>
+
+		<script type="text/javascript" src="http://js.bizographics.com/convert_data.js"></script>
+		<!-- END Bizo -->
+	
+EOT;
+    $page['page_bottom']['bizo'] = array('#markup' => $output);
+  }
+}

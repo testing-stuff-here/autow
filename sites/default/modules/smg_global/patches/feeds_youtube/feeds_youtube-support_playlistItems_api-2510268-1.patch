@@ -1,0 +1,32 @@
+diff --git a/plugins/FeedsYoutubeParser.inc b/plugins/FeedsYoutubeParser.inc
+index d0d7bc2..d08096c 100755
+--- a/plugins/FeedsYoutubeParser.inc
++++ b/plugins/FeedsYoutubeParser.inc
+@@ -23,6 +23,10 @@ class FeedsYoutubeParser extends FeedsParser {
+     $libraries = libraries_load('google-api-php-client');
+ 
+     $url = $source->config['FeedsHTTPFetcher']['source'];
++    $parsed_url = parse_url($url);
++    $url_path = ltrim($parsed_url["path"], "/");
++    $path_parts = explode("/", $url_path);
++    $api_type = $path_parts[2];
+ 
+     $result = new FeedsParserResult();  
+ 
+@@ -36,7 +40,15 @@ class FeedsYoutubeParser extends FeedsParser {
+       $video_results = array();
+ 
+       foreach ($search_response['items'] as $search_result) {
+-        array_push($video_results, $search_result['id']['videoId']);
++        switch ($api_type) {
++          case 'search':
++            $videoId = $search_result['id']['videoId'];
++            break;
++          case 'playlistItems':
++            $videoId = $search_result['snippet']['resourceId']['videoId'];
++            break;
++        }
++        array_push($video_results, $videoId);
+       }
+ 
+       $video_ids = join(',', $video_results);

@@ -1,0 +1,14 @@
+name = PMG YouTube Feed Video Entity Type
+core = 7.x
+package = Features
+dependencies[] = entity
+dependencies[] = features
+dependencies[] = field_sql_storage
+dependencies[] = image
+dependencies[] = pmg_youtube_feed_video
+features[features_api][] = api:2
+features[field_base][] = field_pmg_youtube_feed_image
+features[field_instance][] = pmg_youtube_feed_video-leadership_video-field_pmg_youtube_feed_image
+features[image][] = pmg_youtube_feed_video_widget_grid
+features[image][] = pmg_youtube_feed_video_widget_thumbnail
+features[pmg_youtube_feed_video_type][] = leadership_video

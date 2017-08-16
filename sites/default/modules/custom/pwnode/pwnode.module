@@ -1,0 +1,234 @@
+<?php
+// $Id$
+/**
+*
+*/
+
+function pwnode_leadwise_check($viddler=null) {
+  //this is a copy of Leadwise code from the leadwise module, this will check if the user is already registered
+  if((!empty($viddler) )
+    &&(!isset($_COOKIE["leadwise_referring_url"]) || empty($_COOKIE["leadwise_referring_url"]))) {
+    $redirect_url = $viddler;
+    if (!valid_url($redirect_url)) return false;
+
+    // cleanup the redirect_url of old contents
+    $find = 'http://www.packworld.com/leadwise3rdparty.php?regurl=';
+    if (strstr($redirect_url, $find)) {
+      $redirect_url = str_replace($find, '', $redirect_url);
+      $redirect_url = urldecode($redirect_url);
+    }
+
+    if (isset($_SESSION['leadwise_reader']) && !empty($_SESSION['leadwise_reader'])) {
+      $unique_id = $_SESSION['leadwise_reader'];
+    }
+    else {
+      $unique_id = md5(rand());
+      $_SESSION['leadwise_reader'] = $unique_id;
+    }
+
+    // append the unique id
+    if (strstr($redirect_url, '?')) {
+      $redirect_url .= '&';
+    }
+    else {
+      $redirect_url .= '?';
+    }
+    $redirect_url .= 'id=' . $unique_id;
+    return $redirect_url;
+  } else {
+   return false;
+  }
+}
+
+// function pwnode_slideshow($fields,$viddler=null,$node){
+//   $quote_array = array('"','“','”');
+//   $default_alt = $node->title;
+//   //image styles
+//   $image_style = '200x200-slideshow';
+//   $image_style_thumb = '100x73-slideshow';
+//   $image_style_video_reg = '200x200-slideshow-video-reg';
+//   $image_style_video = '200x200-slideshow-video';
+//   $image_style_video_thumb = '100x73-slideshow-video';
+//   $image_style_lightbox = 'lightbox';
+//
+//   $overlay_image = '/'.drupal_get_path('module', 'pwnode'). '/overlayvideo.png';
+//   $overlay_image2 = '/'.drupal_get_path('module', 'pwnode'). '/overlayvideo2.png';
+//   if(!empty($fields)){
+//
+//     //this is the slideshow
+//     $markup =  '<div class="fied-slideshow"><div id="slideshow" class="pics">';
+//
+//     foreach( $fields as $field){
+//       if(isset($field['filemime'])){
+//         // this is an image since viddler doesnt have a filemime
+//         $image = image_style_url($image_style, $field['uri']);
+//         $orig_image = image_style_url($image_style_lightbox, $field['uri']);
+//         $markup .=	'<a title="' . $field['title'] . '" rel="slideshow-image" href="'. $orig_image	.'"><img src="'. $image .'" alt="'. ($field['alt'] ? str_replace($quote_array, '\'', $field['alt']) : str_replace($quote_array, '\'',$default_alt)) . '"></a>';
+//       } else {
+//         //this is a video
+//         $redirect_url = pwnode_leadwise_check($viddler);
+//         $fid = $field['thumbnail_fid'];
+//         $file = file_load($fid);
+//         $image = image_style_url($image_style_video_reg, $file->uri);
+//         $image_registered = image_style_url($image_style_video, $file->uri);
+//         if($redirect_url){
+//            //redirect the user
+//            $markup .= '<a href="'.$redirect_url.'"><img src="'.$image.'"></a>';
+//         } else {
+//           //show the video
+//           $markup .= '<a class="viddler_field" href="#"><img src="'.$image_registered.'"></a>';
+//           $markup .= '<div style="display:none"><div id="inline_viddler">'.$field['embed_code'].'</div></div>';
+//        }
+//      }
+//     }
+//
+//     $markup .= '</div>';
+//
+//     if(count($fields)>=2){ // display only the thumbnails if there are 2 images
+//       //this is the thumbnails
+//       $markup .= '<div class="scrollable vertical"><ul  class="items" id="image-nav" > ';
+//       foreach( $fields as $field){
+//         if(isset($field['filemime'])){
+//           $thumb_image = image_style_url($image_style_thumb, $field['uri']);
+//           $orig_image = image_style_url($image_style_lightbox, $field['uri']);
+//           $markup .= '<li class="">';
+//           $markup .= '<a href="'.$orig_image.'" class="thumbnail1" rel="slideshow-image-thumb" ><img src="'. $thumb_image .'" alt ="'. ($field['alt'] ? str_replace($quote_array, '\'', $field['alt']) : str_replace($quote_array, '\'',$default_alt)) . '"></a>';
+//           $markup .= '<p>' . substr($field['title'], 0, 90) . '</p>';
+//           $markup .= '<p class="quick-link"><a href="'.$orig_image.'" rel="slideshow-image-link" >'.t('View Photo').'</a></p>';
+//           $markup .= '</li>';
+//         } else {
+//         //video thumb
+//             $fid = $field['thumbnail_fid'];
+//             $file = file_load($fid);
+//             $image = image_style_url($image_style_video_thumb, $file->uri);
+//             if($redirect_url){
+//                //redirect the user
+//                $markup .= '<li class=""><a href="#"><img src="'.  $image .'"></a></li>';
+//              }
+//             else {
+//               //show the video
+//               $markup .= '<li class=""><a class="viddler_field" href="#"><img src="'.  $image .'"></a>';
+//               $markup .= '<p class="quick-link"><a class="viddler_field" href="#">'.t('View Video').'</a></p></li>';
+//             }
+//         }
+//       }
+//       $markup .= '</ul></div><div id="actions"><a class="prev" href="#"></a><a class="next" href="#" ></a></div>';
+//     }
+//     else  {
+//         if(isset($field['filemime'])){
+//           $markup .='<div class="enlarge"><a title="" rel="slideshow-link" href="'. $orig_image	.'">Enlarge</a></div>';
+//         } else {
+//           $markup .='<div class="enlarge">Watch Video</div>';
+//         }
+//
+//     }
+//     $markup .='</div>';
+//     return $markup;
+//   }
+//
+//   return '';
+// }
+//
+// function pwnode_get_field($fields,&$results){
+//   if(!isset($fields['und'][0]['is_default'])){ //this will ensure that any default image is not displayed
+//     if(!empty($fields['und'])){
+//       foreach($fields['und'] as $field){
+//         $results[] =	$field;
+//       }
+//     }
+//   }
+// }
+
+// function pwnode_node_view($node, $view_mode) {
+//
+//   switch($node->type.'_'.$view_mode){
+//     case 'article_full': // the slide show is shown only in article, blog, and whitepaper full view mode
+//     case 'blog_full':
+//     case 'whitepaper_full':
+//       //get Fields
+//       if (isset($node->field_image)){
+//         pwnode_get_field($node->field_image,$results);
+//       }
+//       if (isset($node->field_article_images)){
+//         pwnode_get_field($node->field_article_images,$results);
+//       }
+//       if (isset($node->field_viddler_id)){
+//         pwnode_get_field($node->field_viddler_id,$results);
+//       }
+//
+//       // create the slideshow
+//       if (isset($node->field_accela_id['und'])){
+//         $viddler = $node->field_accela_id['und'][0]['safe_value'];
+//       }
+//       else {
+//         $viddler = '';
+//       }
+//
+//       if(!empty($results)){
+//         $node->content['slideshow'] = array(
+//           '#markup' => pwnode_slideshow($results,$viddler,$node ),
+//         );
+//
+//         drupal_add_css(drupal_get_path('module', 'pwnode') . '/css/scrollable-vertical.css');
+//         drupal_add_css(drupal_get_path('module', 'pwnode') . '/css/custom.css');
+//         drupal_add_js('sites/all/libraries/jquery.cycle/jquery.cycle.all.js');
+//         drupal_add_js(drupal_get_path('module', 'pwnode') . '/js/jquery.tools.min.js');
+//         drupal_add_js(drupal_get_path('module', 'pwnode').'/js/config.js');
+//
+//         drupal_add_js('sites/all/libraries/colorbox/colorbox/jquery.colorbox-min.js');
+//         drupal_add_css('sites/all/libraries/colorbox/example5/colorbox.css');
+//       }
+//       break;
+//     case 'podcast_full':
+//       $cleaned_string = pwnod_clean_white_spaces($node->body['und'][0]['value']);
+//       if($cleaned_string == '') {
+//         $node->content['body'] = NULL;
+//       }
+//       break;
+//   }
+//
+// }
+
+/**
+ * Function for removing white spaces from the entire string.  For example there is a
+ * aa string with two characters
+ *
+ * @param $string
+ *  the string that you want to remove spaces.
+ *
+ * @return $output
+ *  the cleaned string
+ */
+function pwnod_clean_white_spaces($string) {
+
+  $output = preg_replace('/[^(\x20-\x7F)]*/','', $string);
+  $output = str_replace(' ','',$output);
+
+  return $output;
+}
+
+/**
+ * Implements hook_apachesolr_query().
+ */
+function pwnode_apachesolr_query_prepare($query) {
+  // #1898 - Exact Phrase
+  // Adding quotes to all searches so it gives an accurate search result
+  $search_result = $query->getParam('q');
+  $has_quotes = preg_match('/^(["\']).*\1$/m', $search_result);
+  if(!$has_quotes) {
+    $query->replaceParam('q', '"' . $search_result . '"');
+  }
+}
+
+/**
+ * Implements hook_tokens_alter().
+ */
+function pwnode_metatag_metatags_view_alter(&$output, $instance) {
+  // Limiting deckhead to 150 characters
+  if(isset($output['description']['#attached']['drupal_add_html_head'][0][0]['#value'])) {
+    $description = $output['description']['#attached']['drupal_add_html_head'][0][0]['#value'];
+    html_entity_decode(trim($description), ENT_QUOTES,"ISO-8859-1");
+    $description = truncate_utf8($description, 150, TRUE, TRUE, $min_wordsafe_length = 1);
+    $output['description']['#attached']['drupal_add_html_head'][0][0]['#value'] = $description;
+  }
+}

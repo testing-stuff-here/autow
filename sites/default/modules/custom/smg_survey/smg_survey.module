@@ -1,0 +1,67 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function smg_survey_menu() {
+  $items = array();
+  $items['smg-survey'] = array(
+    'page callback' => 'smg_survey_get_survey_html',
+    'access arguments' => array('access content'),
+  );
+
+  return $items;
+}
+
+function smg_survey_get_survey_html() {
+  print drupal_render(drupal_get_form('smg_survey_generate_survey'));
+}
+
+/**
+ * Implements hook_page_alter().
+ */
+function smg_survey_page_alter(&$page) {
+  // the following logic was removed and placed in the oas module
+  /*
+  $path = '';
+  if($args[0] == 'demo') {
+    if(isset($args[1])){
+      if($args[1] == 'survey'){
+        $path = 'demo/survey';
+      }
+    }
+  }
+  if($user->uid == 0 || $path == 'demo/survey') {
+    drupal_add_js(drupal_get_path('module','smg_survey').'/js/interstitial.js');
+    drupal_add_js(drupal_get_path('module','smg_survey').'/js/survey.js');
+    drupal_add_css(drupal_get_path('module','smg_survey').'/css/interstitial.css');
+  }
+  */
+}
+
+function smg_survey_generate_survey($form, &$form_state){
+
+  $options = array(
+    0 => '<strong>Yes</strong>, I receive the print magazine',
+    1 => '<strong>Yes</strong>, I receive the digital edition',
+    2 => '<strong>No</strong>, just visiting the site today',
+  );
+  $form['survey']['question'] = array(
+    '#markup' => '<div class="survey-question"><span id="survey-question-1">Help us conduct a quick audience census:</span><br> <span id="survey-question-2">Are you a subscriber to Automation World Magazine?</span></div>',
+  );
+  $form['survey']['yes'] = array(
+    '#markup' => '<div id="yes-no"><div class="survey-answer survey-yes"><a class="survey-yes-link" href="#" onclick="ga(\'send\', \'event\', \'Print Subscriber Poll\', \'Print Subscriber\'); javascript:interstitialBox.closeit(); return false">Yes</a></div><div class="survey-answer survey-no"><a class="survey-no-link" href="#" onclick="ga(\'send\', \'event\', \'Print Subscriber Poll\', \'Not a subscriber\'); javascript:interstitialBox.closeit(); return false">No</a></div></div>',
+  );
+  $form['survey']['message'] = array(
+    '#markup' => '<div id="message">Answering Yes or No will make this box go away.</div>',
+  );
+
+  $form['survey']['#redirect'] = FALSE;
+  return $form;
+}
+
+
+
+
+
+

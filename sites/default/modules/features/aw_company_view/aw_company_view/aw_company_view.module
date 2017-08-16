@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the AW Company View feature.
+ */
+
+include_once 'aw_company_view.features.inc';

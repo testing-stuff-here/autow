@@ -1,0 +1,9 @@
+name = PMG Sync
+description = Functionality for moving node between sites.
+package = SMG
+core = 7.x
+dependencies[] = pmg_api_v2_service
+dependencies[] = rest_server
+dependencies[] = services
+dependencies[] = uuid
+dependencies[] = uuid_services

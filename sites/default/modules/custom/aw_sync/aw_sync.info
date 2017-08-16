@@ -1,0 +1,5 @@
+name = AW Sync
+description = Functionality for copying nodes from AW to other sites.
+package = SMG
+core = 7.x
+dependencies[] = pmg_sync

@@ -1,0 +1,24 @@
+/*.reltw-level1 {
+  margin-left: 2em;
+}
+.reltw-level2 {
+  margin-left: 4em;
+}
+.reltw-level3 {
+  margin-left: 6em;
+}
+.reltw-level3 {
+  margin-left: 8em;
+}*/
+
+.field-type-reltw-field .form-item {
+  margin: 0;
+  padding: .5em;
+  float: left;
+}
+
+.reltw_group.form-wrapper {
+  overflow: hidden;
+  border: 0;
+  margin: 0; padding: 0;
+}

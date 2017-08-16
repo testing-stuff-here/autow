@@ -1,0 +1,62 @@
+<?php
+/**
+ * @file
+ * Module that adds an iframe containing the 360° Product Spin Photo Gallery and
+ * adds any other functionality related to the 360 gallery.
+ *
+ * @Requirements:
+ *  Create content type called "360° Package Spin & Rotate" (Machine name:
+ *  360_package_spin_rotate)
+ *  Create field called "field_gallery_360_field_location" to hold the folder
+ *  location.
+ */
+
+/**
+ * Implements hook_menu()
+ */
+function three_sixty_gallery_menu() {
+  $items['admin/config/360_gallery'] = array(
+    'title' => '360 Gallery Settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('three_sixty_configuration_form'),
+    'access arguments' => array('administer_360_gallery'),
+    'file' => 'three_sixty_gallery.admin.inc',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function three_sixty_gallery_permission() {
+  return array(
+    'administer_360_gallery' => array(
+      'title' => t('Administer 360 Gallery settings'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_node_view().
+ */
+function three_sixty_gallery_node_view($node, $view_mode, $langcode) {
+  if ($node->type == '360_package_spin_rotate' && $view_mode == 'full') {
+    //Add Javascript for the toggle button.
+    drupal_add_js(drupal_get_path('module', 'three_sixty_gallery') .'/js/script.js', 'file');
+
+    // Add Iframe.
+    if (isset($node->field_gallery_360_field_location['und'][0]['safe_value']) && $node->field_gallery_360_field_location['und'][0]['safe_value']) {
+     $node->content['three_sixty_iframe'] = '<iframe src="'
+     . variable_get('360_gallery_folder_location')
+     .  '/'
+     . $node->field_gallery_360_field_location['und'][0]['safe_value']
+     . '/index.html?v=1.0.1'
+     . '" scrolling="no" '
+     . ' height="' . variable_get('360_gallery_height', '1200px') . '"'
+     . ' width="' . variable_get('360_gallery_width', '100%') . '" >'
+     . '</iframe>';
+    }
+  }
+}

@@ -1,0 +1,4 @@
+name = Automation World Dominant Sponsor Blocks
+description = Block containing configurable dominant sponsor blocks
+package = "custom"
+core = 7.x

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>Royal Dock Menu</title>
+
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no"/>
+
+		<link rel="stylesheet" type="text/css" href="/sites/all/libraries/fwdRoyalDock/css/skin_modern_warm.css"/>
+		<link rel="stylesheet" type="text/css" href="css/html_content.css?bb"/>
+		<script type="text/javascript" src="/sites/all/libraries/fwdRoyalDock/js/FWDRoyalDockMenu_uncompressed.js"></script>
+
+		<script type="text/javascript">
+			FWDUtils.onReady(function(){
+				var dockmenu = new FWDRoyalDockMenu({
+					//required settings
+					dockMenuHolderDivId:"myDiv",
+					dockMenuDataListDivId:"dockMenuData",
+					displayType:"fluidwidth",
+					autoScale:"yes",
+					dockMenuWidth:940,
+					dockMenuHeight:400,
+					skinPath:"/sites/all/libraries/fwdRoyalDock/css/skin_modern_warm",
+
+					//main settings
+					backgroundColor:"#DDDDDD",
+					backgroundImagePath:"/sites/all/libraries/fwdRoyalDock/css/skin_modern_warm/background.jpg",
+					backgroundRepeat:"repeat-x",
+					menuStyle:"no",
+					autoplay:"yes",
+					autoplaySpeed:2,
+					showContextMenu:"no",
+
+					//thumbnail settings
+					thumbnailWidth:400,
+					thumbnailHeight:266,
+					thumbnailsMinimumScale:.6,
+					thumbnailsSpace:10,
+					thumbnailsSideSpace:10,
+					thumbnailsInfluenceDistance:480,
+					thumbnailsAlignment:"center",
+					thumbnailBorderSize:2,
+					thumbnailBackgroundColor:"#666666",
+					thumbnailBorderColor1:"#fcfdfd",
+					thumbnailBorderColor2:"#e4e4e4",
+					transparentImages:"no",
+					maxNumberOfThumbnailsOnMobile:13,
+					showThumbnailsHtmlContent:"yes",
+					enableHtmlContent:"no",
+					showThumbnailBoxShadow:"yes",
+					thumbnailBoxShadowCss:"0px 2px 2px #555555",
+					showTooltip:"yes",
+					dynamicTooltip:"yes",
+					showReflection:"yes",
+					reflectionHeight:100,
+					reflectionDistance:2,
+					reflectionOpacity:.5,
+
+					//combobox settings
+					showComboBox:"no",
+					startAtCategory:1,
+					selectLabel:"SELECT CATEGORIES",
+					allCategoriesLabel:"All Categories",
+					showAllCategories:"no",
+					comboBoxPosition:"topleft",
+					selectorBackgroundNormalColor1:"#fcfdfd",
+					selectorBackgroundNormalColor2:"#e4e4e4",
+					selectorBackgroundSelectedColor1:"#a7a7a7",
+					selectorBackgroundSelectedColor2:"#8e8e8e",
+					selectorTextNormalColor:"#8b8b8b",
+					selectorTextSelectedColor:"#FFFFFF",
+					buttonBackgroundNormalColor1:"#e7e7e7",
+					buttonBackgroundNormalColor2:"#e7e7e7",
+					buttonBackgroundSelectedColor1:"#a7a7a7",
+					buttonBackgroundSelectedColor2:"#8e8e8e",
+					buttonTextNormalColor:"#000000",
+					buttonTextSelectedColor:"#FFFFFF",
+					comboBoxShadowColor:"#000000",
+					comboBoxHorizontalMargins:12,
+					comboBoxVerticalMargins:12,
+					comboBoxCornerRadius:0,
+
+					//lightbox settings
+					addLightBoxKeyboardSupport:"yes",
+					showLightBoxNextAndPrevButtons:"yes",
+					showLightBoxZoomButton:"yes",
+					showLightBoxInfoButton:"yes",
+					showLighBoxSlideShowButton:"yes",
+					showLightBoxInfoWindowByDefault:"no",
+					slideShowAutoPlay:"no",
+					lightBoxVideoAutoPlay:"yes",
+					lightBoxBackgroundColor:"#000000",
+					lightBoxInfoWindowBackgroundColor:"#FFFFFF",
+					lightBoxItemBorderColor1:"#fcfdfd",
+					lightBoxItemBorderColor2:"#e4FFe4",
+					lightBoxItemBackgroundColor:"#333333",
+					lightBoxMainBackgroundOpacity:.8,
+					lightBoxInfoWindowBackgroundOpacity:.9,
+					lightBoxBorderSize:5,
+					lightBoxBorderRadius:0,
+					lightBoxSlideShowDelay:4
+				});
+			})
+		</script>
+
+	</head>
+
+	<body>
+		<!-- div used as a holder for the coverflow -->
+		<div id="myDiv"></div>
+
+		<!-- coverflow data -->
+		<div id="dockMenuData" style="display: none;">
+
+			<!-- category  -->
+			<ul data-cat="Category one">
+			  <ul>
+					<li data-type="media" data-width="640" data-height="420" data-url="http://www.youtube.com/watch?v=c1H_IoaTrP4"></li>
+					<li data-thumbnail-path="/sites/default/themes/awbs/includes/flex_gallery/images/sample2.jpg"></li>
+					<li data-tooltip-text="">
+					</li>
+					<li data-html-content="">
+					  <div class="thumbDiv" style="background-image:url('/sites/default/themes/awbs/includes/flex_gallery/images/sample2.jpg');">
+							<p class="thumbCaptionBottom thumbDescription">
+							<span class="text-holder">Hamer Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed eu dolor et ante imperdiet rhoncus.<a class="thumblink" href="http://download.fluke.com/fluke-connect/EN/USEN/index.html" target="_blank">Watch Video »</a></span>
+							</p>
+						</div>
+					</li>
+					<li data-info="">
+					<p class="mediaDescriptionHeader">Fluke 712B RTD Calibrator</p>
+						<p class="mediaDescriptionText">Hamer Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed eu dolor et ante imperdiet rhoncus.</p>
+					</li>
+				</ul>
+
+				<ul>
+					<li data-type="media" data-width="640" data-height="420" data-url="http://www.youtube.com/watch?v=gguSVUiH-pE"></li>
+					<li data-thumbnail-path="/sites/default/files/fluke3/images/flukeb_400x250.jpg"></li>
+					<li data-tooltip-text="">
+					</li>
+					<li data-html-content="">
+					  <div class="thumbDiv thumbHolder"  style="background-image:url('/sites/default/themes/awbs/includes/flex_gallery/images/sample2.jpg');">
+							<p class="thumbCaptionTop thumbDescription">
+							<span class="text-holder">Hamer Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed eu dolor et ante imperdiet rhoncus.<a class="thumblink" href="http://download.fluke.com/fluke-connect/EN/USEN/index.html" target="_blank">Watch Video »</a></span>
+							</p>
+						</div>
+					</li>
+					<li data-info="">
+					<p class="mediaDescriptionHeader">Fluke 714B Thermocouple Calibrator</p>
+						<p class="mediaDescriptionText">For the temperature calibration professional that wants a highly accurate, easy-to-use, single function thermo-couple temperature calibrator the Fluke 714B test tool.</p>
+					</li>
+				</ul>
+
+				<ul>
+					<li data-type="media" data-width="640" data-height="420" data-url="http://www.youtube.com/watch?v=naJFWJlFdUo"></li>
+					<li data-thumbnail-path="/sites/default/themes/awbs/includes/flex_gallery/images/sample2.jpg"></li>
+					<li data-tooltip-text="">
+
+					</li>
+					<li data-html-content="">
+					  <div class="thumbDiv thumbHolder"  style="background-image:url('/sites/default/themes/awbs/includes/flex_gallery/images/sample2.jpg');">
+							<p class="thumbCaptionRight thumbDescription">
+							<span class="text-holder">Hamer Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed eu dolor et ante imperdiet rhoncus.<a class="thumblink" href="http://download.fluke.com/fluke-connect/EN/USEN/index.html" target="_blank">Watch Video »</a></span>
+							</p>
+						</div>
+					</li>
+					<li data-info="">
+					<p class="mediaDescriptionHeader">Fluke 1625-2 GEO Earth Ground Tester Kit</p>
+						<p class="mediaDescriptionText">The Fluke 1625-2 offers you simpler, faster earth ground tests than ever before. The 1625-2 offers internal memory storage up to 1500 records, accessible via USB port for rapid data transfer and viewing of results. This earth ground tester.</p>
+					</li>
+				</ul>
+
+				<ul>
+					<li data-type="media" data-width="640" data-height="420" data-url="http://www.youtube.com/watch?v=ABm0WNh5mxo"></li>
+					<li data-thumbnail-path="/sites/default/themes/awbs/includes/flex_gallery/images/sample2.jpg"></li>
+					<li data-tooltip-text="">
+					</li>
+					<li data-html-content="">
+					  <div class="thumbDiv thumbHolder"  style="background-image:url('/sites/default/themes/awbs/includes/flex_gallery/images/sample2.jpg');">
+							<p class="thumbCaptionLeft thumbDescription">
+							<span class="text-holder">Hamer Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed eu dolor et ante imperdiet rhoncus.<a class="thumblink" href="http://download.fluke.com/fluke-connect/EN/USEN/index.html" target="_blank">Watch Video »</a></span>
+							</p>
+						</div>
+					</li>
+					<li data-info="">
+					<p class="mediaDescriptionHeader">Fluke 1625-2 GEO Earth Ground Tester Kit</p>
+						<p class="mediaDescriptionText">The Fluke 1625-2 offers you simpler, faster earth ground tests than ever before. The 1625-2 offers internal memory storage up to 1500 records, accessible via USB port for rapid data transfer and viewing of results. This earth ground tester.</p>
+					</li>
+
+				</ul>
+
+			</ul>
+			<!-- end  -->
+
+		</div>
+
+	</body>
+</html>
+

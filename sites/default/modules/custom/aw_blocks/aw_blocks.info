@@ -1,0 +1,4 @@
+name = AW Blocks
+description = Module to create custom AW blocks.
+package = custom
+core = 7.x

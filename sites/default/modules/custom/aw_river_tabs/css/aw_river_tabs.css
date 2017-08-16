@@ -1,0 +1,38 @@
+/*reset css*/
+.views-exposed-form .views-exposed-widget .form-submit { margin: 0; padding:0; background:none;border:0;}
+.views-exposed-form .views-exposed-widget ul{margin:0;padding:0;}
+.views-exposed-form .views-exposed-widget h1{margin:0;padding:0;}
+.views-exposed-form .views-exposed-widget ul li{list-style:none;list-style-image:none;}
+.views-exposed-form .views-exposed-widget{padding: 40px 0 10px;}
+/*tab dropdown menu*/
+.views-exposed-widget ul {}
+.views-exposed-widget ul li.expanded{display:block;}
+.views-exposed-widget ul .expanded ul.menu{display:none; z-index: 1000;float:right;position:absolute;background:#fff;border:1px solid #ccc;margin-top:-1px;}
+.views-exposed-widget ul li.expanded:hover ul.menu{display:block;}
+.views-exposed-widget ul li.expanded:hover{background-position: 0 -31px;}
+/*style*/
+.views-exposed-form .views-exposed-widget input#edit-submit-1{background: url("images/tab-allarticles.png") no-repeat; width:105px; height:31px; margin-right:2px;}
+.views-exposed-form .views-exposed-widget input#edit-submit-2{background: url("images/tab-workforce.png") no-repeat; width:105px; height:31px; margin-right:2px;}
+.views-exposed-form .views-exposed-widget input#edit-submit-3{background: url("images/tab-acquisitions.png") no-repeat;  width:124px; height:31px; margin-right:2px;}
+.views-exposed-form .views-exposed-widget input#edit-submit-4{background: url("images/tab-eventcoverage.png") no-repeat 0 -2px; width:135px; height:31px; margin-right:2px;}
+/*style hover*/
+.views-exposed-form .views-exposed-widget input#edit-submit-1:hover{background-position: 0 -31px;}
+.views-exposed-form .views-exposed-widget input#edit-submit-2:hover{background-position: 0 -31px;}
+.views-exposed-form .views-exposed-widget input#edit-submit-3:hover{background-position: 0 -31px;}
+.views-exposed-form .views-exposed-widget input#edit-submit-4:hover{background-position: 0 -32px;}
+/*style selected*/
+.views-exposed-form .views-exposed-widget input#edit-submit-1.selected{background-position: 0 -31px;}
+.views-exposed-form .views-exposed-widget input#edit-submit-2.selected{background-position: 0 -31px;}
+.views-exposed-form .views-exposed-widget input#edit-submit-3.selected{background-position: 0 -31px;}
+.views-exposed-form .views-exposed-widget input#edit-submit-4.selected{background-position: 0 -32px;}
+
+.views-exposed-form .views-exposed-widget ul{float:left;}
+.views-exposed-form .views-exposed-widget li.expanded {background: url("images/tab-more.png") no-repeat; width:89px; height:31px; display:block; margin:0;padding:0;}
+.views-exposed-form .views-exposed-widget li.expanded  ul.menu{margin-top:20px;}
+.views-exposed-form .views-exposed-widget .filter-info{clear:both;font-size: 1.3em;padding-top: 10px;}
+.views-exposed-form .views-exposed-widget .form-submit{font-size: 0; line-height: 0;padding-top:31px; color:taransparent;overflow:hidden;}
+.views-exposed-form .views-exposed-widget h1.filter-title{float:left !important;display:inline !important;font-size: 2.1em !important;margin-right: 5px;}
+
+#views-exposed-form-home-river-of-content-page .ajax-progress-throbber,
+.views-exposed-widget #edit-submit-home-river-of-content,
+.views-exposed-widget #edit-submit-category-part-1 { display: none; }

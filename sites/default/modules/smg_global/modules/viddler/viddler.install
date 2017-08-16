@@ -1,0 +1,64 @@
+<?php
+/**
+ * Implements hook_field_schema().
+ */
+function viddler_field_schema($field) {
+  $columns = array(
+    'value' => array(
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => FALSE,
+    ),
+    'embed_code' => array(
+      'type' => 'text',
+      'length' => 255,
+      'not null' => FALSE,
+    ),
+    'thumbnail_url' => array(
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => FALSE,
+    ),
+    'thumbnail_fid' => array(
+      'type' => 'int',
+      'length' => 11,
+      'not null' => FALSE,
+    ),
+    'video_fid' => array(
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => FALSE,
+    ),
+     'video_title' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+  );
+  
+  return array('columns' => $columns);
+}
+
+function viddler_update_7002(&$sandbox) {
+  
+  
+  $spec = array(
+    'type' => 'varchar',
+    'description' => "Video fid",
+    'length' => 255,
+    'not null' => FALSE,
+  ); 
+  
+  db_add_field('field_data_field_viddler_id', 'field_viddler_id_video_fid', $spec);
+  db_add_field('field_revision_field_viddler_id ', 'field_viddler_id_video_fid', $spec);
+  
+  $spec = array(
+    'type' => 'varchar',
+    'description' => "Video Title",
+    'length' => 255,
+    'not null' => FALSE,
+  ); 
+  
+  db_add_field('field_data_field_viddler_id', 'field_viddler_id_video_title', $spec);
+  db_add_field('field_revision_field_viddler_id', 'field_viddler_id_video_title', $spec);
+}

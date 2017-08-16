@@ -1,0 +1,7 @@
+name = Aquafadas Image Styles
+core = 7.x
+package = Features
+dependencies[] = image
+features[features_api][] = api:1
+features[image][] = aquafadas_width_110
+features[image][] = aquafadas_width_500

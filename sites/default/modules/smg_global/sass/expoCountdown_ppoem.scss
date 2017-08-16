@@ -1,0 +1,148 @@
+@import "variables";
+
+$flip-height: 42px;
+$flip-width: $flip-height - 15px;
+$flip-line-height: $flip-height - 2px;
+$flip-divider: 18px;
+$flip-font-size: $flip-height * (2/3);
+
+$flip-max-800: 44px;
+$flip-max-800-width: $flip-max-800 - 15px;
+$flip-max-800-line-height: $flip-max-800 - 2px;
+$flip-max-800-divider: $flip-max-800-line-height / 2;
+$flip-max-800-font-size: $flip-max-800 * (2/3);
+
+$border-color: #d1d1d1;
+
+#block-ppoem-page-alteration-ppoem-show-countdown {
+  margin-bottom: 0 !important;
+}
+
+.expo-countdown-container {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  #expo-countdown-timer {
+    .flip-clock-wrapper {
+     ul {
+        line-height: $flip-line-height;
+        margin: 2px;
+        li {
+          padding-bottom: 0;
+          a {
+            div {
+              &.up {
+                &:after {
+                  top: $flip-divider;
+                  background-color: #000000;
+                }
+              }
+              div.inn {
+                font-size: $flip-font-size;
+                color: #FFFFFF;
+              }
+            }
+          }
+        }
+      }
+    }
+    .flip-clock-wrapper ul {
+      height: 38px;
+      padding: 13px;
+      width: 0;
+    }
+    .expo-countdown-flip-title {
+      font-size: 70%;
+      line-height: 0;
+      margin-top: 15px;
+      display: block;
+      text-align: center;
+      font-weight: bold;
+      color: #000000;
+    }
+    .flip-clock-wrapper {
+      margin: 0 0.5em;
+    }
+    .expo-countdown-register {
+      margin-top: 15px !important;
+      a {
+        color: #ffffff;
+        padding: 5px 20px 5px 16px;
+        background: linear-gradient(to bottom,#f5a14e 5%,#f85900 100%);
+        text-shadow: -2px 2px 3px rgba(0, 0, 0, 0.35);
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        border-radius: 5px;
+      }
+    }
+  }
+
+  .expo-countdown-image {
+    padding: 0 15px;
+    margin: 0 15px;
+    border-right: 1px solid $border-color;
+    display: flex;
+    .expo-countdown-logo {
+      width:auto;
+      max-height: 65px;
+      object-fit: contain;
+    }
+  }
+  #expo-countdown-timer {
+    flex-basis: 17.5%;
+    display: flex;
+    justify-content: center;
+    .expo-countdown-time-count {
+      display: inline-block;
+    }
+  }
+  .expo-countdown-description {
+    flex-basis: 35%;
+    padding: 0 15px;
+    align-self: flex-start;
+    margin-top: 5px;
+    .expo-countdown-banner-text {
+      font-size: 120%;
+      line-height: 0;
+      color: #354580;
+      font-weight: bold;
+    }
+  }
+  .expo-countdown-register {
+    margin-top: 0 !important;
+    flex-basis: 20%;
+    a {
+      display: block;
+      width: 100%;
+      text-align: center;
+      background-color: #1791bf;
+      height: 2rem;
+      line-height: 1.85rem;
+      -webkit-transition: background-color ease-in .3s, box-shadow linear .3s;
+      transition: background-color ease-in .3s, box-shadow linear .3s;
+      border-radius: 0;
+      border-bottom: 0;
+      color: #fdfdfd;
+      position: relative;
+      &:hover {
+        background-color: rgba(23, 145, 191, 0.75);
+        color: #fdfdfd;
+        &:after {
+          height: 0;
+          background-color: transparent;
+        }
+      }
+      &:after {
+        content: '';
+        position: absolute;
+        height: 6px;
+        width: 100%;
+        bottom: 0;
+        left: 0;
+        background-color: #105b77;
+        -webkit-transition: height linear 0.3s, background-color ease-in .3s;
+        transition: height linear 0.3s, background-color ease-in .3s;
+      }
+    }
+  }
+}

@@ -1,0 +1,200 @@
+<?php
+// $Id$
+/**
+ * @file
+ * Original Author: www.ag-prime.com
+ * Coverted to Drupal 7: ajankowski@summitmediagroup.com
+ */
+
+
+/**
+ * Implements hook_permission()
+ */
+function path_redirect_import_permission() {
+  return array(
+    'admin path redirect import' => array(
+      'title' => t('Administer path import module module'), 
+      'description' => t('Perform administration tasks for my module.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function path_redirect_import_menu() {
+  $items['admin/config/search/redirect/import'] = array(
+    'title' => 'Import',
+    'description' => 'Import from CSV file',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('path_redirect_import_form'),
+    'access arguments' => array('admin path redirect import'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  return $items;
+}
+
+/*
+ *  form for import redirect path
+ */
+function path_redirect_import_form() {
+  $redirect_status_code_options = array(
+    300 => t('300 Multiple Choices'),
+    301 => t('301 Moved Permanently'),
+    302 => t('302 Found'),
+    303 => t('303 See Other'),
+    304 => t('304 Not Modified'),
+    305 => t('305 Use Proxy'),
+    307 => t('307 Temporary Redirect'),
+  );
+
+  $form = array();
+  $form['csv'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Import from .csv file'),
+  );
+  $form['csv']['csv_file'] = array(
+    '#type' => 'file',
+    '#description' => t('File structure: "old url","new_url"  (defaults to 301)'),
+  );
+  $form['advanced'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Advanced options'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+  $form['advanced']['status_code'] = array(
+    '#type' => 'select',
+    '#title' => t('Redirect status'),
+    '#description' => t('You can find more information about HTTP redirect status codes at <a href="@status-codes">@status-codes</a>.', array('@status-codes' => 'http://en.wikipedia.org/wiki/List_of_HTTP_status_codes#3xx_Redirection')),
+    '#default_value' => 301,
+    '#options' => $redirect_status_code_options,
+  );
+
+  $form['submit'] = array('#type' => 'submit', '#value' => t('Import'));
+  $form['#attributes'] = array('enctype' => "multipart/form-data");
+  return $form;
+}
+
+/*
+ * validate form function
+ */
+function path_redirect_import_form_validate($form, &$form_state) {
+
+	$extensions = 'csv' ; 
+	$validators = array(
+	 'file_validate_extensions' => array($extensions),
+	);
+	$destination = NULL; //saves in default temporary location
+	
+	$file = file_save_upload('csv_file', $validators, $destination, FILE_EXISTS_REPLACE);
+	// if the file not uploaded or the extension is wrong set error
+	if(!$file) { // cvs_file is the form name
+	  form_set_error('csv_file', 'Please select the csv file');    
+	} 
+	else { 
+	  // another validator for the extension
+	  if($file->filemime != 'text/csv' ) {
+	    form_set_error('csv_file', 'Extensions Allowed : csv');       
+	  }  
+	  
+	$form_state['uploaded_file'] = $file->uri;
+	} 
+}
+
+/*
+ * Submit form function
+ */
+function path_redirect_import_form_submit($form, &$form_state) {
+  if (!isset($form_state['uploaded_file'])) return;
+  $_SESSION['allomundo_cards_upload_report'] = NULL;
+  if (!$f = fopen($form_state['uploaded_file'], 'r')) {
+    form_set_error('form', t("Could not open uploaded file."));
+  }
+  $status_code = $form_state['values']['status_code'];
+  
+  $line_no = 0;
+  $count = 0;
+  $output='';
+  while ($line = fgetcsv($f, 1024, ",")) {
+    $line_no++;
+    $error = '';
+    if (!is_array($line)) {
+      $error .= t('Line %line_no is invalid.', array('%line_no' => $line_no)) . '<br />';
+    }
+    if ($line[0] == '' || $line[1] == '') {
+      $error .= t('Line %line_no contains invalid data.', array('%line_no' => $line_no)) . '<br />';
+    }
+    if ($status_code == '') {
+      $error .= t('Invalid redirect status selected') . '<br />';
+    }
+    $data = array(
+      'old_url' => $line[0],
+      'new_url' => $line[1],
+      'redirect_code' => $status_code,
+    );
+    if ($error == '') {
+      if (!path_redirect_import_save_data($data)) {
+        drupal_set_message(t('Failed on Source: @old_url  Destination: @new_url Line Number: @line_number', array('@old_url' => $line[0], '@new_url' => $line[1], '@line_number' => $line_no)), 'error');
+      }
+      else{
+        $count++;
+      }
+    }
+    else {
+      drupal_set_message($error, 'error');
+    }
+  }
+  if ($count > 0) {
+    drupal_set_message(t('%count row(s) imported.', array('%count' => $count)), 'message');
+  }
+}
+
+/*
+ * Function for save data from .csv file into the database
+ */
+function path_redirect_import_save_data($data) {
+  $redirect = new stdClass();
+	$redirect->rid = NULL;
+	$redirect->source = path_redirect_import_clean_url($data['old_url']);
+	$redirect->source_options = array();
+	$redirect->redirect = path_redirect_import_clean_url($data['new_url']);
+	$redirect->redirect_options = array();
+	$redirect->language = LANGUAGE_NONE;
+	$redirect->status_code = $data['redirect_code'];
+	$redirect->type = 'redirect';
+
+  //Source and redirect can't be the same because it will cause an infinite loop
+  if($redirect->source == $redirect->redirect) {
+    return FALSE;
+  }
+
+  //Source cannot contain an URL fragment
+  if (strpos($redirect->source, '#') !== FALSE) {
+    return FALSE;
+  }
+  
+  //Source cannot be front page
+  if ($redirect->source === '<front>') {
+    return FALSE;
+  }
+  
+  //Check if source is already being redirected
+  if ($existing = redirect_load_by_source($redirect->source, $redirect->language)) {
+    if ($redirect->rid != $existing->rid && $redirect->language == $existing->language) {
+       drupal_set_message(t('The base source path %source is already being redirected. Do you want to <a href="@edit-page">edit the existing redirect</a>?', array('%source' => $redirect->source, '@edit-page' => url('admin/config/search/redirect/edit/'. $existing->rid))), 'error');
+      return FALSE;
+    }
+  }
+  else {
+    redirect_save($redirect);
+    return TRUE;
+  }
+}
+
+/**
+ * Function for cleaning the URL
+ */
+function path_redirect_import_clean_url($url) {
+	return trim($url, " \t\n\r\0\x0B\/");
+}

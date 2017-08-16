@@ -1,0 +1,4 @@
+name = Nielsen
+description = Module for Nielsen Service
+package = Statistics
+core = 7.x

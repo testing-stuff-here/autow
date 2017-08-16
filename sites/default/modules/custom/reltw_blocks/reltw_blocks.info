@@ -1,0 +1,5 @@
+;$Id$
+name = Reltw additional blocks
+description = new blocks
+package = "custom"
+core = 7.x

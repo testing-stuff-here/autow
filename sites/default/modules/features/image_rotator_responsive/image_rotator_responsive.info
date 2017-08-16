@@ -1,0 +1,7 @@
+core = "7.x"
+dependencies[] = "views"
+description = "Image Rotator Responsive View"
+features[ctools][] = "views:views_default:3.0"
+features[views_view][] = "rotator_responsive"
+name = "Image Rotator Responsive"
+package = "Features"

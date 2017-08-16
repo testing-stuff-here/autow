@@ -1,0 +1,4 @@
+name = AW Dfp
+description = Custom functionality for DFP on AW
+package = Custom
+core = 7.x

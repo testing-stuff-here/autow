@@ -1,0 +1,4 @@
+name = SMG Survey
+description = "Pop-up containing simple survey"
+core = 7.x
+package = Other

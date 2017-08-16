@@ -1,0 +1,7 @@
+name = Feeds: PMG Youtube Feed Processor
+description = Feeds processor for custom entity type pmg youtube feed video
+core = 7.x
+package = Feeds
+dependencies[] = feeds
+dependencies[] = feeds_youtube
+dependencies[] = ctools
